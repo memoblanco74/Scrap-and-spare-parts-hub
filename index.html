@@ -4271,7 +4271,7 @@ function showModal(overlayElement){if(overlayElement){overlayElement.style.displ
 function hideModal(overlayElement){if(overlayElement){overlayElement.style.display='none';const anyModalOpen=document.querySelectorAll('.modal-overlay[style*="display: flex"]').length>0;if(!anyModalOpen)document.body.classList.remove('modal-open');}}
 // رابط الـ Web App بتاع Apps Script (Deploy > New deployment > Web app)
 // حط هنا الرابط اللي بيخلص بـ /exec بعد ما تعمل Deploy
-const APPS_SCRIPT_API_URL = "https://script.google.com/macros/s/AKfycbwetbdfPfGrercV3WnS8UMvaif2hVEDBZWnWVW7vSvs/dev";
+const APPS_SCRIPT_API_URL = "https://script.google.com/macros/s/AKfycbwvibqgphhBvndCFt191Ck_IvN1YjmWvcKUgpCUScBjs_dwGhGwSl4O-4_LI8eZHmem/exec";
 
 async function sendRequest(action, payload = {}) {
     const d = document.getElementById('dbStatus');
