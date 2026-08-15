@@ -4671,31 +4671,64 @@ applyTheme(localStorage.getItem('darkMode')==='true');(async()=>{await refreshAl
 function applyTheme(isDark){document.body.classList.toggle('dark-mode',isDark);if(themeToggle)themeToggle.checked=isDark;}
 function showModal(overlayElement){if(overlayElement){overlayElement.style.display='flex';document.body.classList.add('modal-open');}}
 function hideModal(overlayElement){if(overlayElement){overlayElement.style.display='none';const anyModalOpen=document.querySelectorAll('.modal-overlay[style*="display: flex"]').length>0;if(!anyModalOpen)document.body.classList.remove('modal-open');}}
+// رابط الـ Web App بتاع Google Apps Script (نفس اللي بتاخده من Deploy > Manage Deployments)
+// بيتستخدم بس لما الصفحة تكون مستضافة برا Google Apps Script (زي GitHub Pages)
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyTPJX4c-aszDlBVkEQzv6KRcvodmP-oHQET5NubismkZoq_MsjLyweSW9foGvo_2Xupw/exec";
+const IS_GAS_ENV = (typeof google !== 'undefined' && google.script && typeof google.script.run !== 'undefined');
 async function sendRequest(action, payload = {}) {
     const d = document.getElementById('dbStatus');
     d.innerHTML = '<div class="progress-container"><div class="progress-bar"></div></div>';
     d.className = 'db-status show syncing-mode';
+    const fullPayload = { action: action, user: currentUser ? currentUser.email : 'Guest/System', ...payload };
 
-    return new Promise((res, rej) => {
-        google.script.run
-            .withSuccessHandler(r => {
-                if (r.status === "success") {
-                    d.innerHTML = '<div style="height:3px;background:var(--success-color);width:100%;border-radius:3px;transition:all 0.3s;"></div>';
-                    setTimeout(() => d.classList.remove('show'), 1000);
-                    res(r.data);
-                } else {
+    if (IS_GAS_ENV) {
+        // الحالة الأولى: الصفحة شغالة جوه Google Apps Script (Publish as Web App)
+        return new Promise((res, rej) => {
+            google.script.run
+                .withSuccessHandler(r => {
+                    if (r.status === "success") {
+                        d.innerHTML = '<div style="height:3px;background:var(--success-color);width:100%;border-radius:3px;transition:all 0.3s;"></div>';
+                        setTimeout(() => d.classList.remove('show'), 1000);
+                        res(r.data);
+                    } else {
+                        d.innerHTML = '<div style="height:3px;background:var(--danger-color);width:100%;border-radius:3px;"></div>';
+                        showNotification(r.message, 'error');
+                        rej(new Error(r.message));
+                    }
+                })
+                .withFailureHandler(e => {
                     d.innerHTML = '<div style="height:3px;background:var(--danger-color);width:100%;border-radius:3px;"></div>';
-                    showNotification(r.message, 'error');
-                    rej(new Error(r.message));
-                }
-            })
-            .withFailureHandler(e => {
-                d.innerHTML = '<div style="height:3px;background:var(--danger-color);width:100%;border-radius:3px;"></div>';
-                showNotification("Critical Server Error", 'error');
-                rej(e);
-            })
-            .execSafe({ action: action, user: currentUser ? currentUser.email : 'Guest/System', ...payload });
-    });
+                    showNotification("Critical Server Error", 'error');
+                    rej(e);
+                })
+                .execSafe(fullPayload);
+        });
+    }
+
+    // الحالة الثانية: الصفحة شغالة برا GAS (زي GitHub Pages) وبتكلم الـ Web App كـ API عن طريق fetch
+    try {
+        const response = await fetch(GAS_API_URL, {
+            method: 'POST',
+            // لازم text/plain عشان نتجنب CORS preflight (Apps Script مش بيدعم OPTIONS)
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(fullPayload)
+        });
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const r = await response.json();
+        if (r.status === "success") {
+            d.innerHTML = '<div style="height:3px;background:var(--success-color);width:100%;border-radius:3px;transition:all 0.3s;"></div>';
+            setTimeout(() => d.classList.remove('show'), 1000);
+            return r.data;
+        } else {
+            d.innerHTML = '<div style="height:3px;background:var(--danger-color);width:100%;border-radius:3px;"></div>';
+            showNotification(r.message, 'error');
+            throw new Error(r.message);
+        }
+    } catch (e) {
+        d.innerHTML = '<div style="height:3px;background:var(--danger-color);width:100%;border-radius:3px;"></div>';
+        showNotification("Critical Server Error", 'error');
+        throw e;
+    }
 }
 // استبدل الدالة القديمة refreshAllDataAndViews بهذا الكود بالكامل
 async function refreshAllDataAndViews() {
