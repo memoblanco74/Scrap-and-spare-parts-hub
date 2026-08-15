@@ -7,6 +7,14 @@
   <title>Scrap & Spare Parts Hub</title>
   <link rel="icon"
     href="https://auurmvfaqkxaxowxoqkl.supabase.co/storage/v1/object/public/images/laptop-screen.png?v=2">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#007bff">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Scrap Hub">
+  <link rel="apple-touch-icon"
+    href="https://auurmvfaqkxaxowxoqkl.supabase.co/storage/v1/object/public/images/laptop-screen.png?v=2">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link rel="preconnect" href="https://auurmvfaqkxaxowxoqkl.supabase.co">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -3284,6 +3292,9 @@
     <span class="refresh-dot"></span>
     <i id="realtimeStatusIcon" class="fa-solid fa-rotate-right realtime-disconnected"></i>
 </button>
+        <button id="pwaInstallBtn" class="custom-btn" style="display:none; background-color:#6f42c1; color:white;" title="Install App">
+    <i class="fa-solid fa-download"></i> Install App
+</button>
         <div class="theme-switcher-container">
           <i class="fa-solid fa-sun"></i>
           <label class="theme-switch">
@@ -4667,6 +4678,37 @@ let isEditing=false,isEditingSparePart=false,editingSparePartId=null,allLaptops=
 function toggleButtonLoading(b,l){b.disabled=l;if(l){b.dataset.tx=b.innerHTML;b.innerHTML='<i class="fas fa-circle-notch fa-spin"></i>';}else{b.innerHTML=b.dataset.tx||'Save';}}
 function getDefaultPermissions(isAdmin=false){return {dashboard:{visible:true,manageCompatibility:isAdmin,canBackup:isAdmin},dataManagement:{visible:isAdmin,canImport:isAdmin,canExport:isAdmin,canDelete:isAdmin},addEditLaptop:{visible:isAdmin},spareParts:{visible:isAdmin,canAdd:isAdmin,canUse:isAdmin,canDeduct:isAdmin,canDelete:isAdmin,canRollback:isAdmin,canEditUsage:isAdmin},incidents:{visible:isAdmin},logs:{visible:isAdmin,canClear:isAdmin},manageUsers:{visible:isAdmin},qrSystem:{access:isAdmin},itWorkspace:{visible:isAdmin}};}
 function migratePermissions(oldPerms){if(oldPerms&&oldPerms.dashboard)return oldPerms;return getDefaultPermissions(false);}
+// ==================== PWA Install & Service Worker ====================
+// تسجيل الـ Service Worker (بيشتغل بس لو الملف sw.js موجود فعلاً على نفس الاستضافة)
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => { /* مفيش sw.js متاح (زي حالة GAS) - تجاهل بهدوء */ });
+    });
+}
+let pwaDeferredPrompt = null;
+const pwaInstallBtn = document.getElementById('pwaInstallBtn');
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    pwaDeferredPrompt = e;
+    if (pwaInstallBtn) pwaInstallBtn.style.display = 'inline-flex';
+});
+if (pwaInstallBtn) {
+    pwaInstallBtn.addEventListener('click', async () => {
+        if (!pwaDeferredPrompt) return;
+        pwaDeferredPrompt.prompt();
+        const choice = await pwaDeferredPrompt.userChoice;
+        if (choice.outcome === 'accepted') {
+            showToast('App installed successfully', 'success');
+        }
+        pwaDeferredPrompt = null;
+        pwaInstallBtn.style.display = 'none';
+    });
+}
+window.addEventListener('appinstalled', () => {
+    if (pwaInstallBtn) pwaInstallBtn.style.display = 'none';
+    pwaDeferredPrompt = null;
+});
+// ==================== End PWA ====================
 applyTheme(localStorage.getItem('darkMode')==='true');(async()=>{await refreshAllDataAndViews();checkSession();})();
 function applyTheme(isDark){document.body.classList.toggle('dark-mode',isDark);if(themeToggle)themeToggle.checked=isDark;}
 function showModal(overlayElement){if(overlayElement){overlayElement.style.display='flex';document.body.classList.add('modal-open');}}
