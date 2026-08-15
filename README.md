@@ -1,2 +1,2 @@
-# Scrap and soare parts hub
+# Scrap and spare parts hub
 
