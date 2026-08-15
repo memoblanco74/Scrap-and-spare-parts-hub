@@ -4765,30 +4765,55 @@ async function sendRequest(action, payload = {}) {
         });
     }
 
-    // الحالة الثانية: الصفحة شغالة برا GAS (زي GitHub Pages) وبتكلم الـ Web App كـ API عن طريق fetch
-    try {
-        const response = await fetch(GAS_API_URL, {
-            method: 'POST',
-            // لازم text/plain عشان نتجنب CORS preflight (Apps Script مش بيدعم OPTIONS)
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(fullPayload)
-        });
-        if (!response.ok) throw new Error('HTTP ' + response.status);
-        const r = await response.json();
-        if (r.status === "success") {
-            d.innerHTML = '<div style="height:3px;background:var(--success-color);width:100%;border-radius:3px;transition:all 0.3s;"></div>';
-            setTimeout(() => d.classList.remove('show'), 1000);
-            return r.data;
-        } else {
+    // الحالة الثانية: الصفحة شغالة برا GAS (زي GitHub Pages)
+    // Google Apps Script Web Apps مش بتدعم CORS للـ fetch/POST خالص، فبنستخدم أسلوب JSONP
+    // (تحميل النتيجة عن طريق <script> tag، ده مش خاضع لسياسة CORS من الأساس)
+    return new Promise((resolve, reject) => {
+        const callbackName = 'gasCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+        const script = document.createElement('script');
+        let finished = false;
+
+        const cleanup = () => {
+            finished = true;
+            delete window[callbackName];
+            if (script.parentNode) script.parentNode.removeChild(script);
+            clearTimeout(timeoutId);
+        };
+
+        const timeoutId = setTimeout(() => {
+            if (finished) return;
+            cleanup();
             d.innerHTML = '<div style="height:3px;background:var(--danger-color);width:100%;border-radius:3px;"></div>';
-            showNotification(r.message, 'error');
-            throw new Error(r.message);
-        }
-    } catch (e) {
-        d.innerHTML = '<div style="height:3px;background:var(--danger-color);width:100%;border-radius:3px;"></div>';
-        showNotification("Critical Server Error", 'error');
-        throw e;
-    }
+            showNotification("Request timed out. Please try again.", 'error');
+            reject(new Error('Request timed out'));
+        }, 30000);
+
+        window[callbackName] = (r) => {
+            if (finished) return;
+            cleanup();
+            if (r.status === "success") {
+                d.innerHTML = '<div style="height:3px;background:var(--success-color);width:100%;border-radius:3px;transition:all 0.3s;"></div>';
+                setTimeout(() => d.classList.remove('show'), 1000);
+                resolve(r.data);
+            } else {
+                d.innerHTML = '<div style="height:3px;background:var(--danger-color);width:100%;border-radius:3px;"></div>';
+                showNotification(r.message, 'error');
+                reject(new Error(r.message));
+            }
+        };
+
+        script.onerror = () => {
+            if (finished) return;
+            cleanup();
+            d.innerHTML = '<div style="height:3px;background:var(--danger-color);width:100%;border-radius:3px;"></div>';
+            showNotification("Critical Server Error", 'error');
+            reject(new Error('Failed to load script'));
+        };
+
+        const url = GAS_API_URL + '?callback=' + encodeURIComponent(callbackName) + '&payload=' + encodeURIComponent(JSON.stringify(fullPayload));
+        script.src = url;
+        document.body.appendChild(script);
+    });
 }
 // استبدل الدالة القديمة refreshAllDataAndViews بهذا الكود بالكامل
 async function refreshAllDataAndViews() {
