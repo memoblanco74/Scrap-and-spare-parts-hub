@@ -79,6 +79,19 @@
     }
 
     /* ==========================================================================
+   0. Global Reset - يمنع خروج العناصر (جداول/أزرار) عن إطارها عند تغيير الزوم
+   ========================================================================== */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      overflow-x: hidden;
+    }
+
+    /* ==========================================================================
    2. Base Elements & Typography
    ========================================================================== */
     body {
@@ -89,6 +102,8 @@
       padding: 0;
       color: var(--text-color);
       transition: background-color 0.3s, color 0.3s;
+      overflow-x: hidden;
+      width: 100%;
     }
 
     body.modal-open {
@@ -119,6 +134,7 @@
    ========================================================================== */
     .container {
       max-width: 100%;
+      width: 100%;
       margin: 0;
       padding: 15px;
       background-color: var(--primary-bg-color);
@@ -1118,6 +1134,8 @@
       border: 1px solid var(--border-color);
       border-radius: 8px;
       max-height: 600px;
+      width: 100%;
+      max-width: 100%;
     }
 
     #laptopTable th,
