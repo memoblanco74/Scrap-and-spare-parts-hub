@@ -6136,9 +6136,9 @@ async function exportUsageHistoryForPart(partId,btnEl){
     try{
         // نجيب البيانات لايف من الداتا بيز (Supabase) مباشرة، مش من الكاش المحفوظ في المتصفح
         const [freshParts,freshUsage,freshDeduct]=await Promise.all([
-            sendRequest('getParts'),
-            sendRequest('getUsageHistory'),
-            sendRequest('getDeductHistory')
+            fetchAllFromSupabase('spareparts'),
+            fetchAllFromSupabase('usagehistory'),
+            fetchAllFromSupabase('deducthistory')
         ]);
         const livePart=(freshParts||[]).find(p=>Number(p.id)===Number(partId))||part;
         if(!livePart)return showNotification('Part not found.','error');
