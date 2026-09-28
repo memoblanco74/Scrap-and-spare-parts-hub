@@ -6283,9 +6283,9 @@ async function verifySparePartsQuantitiesLive() {
     // وبنتأكد إن العدد الظاهر في الكارت (المتبقي) فعلاً بيساوي: الكمية الأصلية - (كل ما استُخدم أو اتخصم لكل قطعة في الكارت)
     try {
         const [freshParts, freshUsage, freshDeduct] = await Promise.all([
-            sendRequest('getParts'),
-            sendRequest('getUsageHistory'),
-            sendRequest('getDeductHistory')
+            fetchAllFromSupabase('spareparts'),
+            fetchAllFromSupabase('usagehistory'),
+            fetchAllFromSupabase('deducthistory')
         ]);
 
         const usedMap = {};
