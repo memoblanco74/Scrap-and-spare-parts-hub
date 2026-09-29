@@ -6551,8 +6551,7 @@ async function loadPrintersData(){
     const loadingEl=document.getElementById('printersLoading');
     loadingEl.style.display='block';
     try{
-        // جدول printers عنده RLS بيمنع القراءة المباشرة بمفتاح anon، فلازم يعدي على Apps Script
-        allPrintersData=await sendRequest('getPrinters')||[];
+        allPrintersData=await fetchAllFromSupabase('printers');
         renderPrintersTable(allPrintersData);
     }catch(err){
         showNotification('Failed to load printers: '+(err.message||'Unknown error'),'error');
