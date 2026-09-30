@@ -5579,6 +5579,52 @@ function classifyPartCondition(category){
     if(cat)return 'Old';
     return null;
 }
+function getFilteredUsageReportLocal(types, sites, startDate, endDate) {
+    const partsMap = {};
+    allSpareParts.forEach(p => { if (p.id) partsMap[p.id] = p; });
+    const start = startDate ? new Date(startDate) : null;
+    if (start) start.setHours(0, 0, 0, 0);
+    const end = endDate ? new Date(endDate) : null;
+    if (end) end.setHours(23, 59, 59, 999);
+    const filtered = [];
+    allUsageHistory.forEach(u => {
+        if (types.length > 0 && types.indexOf(u.type) === -1) return;
+        const currentPartId = u.part_id !== undefined ? u.part_id : u.partId;
+        const part = partsMap[currentPartId] || {};
+        const pSite = part.site || "";
+        if (sites.length > 0 && sites.indexOf(pSite) === -1) return;
+        let uDate = null;
+        if (u.date) {
+            uDate = (u.date instanceof Date) ? u.date : new Date(String(u.date).trim().replace(" ", "T"));
+        }
+        if (start && (!uDate || isNaN(uDate.getTime()) || uDate < start)) return;
+        if (end && (!uDate || isNaN(uDate.getTime()) || uDate > end)) return;
+        filtered.push({
+            date: u.date || "-",
+            partId: currentPartId,
+            partSN: u.part_sn || u.partSN || "",
+            type: u.type,
+            brand: u.brand,
+            model: u.model,
+            quantity: Number(u.quantity) || 0,
+            sourceBrand: u.source_brand || u.sourceBrand || "",
+            sourceModel: u.source_model || u.sourceModel || "",
+            sourceSN: u.source_sn || u.sourceSN || "",
+            destBrand: u.dest_brand || u.destBrand || "",
+            destModel: u.dest_model || u.destModel || "",
+            destSN: u.dest_sn || u.destSN || "",
+            account: u.account,
+            asset: u.asset || "",
+            change: u.change || "",
+            incident: u.incident || "",
+            upgradePlan: u.upgrade_plan || u.upgradePlan || "No",
+            rawDate: (uDate && !isNaN(uDate.getTime())) ? uDate.getTime() : 0,
+            usageId: u.id
+        });
+    });
+    filtered.sort((a, b) => b.rawDate - a.rawDate);
+    return filtered;
+}
 async function handleGenerateReport() {
 const t = Array.from(document.querySelectorAll('#reportTypes input[type="checkbox"]:checked')).map(cb => cb.value);
 const s = Array.from(document.querySelectorAll('#reportSites input[type="checkbox"]:checked')).map(cb => cb.value);
@@ -5619,7 +5665,7 @@ const st = reportStartDateInput.value;
 const en = reportEndDateInput.value;
 toggleButtonLoading(btnGenerateReport, true);
 try {
-const r = await sendRequest('getFilteredUsageReport', {types: t.includes('Frame') ? [] : t, sites: s, startDate: st, endDate: en});
+const r = getFilteredUsageReportLocal(t.includes('Frame') ? [] : t, s, st, en);
 let tl = 0;
 let h = '<table id="reportTable" style="font-size:0.8em;"><thead><tr><th style="text-align:center;"><input type="checkbox" id="reportSelectAllCheckbox" title="Select All"></th><th>Date</th><th>Part ID</th><th>Part SN</th><th>Type</th><th>Part Brand</th><th>Part Model</th><th>Qty</th><th>Source Brand</th><th>Source Model</th><th>Source SN</th><th>Dest Brand</th><th>Dest Model</th><th>Dest SN</th><th>Account</th><th>Asset</th><th>Change</th><th>Incident</th><th>Upgrade Plan</th><th>Action</th></tr></thead><tbody>';
 if (!r || r.length === 0) {
