@@ -641,6 +641,17 @@
       overflow: hidden;
     }
 
+    /* أنيميشن دوران خاص بالتطبيق نفسه، مستقل تمامًا عن Font Awesome CDN،
+       عشان علامات التحميل تدور بالتأكيد حتى لو حصل أي تأخير أو مشكلة في تحميل مكتبة الأيقونات */
+    @keyframes app-spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .app-spinner {
+      display: inline-block;
+      animation: app-spin 0.8s linear infinite;
+    }
+
     .progress-bar {
       width: 30%;
       height: 100%;
@@ -3423,7 +3434,7 @@
           <div class="card full-width-card" id="warrantyWidgetCard" data-permission="warrantyWidget_visible" style="display: none;">
             <h2><i class="fa-solid fa-shield-halved" style="color: var(--warning-color);"></i> Warranty Expiring Soon (30 Days)</h2>
             <div id="warrantyWidgetContent">
-              <p class="input-hint"><i class="fas fa-circle-notch fa-spin"></i> Loading...</p>
+              <p class="input-hint"><i class="fas fa-circle-notch fa-spin app-spinner"></i> Loading...</p>
             </div>
           </div>
           <div class="component-summary-section card full-width-card">
@@ -4101,7 +4112,7 @@
             <button class="custom-btn" id="warrantyAddBtn" data-permission="warrantyCheck_canAdd" style="display:none; background-color:var(--success-color); color:white;"><i class="fa-solid fa-plus"></i> Add New Record</button>
           </div>
           <div id="warrantyLoading" style="text-align:center; padding:30px; display:none;">
-            <i class="fas fa-circle-notch fa-spin" style="font-size:2em; color:var(--primary-accent-color);"></i>
+            <i class="fas fa-circle-notch fa-spin app-spinner" style="font-size:2em; color:var(--primary-accent-color);"></i>
           </div>
           <div id="warrantyResult" style="display:none; margin-top:20px;"></div>
         </div>
@@ -4147,7 +4158,7 @@
           <button class="custom-btn" id="printersAddBtn" data-permission="printers_canAdd" style="display:none; background-color:var(--success-color); color:white;"><i class="fa-solid fa-plus"></i> Add New Printer</button>
         </div>
         <div id="printersLoading" style="text-align:center; padding:30px; display:none;">
-          <i class="fas fa-circle-notch fa-spin" style="font-size:2em; color:var(--primary-accent-color);"></i>
+          <i class="fas fa-circle-notch fa-spin app-spinner" style="font-size:2em; color:var(--primary-accent-color);"></i>
         </div>
         <div class="table-container">
           <table id="printersTable">
@@ -4919,7 +4930,7 @@ document.getElementById('importOverlay').style.display='none';document.getElemen
 async function hashPassword(string){const msgBuffer=new TextEncoder().encode(string);const hashBuffer=await crypto.subtle.digest('SHA-256',msgBuffer);const hashArray=Array.from(new Uint8Array(hashBuffer));return hashArray.map(b=>b.toString(16).padStart(2,'0')).join('');}
 const appContainer=document.getElementById('appContainer'),dbStatusDiv=document.getElementById('dbStatus'),tabButtons=document.querySelectorAll('.tab-button'),tabContents=document.querySelectorAll('.tab-content'),themeToggle=document.getElementById('theme-toggle'),loginOverlay=document.getElementById('loginOverlay'),loginForm=document.getElementById('loginForm'),loginError=document.getElementById('loginError'),loginButton=document.getElementById('loginButton'),logoutButton=document.getElementById('logoutButton'),closeLoginModalBtn=document.getElementById('closeLoginModal'),userInfoDiv=document.getElementById('userInfo'),userEmailDisplay=document.getElementById('userEmailDisplay'),editUserOverlay=document.getElementById('editUserOverlay'),editUserForm=document.getElementById('editUserForm'),closeEditUserModalBtn=document.getElementById('closeEditUserModal'),usePartOverlay=document.getElementById('usePartOverlay'),usePartForm=document.getElementById('usePartForm'),usePartBrandInput=document.getElementById('usePartBrand'),usePartModelInput=document.getElementById('usePartModel'),closeUseModalBtn=document.getElementById('closeUseModal'),usePartInfo=document.getElementById('usePartInfo'),usePartIdInput=document.getElementById('usePartId'),deductPartOverlay=document.getElementById('deductPartOverlay'),deductPartForm=document.getElementById('deductPartForm'),closeDeductModalBtn=document.getElementById('closeDeductModal'),deductPartInfo=document.getElementById('deductPartInfo'),deductPartIdInput=document.getElementById('deductPartId'),componentBrandFilter=document.getElementById('componentBrandFilter'),componentModelFilter=document.getElementById('componentModelFilter'),ramManufacturerFilter=document.getElementById('ramManufacturerFilter'),ramPathFilter=document.getElementById('ramPathFilter'),modelComponentDetailsElem=document.getElementById('modelComponentDetails'),modelComponentLaptopListElem=document.getElementById('modelComponentLaptopList'),ramSummaryListElem=document.getElementById('ramSummaryList'),globalSearchInput=document.getElementById('globalSearchInput'),tableBody=document.querySelector('#laptopTable tbody'),selectAllCheckbox=document.getElementById('selectAll'),exportButton=document.getElementById('exportButton'),deleteSelectedButton=document.getElementById('deleteSelectedButton'),displayedLaptopsCount=document.getElementById('displayedLaptopsCount'),selectedLaptopsCount=document.getElementById('selectedLaptopsCount'),totalHddCount=document.getElementById('totalHddCount'),totalSsdCount=document.getElementById('totalSsdCount'),addDataForm=document.getElementById('addDataForm'),formTitle=document.getElementById('formTitle'),laptopIDInput=document.getElementById('laptopID'),originalLaptopIdInput=document.getElementById('originalLaptopId'),idHint=document.getElementById('idHint'),cancelEditButton=document.getElementById('cancelEditButton'),brandInput=document.getElementById('brand'),laptopModelInput=document.getElementById('laptopModel'),modelDatalist=document.getElementById('model-list'),ramEntriesContainer=document.getElementById('ramEntriesContainer'),addRamEntryBtn=document.getElementById('addRamEntryBtn'),groupForm=document.getElementById('compatibilityGroupForm'),groupModelsSelect=document.getElementById('groupModels'),existingGroupsContainer=document.getElementById('existingGroupsContainer'),logsTableBody=document.querySelector('#logsTable tbody'),clearLogsButton=document.getElementById('clearLogsButton'),incidentTypeSelector=document.getElementById('incidentTypeSelector'),incidentFormsContainer=document.getElementById('incidentFormsContainer'),incidentOutputContainer=document.getElementById('incidentOutputContainer'),incidentOutput=document.getElementById('incidentOutput'),copyIncidentBtn=document.getElementById('copyIncidentBtn'),addSparePartBtn_form3=document.getElementById('addSparePartBtn_form3'),sparePartsList_form3=document.getElementById('sparePartsList_form3'),addSparePartBtn_form4=document.getElementById('addSparePartBtn_form4'),sparePartsList_form4=document.getElementById('sparePartsList_form4'),userManagementForm=document.getElementById('userManagementForm'),usersTableBody=document.querySelector('#usersTable tbody'),addSparePartForm=document.getElementById('addSparePartForm'),sparePartsCardContainer=document.getElementById('sparePartsCardContainer'),sparePartsSearchInput=document.getElementById('sparePartsSearchInput'),sparePartsTab=document.getElementById('spare-parts'),sparePartSummaryContainer=document.getElementById('sparePartSummaryContainer'),sparePartPurchaseOrderInput=document.getElementById('sparePartPurchaseOrder'),sparePartDateInput=document.getElementById('sparePartDate'),toggleAddSparePartFormBtn=document.getElementById('toggleAddSparePartFormBtn'),sparePartTypeInput=document.getElementById('sparePartType'),sparePartModelInput=document.getElementById('sparePartModel'),sparePartModelList=document.getElementById('spare-part-model-list'),sparePartQuantityInput=document.getElementById('sparePartQuantity'),sparePartCategoryInput=document.getElementById('sparePartCategory'),sparePartLocationInput=document.getElementById('sparePartLocation'),sparePartBrandInput=document.getElementById('sparePartBrand'),sparePartSiteInput=document.getElementById('sparePartSite'),sparePartReservedForInput=document.getElementById('sparePartReservedFor'),sparePartIncidentInput=document.getElementById('sparePartIncident'),sparePartCommentInput=document.getElementById('sparePartComment'),reportTypesSelect=document.getElementById('reportTypes'),reportSitesSelect=document.getElementById('reportSites'),reportStartDateInput=document.getElementById('reportStartDate'),reportEndDateInput=document.getElementById('reportEndDate'),btnGenerateReport=document.getElementById('btnGenerateReport'),btnExportUsageReport=document.getElementById('btnExportUsageReport'),reportOutputContainer=document.getElementById('reportOutputContainer'),reportTotalCount=document.getElementById('reportTotalCount'),reportDetailsTable=document.getElementById('reportDetailsTable');
 let isEditing=false,isEditingSparePart=false,editingSparePartId=null,allLaptops=[],allGroups=[],allSpareParts=[],allAssets=[],allUsageHistory=[],allDeductHistory=[],allDowngrades=[],currentComponentModelFilteredLaptops=[],currentUser=null,users={},ramEntryCounter=0,lastUsageReportRows=[],emailTemplateSettings={},emailTemplateSettingsLoaded=false;
-function toggleButtonLoading(b,l){b.disabled=l;if(l){b.dataset.tx=b.innerHTML;b.innerHTML='<i class="fas fa-circle-notch fa-spin"></i>';}else{b.innerHTML=b.dataset.tx||'Save';}}
+function toggleButtonLoading(b,l){b.disabled=l;if(l){b.dataset.tx=b.innerHTML;b.innerHTML='<i class="fas fa-circle-notch fa-spin app-spinner"></i>';}else{b.innerHTML=b.dataset.tx||'Save';}}
 function getDefaultPermissions(isAdmin=false){return {dashboard:{visible:true,manageCompatibility:isAdmin,canBackup:isAdmin},dataManagement:{visible:isAdmin,canImport:isAdmin,canExport:isAdmin,canDelete:isAdmin},addEditLaptop:{visible:isAdmin},spareParts:{visible:isAdmin,canAdd:isAdmin,canUse:isAdmin,canDeduct:isAdmin,canDelete:isAdmin,canRollback:isAdmin,canEditUsage:isAdmin},incidents:{visible:isAdmin},logs:{visible:isAdmin,canClear:isAdmin},manageUsers:{visible:isAdmin},qrSystem:{access:isAdmin},itWorkspace:{visible:isAdmin},warrantyCheck:{visible:isAdmin,canAdd:isAdmin,canEdit:isAdmin,canDelete:isAdmin},printers:{visible:isAdmin,canAdd:isAdmin,canEdit:isAdmin,canDelete:isAdmin},warrantyWidget:{visible:isAdmin}};}
 function migratePermissions(oldPerms){if(oldPerms&&oldPerms.dashboard)return oldPerms;return getDefaultPermissions(false);}
 // ==================== PWA Install & Service Worker ====================
@@ -6033,7 +6044,7 @@ async function handlePrepareUsageEmail(){
         if(btn)toggleButtonLoading(btn,false);
     }
 }
-window.rollbackUsage=async function(btnEl,usageId,partId,quantity){if(!currentUser||!currentUser.permissions.spareParts.canRollback)return showNotification('Permission denied.','error');if(btnEl&&btnEl.disabled)return;confirmAction('Are you sure you want to rollback this usage?',async()=>{if(btnEl){btnEl.disabled=true;btnEl.dataset.originalHtml=btnEl.innerHTML;btnEl.innerHTML='<i class="fas fa-circle-notch fa-spin"></i> Rolling back...';}displayDbStatus('Rolling back...','info');try{const usageRecord=allUsageHistory.find(u=>String(u.id)===String(usageId));if(!usageRecord){showNotification('This usage record was already rolled back or no longer exists.','warning');if(typeof handleGenerateReport==='function')await handleGenerateReport();return;}const part=allSpareParts.find(p=>Number(p.id)===Number(partId));const partDesc=part?`${part.type} ${part.brand} ${part.model}`:`Part ID: ${partId}`;const deviceSN=usageRecord?(usageRecord.destSN||usageRecord.sourceSN||'N/A'):'N/A';await sendRequest('rollbackUsage',{usageId:usageId,partId:Number(partId),quantity:Number(quantity),skipLog:true});await logActivity('Rollback Usage',`Part: ${partDesc} | Qty Returned: ${quantity} | Was in Device SN: ${deviceSN} | Usage ID: ${usageId}`);showNotification('Rollback successful! Part returned to stock.','success');}catch(err){showNotification(err.message,'error');if(btnEl){btnEl.disabled=false;btnEl.innerHTML=btnEl.dataset.originalHtml||'<i class="fa-solid fa-rotate-left"></i> Rollback';}}finally{if(typeof handleGenerateReport==='function')await handleGenerateReport();}});}
+window.rollbackUsage=async function(btnEl,usageId,partId,quantity){if(!currentUser||!currentUser.permissions.spareParts.canRollback)return showNotification('Permission denied.','error');if(btnEl&&btnEl.disabled)return;confirmAction('Are you sure you want to rollback this usage?',async()=>{if(btnEl){btnEl.disabled=true;btnEl.dataset.originalHtml=btnEl.innerHTML;btnEl.innerHTML='<i class="fas fa-circle-notch fa-spin app-spinner"></i> Rolling back...';}displayDbStatus('Rolling back...','info');try{const usageRecord=allUsageHistory.find(u=>String(u.id)===String(usageId));if(!usageRecord){showNotification('This usage record was already rolled back or no longer exists.','warning');if(typeof handleGenerateReport==='function')await handleGenerateReport();return;}const part=allSpareParts.find(p=>Number(p.id)===Number(partId));const partDesc=part?`${part.type} ${part.brand} ${part.model}`:`Part ID: ${partId}`;const deviceSN=usageRecord?(usageRecord.destSN||usageRecord.sourceSN||'N/A'):'N/A';await sendRequest('rollbackUsage',{usageId:usageId,partId:Number(partId),quantity:Number(quantity),skipLog:true});await logActivity('Rollback Usage',`Part: ${partDesc} | Qty Returned: ${quantity} | Was in Device SN: ${deviceSN} | Usage ID: ${usageId}`);showNotification('Rollback successful! Part returned to stock.','success');}catch(err){showNotification(err.message,'error');if(btnEl){btnEl.disabled=false;btnEl.innerHTML=btnEl.dataset.originalHtml||'<i class="fa-solid fa-rotate-left"></i> Rollback';}}finally{if(typeof handleGenerateReport==='function')await handleGenerateReport();}});}
 
 window.openEditUsageModal=function(usageId){
     if(!currentUser||!currentUser.permissions.spareParts.canEditUsage)return showNotification('Permission denied.','error');
@@ -6309,7 +6320,7 @@ window.rollbackTransfer=async function(childId,btnEl){
     if(!parent)return showNotification('Original Store card (ID: '+parentId+') no longer exists. Contact an admin to fix this manually.','error');
     const qty=Number(child.quantity)||0;
     confirmAction(`Rollback this transfer? This will delete card ID ${childId} (${child.type} ${child.brand} ${child.model}, Qty: ${qty}) and return ${qty} unit(s) to the Store card (ID: ${parentId}).`,async()=>{
-        if(btnEl){btnEl.disabled=true;btnEl.dataset.originalHtml=btnEl.innerHTML;btnEl.innerHTML='<i class="fas fa-circle-notch fa-spin"></i> Rolling back...';}
+        if(btnEl){btnEl.disabled=true;btnEl.dataset.originalHtml=btnEl.innerHTML;btnEl.innerHTML='<i class="fas fa-circle-notch fa-spin app-spinner"></i> Rolling back...';}
         try{
             const{data:updatedRows,error:incErr}=await supabaseClient.rpc('increment_part_quantity',{p_id:parentId,p_qty:qty});
             if(incErr)throw new Error('Failed to return quantity to Store card: '+incErr.message);
@@ -6359,7 +6370,7 @@ async function exportUsageHistoryForPart(partId,btnEl){
     // نجيب النسخة المحفوظة محلياً بس عشان نعرض اسم/موديل القطعة فوراً، البيانات الفعلية هتيجي لايف من الداتا بيز تحت
     let part=allSpareParts.find(p=>Number(p.id)===Number(partId));
     let originalHtml;
-    if(btnEl){originalHtml=btnEl.innerHTML;btnEl.disabled=true;btnEl.innerHTML='<i class="fas fa-circle-notch fa-spin"></i> Loading...';}
+    if(btnEl){originalHtml=btnEl.innerHTML;btnEl.disabled=true;btnEl.innerHTML='<i class="fas fa-circle-notch fa-spin app-spinner"></i> Loading...';}
     try{
         // نجيب البيانات لايف من الداتا بيز (Supabase) مباشرة، مش من الكاش المحفوظ في المتصفح
         const [freshParts,freshUsage,freshDeduct]=await Promise.all([
@@ -6418,7 +6429,7 @@ async function openPartHistoryModal(partIds){
     const contentEl=document.getElementById('partHistoryContent');
     let part=allSpareParts.find(p=>ids.includes(Number(p.id)));
     titleEl.textContent='Part History'+(part?(' — '+(part.type||'')+' '+(part.brand||'')+' '+(part.model||'')):'');
-    contentEl.innerHTML='<p class="input-hint"><i class="fas fa-circle-notch fa-spin"></i> Loading history...</p>';
+    contentEl.innerHTML='<p class="input-hint"><i class="fas fa-circle-notch fa-spin app-spinner"></i> Loading history...</p>';
     showModal(overlay);
     try{
         const [freshParts,freshUsage,freshDeduct]=await Promise.all([
