@@ -5579,15 +5579,15 @@ function classifyPartCondition(category){
     if(cat)return 'Old';
     return null;
 }
-function getFilteredUsageReportLocal(types, sites, startDate, endDate) {
+function getFilteredUsageReportLocal(types, sites, startDate, endDate, usageData, partsData) {
     const partsMap = {};
-    allSpareParts.forEach(p => { if (p.id) partsMap[p.id] = p; });
+    partsData.forEach(p => { if (p.id) partsMap[p.id] = p; });
     const start = startDate ? new Date(startDate) : null;
     if (start) start.setHours(0, 0, 0, 0);
     const end = endDate ? new Date(endDate) : null;
     if (end) end.setHours(23, 59, 59, 999);
     const filtered = [];
-    allUsageHistory.forEach(u => {
+    usageData.forEach(u => {
         if (types.length > 0 && types.indexOf(u.type) === -1) return;
         const currentPartId = u.part_id !== undefined ? u.part_id : u.partId;
         const part = partsMap[currentPartId] || {};
@@ -5630,7 +5630,18 @@ const t = Array.from(document.querySelectorAll('#reportTypes input[type="checkbo
 const s = Array.from(document.querySelectorAll('#reportSites input[type="checkbox"]:checked')).map(cb => cb.value);
 const selectedConditions = Array.from(document.querySelectorAll('#reportCondition input[type="checkbox"]:checked')).map(cb => cb.value);
 
-// ✅ Reserved filter logic
+const selectedAccounts = Array.from(document.querySelectorAll('#reportAccounts input[type="checkbox"]:checked')).map(cb => cb.value);
+const st = reportStartDateInput.value;
+const en = reportEndDateInput.value;
+toggleButtonLoading(btnGenerateReport, true);
+try {
+// لايف 100% من Supabase مباشرة، مش من الكاش المحمّل في المتصفح
+const [freshUsageData, freshPartsData] = await Promise.all([
+    fetchAllFromSupabase('usagehistory'),
+    fetchAllFromSupabase('spareparts')
+]);
+
+// ✅ Reserved filter logic (على البيانات الفريش)
 const selectedReserved = Array.from(document.querySelectorAll('#reportReserved input[type="checkbox"]:checked')).map(cb => cb.value);
 let reservedPartIds = [];
 if (selectedReserved.length > 0) {
@@ -5638,7 +5649,7 @@ if (selectedReserved.length > 0) {
     const specificReserved = selectedReserved.filter(v => v !== '__STORE_GENERAL__');
 
     // جيب كروت الـ Store المطابقة للـ Reserved المختارة (الموجودة في Smart Village Store)
-    const matchingStoreCards = allSpareParts.filter(p =>
+    const matchingStoreCards = freshPartsData.filter(p =>
         (p.location || '').toLowerCase().includes('smart village store') &&
         specificReserved.includes(p.reservedFor)
     );
@@ -5654,18 +5665,14 @@ if (selectedReserved.length > 0) {
 
     // لو اختار "Store" العام: ضيف بشكل مباشر أي قطعة الـ Reserved For بتاعها فيها كلمة Store
     if (wantsGeneralStore) {
-        const generalStoreParts = allSpareParts.filter(p => (p.reservedFor || '').toLowerCase().includes('store'));
+        const generalStoreParts = freshPartsData.filter(p => (p.reservedFor || '').toLowerCase().includes('store'));
         generalStoreParts.forEach(p => reservedPartIds.push(Number(p.id)));
     }
 
     reservedPartIds = [...new Set(reservedPartIds)]; // إزالة المكرر
 }
-const selectedAccounts = Array.from(document.querySelectorAll('#reportAccounts input[type="checkbox"]:checked')).map(cb => cb.value);
-const st = reportStartDateInput.value;
-const en = reportEndDateInput.value;
-toggleButtonLoading(btnGenerateReport, true);
-try {
-const r = getFilteredUsageReportLocal(t.includes('Frame') ? [] : t, s, st, en);
+
+const r = getFilteredUsageReportLocal(t.includes('Frame') ? [] : t, s, st, en, freshUsageData, freshPartsData);
 let tl = 0;
 let h = '<table id="reportTable" style="font-size:0.8em;"><thead><tr><th style="text-align:center;"><input type="checkbox" id="reportSelectAllCheckbox" title="Select All"></th><th>Date</th><th>Part ID</th><th>Part SN</th><th>Type</th><th>Part Brand</th><th>Part Model</th><th>Qty</th><th>Source Brand</th><th>Source Model</th><th>Source SN</th><th>Dest Brand</th><th>Dest Model</th><th>Dest SN</th><th>Account</th><th>Asset</th><th>Change</th><th>Incident</th><th>Upgrade Plan</th><th>Action</th></tr></thead><tbody>';
 if (!r || r.length === 0) {
@@ -5679,7 +5686,7 @@ const f = r.filter(x => {
     }
     if (selectedAccounts.length > 0 && !selectedAccounts.includes(x.account)) return false;
     if (selectedConditions.length > 0) {
-        const p = allSpareParts.find(sp => Number(sp.id) === Number(x.partId || x.part_id));
+        const p = freshPartsData.find(sp => Number(sp.id) === Number(x.partId || x.part_id));
         const cond = classifyPartCondition(p ? p.category : null);
         if (!cond || !selectedConditions.includes(cond)) return false;
     }
