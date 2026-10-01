@@ -5651,7 +5651,7 @@ if (selectedReserved.length > 0) {
     // جيب كروت الـ Store المطابقة للـ Reserved المختارة (الموجودة في Smart Village Store)
     const matchingStoreCards = freshPartsData.filter(p =>
         (p.location || '').toLowerCase().includes('smart village store') &&
-        specificReserved.includes(p.reservedFor)
+        specificReserved.includes(p.reserved_for)
     );
     // استخرج كل الـ Ref IDs من الـ comments
     const refRegex = /\(Ref:\s*(\d+)\)/gi;
@@ -5665,7 +5665,7 @@ if (selectedReserved.length > 0) {
 
     // لو اختار "Store" العام: ضيف بشكل مباشر أي قطعة الـ Reserved For بتاعها فيها كلمة Store
     if (wantsGeneralStore) {
-        const generalStoreParts = freshPartsData.filter(p => (p.reservedFor || '').toLowerCase().includes('store'));
+        const generalStoreParts = freshPartsData.filter(p => (p.reserved_for || '').toLowerCase().includes('store'));
         generalStoreParts.forEach(p => reservedPartIds.push(Number(p.id)));
     }
 
@@ -6163,14 +6163,35 @@ async function handleExportUsageReport() {
 const t = Array.from(document.querySelectorAll('#reportTypes input[type="checkbox"]:checked')).map(cb => cb.value);
 const s = Array.from(document.querySelectorAll('#reportSites input[type="checkbox"]:checked')).map(cb => cb.value);
 const selectedConditions = Array.from(document.querySelectorAll('#reportCondition input[type="checkbox"]:checked')).map(cb => cb.value);
-
-// ✅ Reserved filter
 const selectedReserved = Array.from(document.querySelectorAll('#reportReserved input[type="checkbox"]:checked')).map(cb => cb.value);
+const st = reportStartDateInput.value ? new Date(reportStartDateInput.value) : null;
+const en = reportEndDateInput.value ? new Date(reportEndDateInput.value) : null;
+if (st) st.setHours(0, 0, 0, 0);
+if (en) en.setHours(23, 59, 59, 999);
+const selectedAccounts = Array.from(document.querySelectorAll('#reportAccounts input[type="checkbox"]:checked')).map(cb => cb.value);
+
+toggleButtonLoading(btnExportUsageReport, true);
+let freshPartsData, freshUsageData, freshDeductData, freshDowngradesData;
+try {
+    // لايف 100% من Supabase مباشرة، مش من الكاش المحمّل في المتصفح
+    [freshPartsData, freshUsageData, freshDeductData, freshDowngradesData] = await Promise.all([
+        fetchAllFromSupabase('spareparts'),
+        fetchAllFromSupabase('usagehistory'),
+        fetchAllFromSupabase('deducthistory'),
+        fetchAllFromSupabase('downgrade')
+    ]);
+} catch (err) {
+    toggleButtonLoading(btnExportUsageReport, false);
+    return showNotification('Failed to fetch live data: ' + (err.message || 'Unknown error'), 'error');
+}
+toggleButtonLoading(btnExportUsageReport, false);
+
+// ✅ Reserved filter (على البيانات الفريش)
 let reservedPartIds = [];
 if (selectedReserved.length > 0) {
-    const matchingStoreCards = allSpareParts.filter(p =>
+    const matchingStoreCards = freshPartsData.filter(p =>
         (p.location || '').toLowerCase().includes('smart village store') &&
-        selectedReserved.includes(p.reservedFor)
+        selectedReserved.includes(p.reserved_for)
     );
     const refRegex = /\(Ref:\s*(\d+)\)/gi;
     matchingStoreCards.forEach(p => {
@@ -6183,21 +6204,16 @@ if (selectedReserved.length > 0) {
     reservedPartIds = [...new Set(reservedPartIds)];
 }
 
-const st = reportStartDateInput.value ? new Date(reportStartDateInput.value) : null;
-const en = reportEndDateInput.value ? new Date(reportEndDateInput.value) : null;
-if (st) st.setHours(0, 0, 0, 0);
-if (en) en.setHours(23, 59, 59, 999);
-const selectedAccounts = Array.from(document.querySelectorAll('#reportAccounts input[type="checkbox"]:checked')).map(cb => cb.value);
 let rU = [];
 let rD = [];
 let rDg = [];
-allUsageHistory.forEach(u => {if (reservedPartIds.length > 0 && !reservedPartIds.includes(Number(u.partId))) return;
+freshUsageData.forEach(u => {const partId=u.part_id!==undefined?u.part_id:u.partId;if (reservedPartIds.length > 0 && !reservedPartIds.includes(Number(partId))) return;
 if (selectedAccounts.length > 0 && !selectedAccounts.includes(u.account)) return;
 if (t.length > 0) {
 const m = t.some(sel => sel === 'Frame' ? u.type.toLowerCase().includes('frame') : u.type === sel);
 if (!m) return;
 }
-const p = allSpareParts.find(x => Number(x.id) === Number(u.partId)) || {};
+const p = freshPartsData.find(x => Number(x.id) === Number(partId)) || {};
 const ps = p.site || "";
 if (s.length > 0 && !s.includes(ps)) return;
 if (selectedConditions.length > 0) {
@@ -6207,14 +6223,14 @@ if (selectedConditions.length > 0) {
 let ud = parseCustomDate(u.date);
 if (st && (!ud || ud < st)) return;
 if (en && (!ud || ud > en)) return;
-rU.push({"Date": u.date || "-", "Part ID": u.partId, "Part SN": u.partSN || "", "Type": u.type, "Part Brand": u.brand, "Part Model": u.model, "Quantity": u.quantity, "Source Brand": u.sourceBrand || "", "Source Model": u.sourceModel || "", "Source SN": u.sourceSN || "", "Dest Brand": u.destBrand || "", "Dest Model": u.destModel || "", "Dest SN": u.destSN || "", "Account": u.account, "Asset": u.asset || "", "Change": u.change || "", "Incident": u.incident || "", "Upgrade Plan": u.upgradePlan || "No", "rawDate": ud});
+rU.push({"Date": u.date || "-", "Part ID": partId, "Part SN": u.part_sn||u.partSN || "", "Type": u.type, "Part Brand": u.brand, "Part Model": u.model, "Quantity": u.quantity, "Source Brand": u.source_brand||u.sourceBrand || "", "Source Model": u.source_model||u.sourceModel || "", "Source SN": u.source_sn||u.sourceSN || "", "Dest Brand": u.dest_brand||u.destBrand || "", "Dest Model": u.dest_model||u.destModel || "", "Dest SN": u.dest_sn||u.destSN || "", "Account": u.account, "Asset": u.asset || "", "Change": u.change || "", "Incident": u.incident || "", "Upgrade Plan": u.upgrade_plan||u.upgradePlan || "No", "rawDate": ud});
 });
-allDeductHistory.forEach(d => {if (reservedPartIds.length > 0 && !reservedPartIds.includes(Number(d.partId))) return;
+freshDeductData.forEach(d => {const partId=d.part_id!==undefined?d.part_id:d.partId;if (reservedPartIds.length > 0 && !reservedPartIds.includes(Number(partId))) return;
 if (t.length > 0) {
 const m = t.some(sel => sel === 'Frame' ? d.type.toLowerCase().includes('frame') : d.type === sel);
 if (!m) return;
 }
-const p = allSpareParts.find(x => Number(x.id) === Number(d.partId)) || {};
+const p = freshPartsData.find(x => Number(x.id) === Number(partId)) || {};
 const ps = p.site || "";
 if (s.length > 0 && !s.includes(ps)) return;
 if (selectedConditions.length > 0) {
@@ -6224,9 +6240,9 @@ if (selectedConditions.length > 0) {
 let ud = parseCustomDate(d.date);
 if (st && (!ud || ud < st)) return;
 if (en && (!ud || ud > en)) return;
-rD.push({"Date": d.date || "-", "Part ID": d.partId, "Type": d.type, "Brand": d.brand, "Model": d.model, "Quantity": d.quantity, "Reason": d.reason || "", "Account": d.account || "", "rawDate": ud});
+rD.push({"Date": d.date || "-", "Part ID": partId, "Type": d.type, "Brand": d.brand, "Model": d.model, "Quantity": d.quantity, "Reason": d.reason || "", "Account": d.account || "", "rawDate": ud});
 });
-allDowngrades.forEach(dg => {
+freshDowngradesData.forEach(dg => {
 if (t.length > 0) {
 const m = t.some(sel => sel === 'Frame' ? (dg.type || '').toLowerCase().includes('frame') : dg.type === sel);
 if (!m) return;
@@ -6234,7 +6250,7 @@ if (!m) return;
 let ud = parseCustomDate(dg.timestamp);
 if (st && (!ud || ud < st)) return;
 if (en && (!ud || ud > en)) return;
-rDg.push({"Date": dg.timestamp || "-", "Part SN": dg.partSN || "", "Part Model": dg.partModel || "", "Device SN": dg.deviceSN || "", "Device Brand": dg.deviceBrand || "", "Device Model": dg.deviceModel || "", "Reason": dg.reason || "", "User": dg.user || "", "rawDate": ud});
+rDg.push({"Date": dg.timestamp || "-", "Part SN": dg.part_sn || dg.partSN || "", "Part Model": dg.part_model || dg.partModel || "", "Device SN": dg.device_sn || dg.deviceSN || "", "Device Brand": dg.device_brand || dg.deviceBrand || "", "Device Model": dg.device_model || dg.deviceModel || "", "Reason": dg.reason || "", "User": dg.user || "", "rawDate": ud});
 });
 if (rU.length === 0 && rD.length === 0 && rDg.length === 0) return showNotification("No records found.", "info");
 const wb = XLSX.utils.book_new();
