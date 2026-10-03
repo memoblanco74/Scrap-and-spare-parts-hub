@@ -492,6 +492,46 @@ function handleLogin(email, password) {
   
   return { valid: false };
 }
+function migrateScriptPropertiesToSupabase() {
+  var props = PropertiesService.getScriptProperties().getProperties();
+  var report = { dailyWorkUsers: 0, emailTemplates: 0, skipped: [] };
+
+  Object.keys(props).forEach(function(key) {
+    if (key.indexOf("dailyWork_") === 0) {
+      var username = key.substring("dailyWork_".length);
+      var entries = [];
+      try { entries = JSON.parse(props[key]) || []; } catch (e) { report.skipped.push(key); return; }
+      var existing = supabaseRequest("daily_work_entries?username=eq." + encodeURIComponent(username) + "&select=username");
+      if (existing && existing.length > 0) {
+        supabaseRequest("daily_work_entries?username=eq." + encodeURIComponent(username), "PATCH", { entries: entries });
+      } else {
+        supabaseRequest("daily_work_entries", "POST", { username: username, entries: entries });
+      }
+      report.dailyWorkUsers++;
+    }
+  });
+
+  var rawSettings = props["EMAIL_TEMPLATE_SETTINGS"];
+  if (rawSettings) {
+    var settings = {};
+    try { settings = JSON.parse(rawSettings) || {}; } catch (e) { report.skipped.push("EMAIL_TEMPLATE_SETTINGS"); }
+    Object.keys(settings).forEach(function(templateKey) {
+      var row = settings[templateKey] || {};
+      var existingRow = supabaseRequest("email_template_settings?template_key=eq." + encodeURIComponent(templateKey) + "&select=template_key");
+      var payload = { to_addr: row.to || "", cc_addr: row.cc || "" };
+      if (existingRow && existingRow.length > 0) {
+        supabaseRequest("email_template_settings?template_key=eq." + encodeURIComponent(templateKey), "PATCH", payload);
+      } else {
+        payload.template_key = templateKey;
+        supabaseRequest("email_template_settings", "POST", payload);
+      }
+      report.emailTemplates++;
+    });
+  }
+
+  Logger.log(JSON.stringify(report));
+  return report;
+}
 function setupWeeklyTrigger(){ScriptApp.newTrigger("autoBackupDB").timeBased().onWeekDay(ScriptApp.WeekDay.FRIDAY).atHour(23).create()}
 function setupMonthlyArchiveTrigger(){ScriptApp.newTrigger("archiveOldLogs").timeBased().everyDays(30).atHour(4).create()}
 function execSafe(params){var lock=LockService.getScriptLock();try{lock.waitLock(30000);}catch(e){return{status:"error",message:"Server is busy. Please try again."};}try{var action=params.action;var user=params.user||"Guest/System";var result={};if(action==='getFilteredBrands')return{status:'success',data:getUniqueValuesByFilter(params.type,'brand')};if(action==='getFilteredModels')return{status:'success',data:getUniqueValuesByFilter(params.type,'model',params.brand)};if(action==='verifyPartSN')return{status:'success',data:getPartModelBySerial(params.sn)};if(action==='verifyDeviceSN')return{status:'success',data:verifyAssetSN(params.sn)};if(action=="getLaptops")result=getData("Laptops");else if(action=="getDashboardStats")result=getDashboardStats();else if(action=="getFilteredUsageReport")result=getFilteredUsageReport(params);else if(action=="saveLaptop")result=saveLaptop(params.data,params.isUpdate);else if(action=="deleteBatchLaptops")result=deleteBatchLaptops(params.ids,params.user);else if(action=="getParts")result=getData("SpareParts");else if(action=="savePart")result=savePart(params.data,params.isUpdate);else if(action=="deletePart")result=deleteRow("SpareParts",params.id);else if(action=="deleteDeductRecord")result=deleteRow("DeductHistory",params.id);else if(action=="getEmailTemplateSettings")result=getEmailTemplateSettings();else if(action=="saveEmailTemplateSettings")result=saveEmailTemplateSettings(params);else if(action=="getUsers")result=getUsersData();else if(action=="saveUser")result=saveUser(params);else if(action=="deleteUser")result=deleteUser(params.email);else if(action=="login")result=handleLogin(params.email,params.password);else if(action=="logout")result="Logged out";else if(action=="getGroups")result=getData("Groups");else if(action=="saveGroup")result=saveGroup(params.data);else if(action=="deleteGroup")result=deleteGroup(params.group_name);else if(action=="getLogs")result=getData("Logs");else if(action=="logActivity")result=logActivity(params.user,params.logAction,params.details);else if(action=="logUsage")result=logUsage(params.data);else if(action=="updateUsageRecord")result=updateUsageRecord(params.data);else if(action=="logDeduct")result=logDeduct(params.data);else if(action=="updateDeductRecord")result=updateDeductRecord(params.data);else if(action=="getUsageHistory")result=getData("UsageHistory");else if(action=="getDeductHistory")result=getData("DeductHistory");else if(action=="getDowngrades")result=getData("Downgrade");else if(action=="bulkEditLaptops")result=bulkEditLaptops(params.ids,params.updates,params.user);else if(action=="changePassword")result=changeUserPassword(params.email,params.password);else if(action=="updateComponentStatus")result=updateComponentStatus(params.sn,params.type,params.user);else if(action=="getPartModelBySerial")result=getPartModelBySerial(params.serial);else if(action=="clearLogs")result=clearAllLogs(user);else if(action=="saveDowngrade")result=saveDowngrade(params);else if(action=="downloadFullDB")result=downloadFullDBBase64();else if(action=="getAllInitialData")result={laptops:getData("Laptops"),dashboardStats:getDashboardStats(),parts:getData("SpareParts"),users:getUsersData(),groups:getData("Groups"),logs:getData("Logs"),usageHistory:getData("UsageHistory"),deductHistory:getData("DeductHistory"),downgrades:getData("Downgrade")};else if(action=="processPartUsage")result=processPartUsage(params.data,user);else if(action=="rollbackUsage")result=rollbackPartUsage(params);else if(action=="getDailyWorkEntries")result=getDailyWorkEntries(user);else if(action=="saveDailyWorkEntries")result=saveDailyWorkEntries(user,params.entries);else if(action=="getDeviceTypes")result=getDeviceTypesBySerials(params.serials);else if(action=="saveWarrantyRecord")result=saveWarrantyRecord(params.data,params.isUpdate);else if(action=="deleteWarrantyRecord")result=deleteRow("data",params.id);else if(action=="savePrinter")result=savePrinter(params.data,params.isUpdate);else if(action=="deletePrinter")result=deleteRow("printers",params.id);else if(action=="bulkAddWarrantyRecords")result=bulkAddWarrantyRecords(params.rows);else if(action=="bulkAddPrinters")result=bulkAddPrinters(params.rows);if(!action.startsWith("get")&&action!=="logActivity"&&action!=="login"&&action!=="logout"&&!params.skipLog||action==="getAllDataForExport"||action==="downloadFullDB"){var logDetails=generateLogDetails(action,params,result);logActivity(user,action,logDetails);}if(action==="login")logActivity(params.email,"Login Attempt",result.valid?"Success":"Failed");if(action==="logout")logActivity(user,"Logout","User logged out successfully");return{status:"success",data:result};}catch(error){logActivity(params?params.user:"System","Error: "+(params?params.action:"Unknown"),error.toString());return{status:"error",message:error.toString()};}finally{lock.releaseLock();}}
