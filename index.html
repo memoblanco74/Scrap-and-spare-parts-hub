@@ -5799,7 +5799,8 @@ function formatDateYMD(d){
 async function ensureEmailTemplateSettingsLoaded(){
     if(emailTemplateSettingsLoaded)return;
     try{
-        const data=await sendRequest('getEmailTemplateSettings',{});
+        const{data:data,error:etsErr}=await supabaseClient.rpc('get_email_template_settings');
+        if(etsErr)throw new Error(etsErr.message);
         emailTemplateSettings=data||{};
     }catch(e){
         emailTemplateSettings={};
@@ -7532,7 +7533,9 @@ const dailyWorkFieldMap = [
 
 async function getDailyWorkEntries() {
     try {
-        const entries = await sendRequest('getDailyWorkEntries', { skipLog: true });
+        if (!currentUser) return [];
+        const { data: entries, error: dwErr } = await supabaseClient.rpc('get_daily_work', { payload: { username: currentUser.email } });
+        if (dwErr) throw new Error(dwErr.message);
         return Array.isArray(entries) ? entries : [];
     } catch (e) {
         console.error('Failed to load Daily Work entries', e);
@@ -7542,7 +7545,8 @@ async function getDailyWorkEntries() {
 
 async function setDailyWorkEntries(entries) {
     try {
-        await sendRequest('saveDailyWorkEntries', { entries, skipLog: true });
+        const { error: dwSaveErr } = await supabaseClient.rpc('save_daily_work', { payload: { username: currentUser.email, entries: entries } });
+        if (dwSaveErr) throw new Error(dwSaveErr.message);
     } catch (e) {
         showNotification('Could not save Daily Work entry: ' + e.message, 'error');
     }
@@ -7839,7 +7843,7 @@ if(reportDetailsTable){reportDetailsTable.addEventListener('change',function(e){
 const btnPrepareUsageEmail=document.getElementById('btnPrepareUsageEmail');if(btnPrepareUsageEmail)btnPrepareUsageEmail.addEventListener('click',handlePrepareUsageEmail);
 const btnEditEmailRecipients=document.getElementById('btnEditEmailRecipients');if(btnEditEmailRecipients)btnEditEmailRecipients.addEventListener('click',async()=>{if(!currentUser||!currentUser.permissions.manageUsers||!currentUser.permissions.manageUsers.visible)return showNotification('Permission denied.','error');await ensureEmailTemplateSettingsLoaded();const key=document.getElementById('emailTemplateSelect').value;const tmpl=EMAIL_TEMPLATES[key];const saved=emailTemplateSettings[key]||{};document.getElementById('emailRecipientsTemplateKey').value=key;document.getElementById('emailRecipientsTemplateLabel').textContent='Template: '+(tmpl?tmpl.label:key);document.getElementById('emailRecipientsTo').value=saved.to||(tmpl?tmpl.defaultTo:'')||'';document.getElementById('emailRecipientsCc').value=saved.cc||(tmpl?tmpl.defaultCc:'')||'';showModal(document.getElementById('emailRecipientsOverlay'));});
 const closeEmailRecipientsModal=document.getElementById('closeEmailRecipientsModal');if(closeEmailRecipientsModal)closeEmailRecipientsModal.addEventListener('click',()=>hideModal(document.getElementById('emailRecipientsOverlay')));
-const emailRecipientsForm=document.getElementById('emailRecipientsForm');if(emailRecipientsForm)emailRecipientsForm.addEventListener('submit',async(e)=>{e.preventDefault();if(!currentUser||!currentUser.permissions.manageUsers||!currentUser.permissions.manageUsers.visible)return showNotification('Permission denied.','error');const key=document.getElementById('emailRecipientsTemplateKey').value;const to=document.getElementById('emailRecipientsTo').value.trim();const cc=document.getElementById('emailRecipientsCc').value.trim();const btn=e.target.querySelector('button[type="submit"]');toggleButtonLoading(btn,true);try{const updated=await sendRequest('saveEmailTemplateSettings',{templateKey:key,to,cc,skipLog:true});emailTemplateSettings=updated||emailTemplateSettings;await logActivity('Edit Email Recipients','Template: '+key+' | To: '+to+' | CC: '+cc);showNotification('Recipients updated successfully.','success');hideModal(document.getElementById('emailRecipientsOverlay'));}catch(err){showNotification(err.message,'error');}finally{toggleButtonLoading(btn,false);}});
+const emailRecipientsForm=document.getElementById('emailRecipientsForm');if(emailRecipientsForm)emailRecipientsForm.addEventListener('submit',async(e)=>{e.preventDefault();if(!currentUser||!currentUser.permissions.manageUsers||!currentUser.permissions.manageUsers.visible)return showNotification('Permission denied.','error');const key=document.getElementById('emailRecipientsTemplateKey').value;const to=document.getElementById('emailRecipientsTo').value.trim();const cc=document.getElementById('emailRecipientsCc').value.trim();const btn=e.target.querySelector('button[type="submit"]');toggleButtonLoading(btn,true);try{const{data:updated,error:etsSaveErr}=await supabaseClient.rpc('save_email_template_setting',{payload:{templateKey:key,to:to,cc:cc}});if(etsSaveErr)throw new Error(etsSaveErr.message);emailTemplateSettings=updated||emailTemplateSettings;await logActivity('Edit Email Recipients','Template: '+key+' | To: '+to+' | CC: '+cc);showNotification('Recipients updated successfully.','success');hideModal(document.getElementById('emailRecipientsOverlay'));}catch(err){showNotification(err.message,'error');}finally{toggleButtonLoading(btn,false);}});
 document.getElementById('dgPartSN').addEventListener('change',async(e)=>{const sn=e.target.value.trim().toUpperCase();if(!sn)return;try{const res=await lookupPartModelBySerial(sn);if(res){const autoInput=document.getElementById('dgPartModelAuto');autoInput.value=res;const sizeMatch=String(res).match(/(\d{2,4})\s*-?\s*GB/i);autoInput.dataset.size=sizeMatch?sizeMatch[1]:'';if(!sizeMatch){displayDbStatus('Verified, but could not detect GB size from: '+res,'warning');}else{displayDbStatus('Part Serial Verified — '+sizeMatch[1]+'GB','success');}}else{document.getElementById('dgPartSN').value='';document.getElementById('dgPartModelAuto').value='';document.getElementById('dgPartModelAuto').dataset.size='';showNotification('Serial not found in Warranty sheet','error');}}catch(err){showNotification(err.message,'error');}});
 document.getElementById('dgDeviceSN').addEventListener('change',async (e)=>{const s=e.target.value.trim();if(!s)return;const l=allLaptops.find(x=>String(x.serial_number).toLowerCase()===String(s).toLowerCase());const autoInput=document.getElementById('dgDeviceModelAuto');if(l){autoInput.value=(l.brand||'')+' '+(l.laptop_model||'');autoInput.dataset.brand=l.brand||'';autoInput.dataset.model=l.laptop_model||'';displayDbStatus('Device Found: '+l.laptop_model,'success')}else{displayDbStatus('Searching DB for Asset...','info');const a=await findAssetBySerial(s);if(a){autoInput.value=(a.brand||'')+' '+(a.model||'');autoInput.dataset.brand=a.brand||'';autoInput.dataset.model=a.model||'';displayDbStatus('Device Asset Found: '+a.model,'success')}else{document.getElementById('dgDeviceSN').value='';autoInput.value='';autoInput.dataset.brand='';autoInput.dataset.model='';showNotification('Serial not found in Laptops or Assets','error')}}});
 document.getElementById('downgradeForm').addEventListener('submit',async(e)=>{
