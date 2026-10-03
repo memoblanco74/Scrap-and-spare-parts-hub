@@ -5233,7 +5233,7 @@ async function handleLogin(event){
     
     try{
         // بنبعت الإيميل زي ما هو، والسيرفر هو اللي بيتأكد من الداتابيز مباشرة (case-insensitive)
-        const response=await sendRequest('login',{email:rawEmail,password:hashedPassword});
+        const{data:response,error:loginErr}=await supabaseClient.rpc('login_user',{payload:{email:rawEmail,password:hashedPassword}});if(loginErr)throw new Error(loginErr.message);
         if(response&&response.valid){
             // ناخد الإيميل بالشكل الصحيح الراجع من الداتابيز، مش من أي كاش قديم محفوظ في المتصفح
             const email=response.email||rawEmail;
@@ -5314,7 +5314,7 @@ async function handleLogin(event){
 }
 // ضيف ده في handleLogout
 async function handleLogout() {
-    await sendRequest('logout');
+    sendRequest('logout').catch(function(){});
     currentUser = null;
     sessionStorage.removeItem('loggedInUser');    
     setAsViewOnly();
