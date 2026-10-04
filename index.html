@@ -4794,7 +4794,7 @@ function setupRealtimeSubscriptions() {
         // بعدين نبعت طلب الـ Logout للسيرفر (Fire & Forget) مع تمرير إيميل اليوزر صراحةً
         // عشان يتسجل في اللوجز باسمه الصح، مش Guest/System
         if (idleUserEmail) {
-            sendRequest('logout', { user: idleUserEmail }).catch(() => {});
+            supabaseClient.rpc('log_activity',{payload:{user:idleUserEmail,action:'Logout',details:'User logged out successfully'}}).then(()=>{},()=>{});
         }
 
         if (idleUserEmail && typeof showNotification === 'function') {
@@ -5316,7 +5316,7 @@ async function handleLogin(event){
 }
 // ضيف ده في handleLogout
 async function handleLogout() {
-    sendRequest('logout').catch(function(){});
+    if(currentUser)supabaseClient.rpc('log_activity',{payload:{user:currentUser.email,action:'Logout',details:'User logged out successfully'}}).then(function(){},function(){});
     currentUser = null;
     sessionStorage.removeItem('loggedInUser');    
     setAsViewOnly();
@@ -5386,9 +5386,9 @@ function generatePermissionsChangeLog(oldPerms,newPerms){const changes=[];const 
 async function handleEditUserFormSubmit(event){event.preventDefault();const form=event.target;const submitBtn=form.querySelector('button[type="submit"]');toggleButtonLoading(submitBtn,true);try{const email=form.email.value;if(!users[email])throw new Error('User not found.');let finalPassword=null;const np=form.newPassword.value;const cp=form.confirmPassword.value;const comment=form.comment.value.trim();const oldComment=users[email].comment||'';const oldPermissions=JSON.parse(JSON.stringify(users[email].permissions||{}));if(np){if(np!==cp)throw new Error('Passwords do not match.');if(np.length<6)throw new Error('Password too short.');finalPassword=await hashPassword(np)}const newPermissions=readPermissionsFromForm(form);const{error:editUserErr}=await supabaseClient.rpc('save_user',{payload:{username:email,password:finalPassword,permissionsText:JSON.stringify(newPermissions),comment:comment}});if(editUserErr)throw new Error(editUserErr.message);showNotification('User updated successfully.','success');const permChanges=generatePermissionsChangeLog(oldPermissions,newPermissions);const nameChanged=oldComment!==comment;const changeParts=[];if(nameChanged)changeParts.push(`Name: "${oldComment}" → "${comment}"`);if(np)changeParts.push('Password Changed');if(permChanges.length)changeParts.push(...permChanges);await logActivity('Edit User',`Updated user: ${email} | Changes: [${changeParts.length?changeParts.join(' | '):'No changes'}]`);hideModal(editUserOverlay)}catch(error){showNotification('Error: '+error.message,'error')}finally{toggleButtonLoading(submitBtn,false)}}
 
 async function handleUserActions(event){const deleteBtn=event.target.closest('.delete-user-btn');const editBtn=event.target.closest('.edit-user-btn');if(deleteBtn){const emailToDelete=deleteBtn.dataset.email;if(emailToDelete==='maadminhe')return showNotification('Security: Cannot delete main admin account!','error');confirmAction(`Delete user "${emailToDelete}"?`,async()=>{const userInfo=users[emailToDelete]||{};const userDesc=`Username: ${emailToDelete} | Name: ${userInfo.comment||'N/A'}`;const{error:delUserErr}=await supabaseClient.rpc('delete_user',{payload:{username:emailToDelete}});if(delUserErr)return showNotification('Error: '+delUserErr.message,'error');logActivity('Delete User',`Admin deleted user | ${userDesc}`);});}else if(editBtn){openEditUserModal(editBtn.dataset.email)}}
-async function logActivity(action,details){if(!currentUser)return;try{await sendRequest('logActivity',{logAction:action,details:details});}catch(e){console.error(e);}}
+async function logActivity(action,details){if(!currentUser)return;try{const{error}=await supabaseClient.rpc('log_activity',{payload:{user:currentUser.email,action:action,details:details}});if(error)console.error(error.message);}catch(e){console.error(e);}}
 
-async function clearLogs(){if(!currentUser||!currentUser.permissions.logs.canClear)return showNotification('Permission denied.', 'error');confirmAction('Permanently delete all logs?', async()=>{await sendRequest('clearLogs',{skipLog:true});await logActivity('Logs Cleared','All logs deleted.');showNotification('Logs cleared.', 'success');});}
+async function clearLogs(){if(!currentUser||!currentUser.permissions.logs.canClear)return showNotification('Permission denied.', 'error');confirmAction('Permanently delete all logs?', async()=>{const{error:clErr}=await supabaseClient.rpc('clear_logs',{payload:{user:currentUser.email}});if(clErr)return showNotification(clErr.message,'error');logActivity('Logs Cleared','All logs deleted.');showNotification('Logs cleared.', 'success');});}
 
 function addLaptopRowToTable(l){const r=tableBody.insertRow();r.dataset.id=l.id;let rh='<td>N/A</td><td>N/A</td><td>N/A</td>';if(l.rams&&Array.isArray(l.rams)&&l.rams.length>0){const ts=l.rams.reduce((a,b)=>a+(Number(b.size)||0),0);const m=[...new Set(l.rams.map(x=>x.manufacturer))].join(', ');const p=[...new Set(l.rams.map(x=>x.path))].join(', ');rh='<td>'+m+'</td><td>'+p+'</td><td>'+ts+' GB ('+l.rams.length+' sticks)</td>'}const qb=(currentUser&&currentUser.permissions.qrSystem&&currentUser.permissions.qrSystem.access)?'<button class="custom-btn" style="padding:2px 5px;margin-left:5px;background-color:#333;color:white;" onclick="openQRGenerator(\''+l.serial_number+'\',\'SN: '+l.serial_number+'\')"><i class="fa-solid fa-qrcode"></i></button>':'';const eh=(currentUser&&currentUser.permissions.addEditLaptop.visible)?'<td><button class="edit-button" data-id="'+l.id+'">Edit</button>'+qb+'</td>':'<td>'+qb+'</td>';const checkBool = (val) => (val === true || String(val).toUpperCase() === 'TRUE' || val === 'Yes') ? 'TRUE' : 'FALSE'; r.innerHTML='<td><input type="checkbox" data-id="'+l.id+'"></td><td>'+(l.brand||'')+'</td><td>'+(l.laptop_model||'')+'</td><td>'+(l.serial_number||'')+'</td><td>'+(l.site||'')+'</td><td>'+(l.id||'')+'</td><td>'+(l.current_location||'')+'</td><td>'+(l.move_incidents||'')+'</td><td>'+(l.email_status||'')+'</td><td>'+(l.custody_status||'')+'</td><td>'+checkBool(l.screen)+'</td><td>'+checkBool(l.keyboard)+'</td><td>'+checkBool(l.touchpad)+'</td><td>'+checkBool(l.mb)+'</td><td>'+checkBool(l.hing)+'</td><td>'+checkBool(l.fan)+'</td><td>'+checkBool(l.battery)+'</td><td>'+checkBool(l.hdd)+'</td><td>'+checkBool(l.ssd)+'</td>'+rh+'<td>'+(l.comment||'')+'</td>'+eh;const eb=r.querySelector('.edit-button');if(eb)eb.addEventListener('click',()=>editLaptop(l.id))}
 function populateDatalists(laptops){const datalistsToPopulate={'brand-list':[...new Set(laptops.map(l=>l.brand).filter(Boolean))].sort(),'site-list':[...new Set(laptops.map(l=>l.site).filter(Boolean))].sort(),'current-location-list':[...new Set(laptops.map(l=>l.current_location).filter(Boolean))].sort(),'move-incidents-list':[...new Set(laptops.map(l=>l.move_incidents).filter(Boolean))].sort(),'comment-list':[...new Set(laptops.map(l=>l.comment).filter(Boolean))].sort(),'ram-manufacturer-list':[...new Set(laptops.flatMap(l=>l.rams?l.rams.map(r=>r.manufacturer):[]).filter(Boolean))].sort(),'ram-path-list':[...new Set(laptops.flatMap(l=>l.rams?l.rams.map(r=>r.path):[]).filter(Boolean))].sort()};for(const[listId,values]of Object.entries(datalistsToPopulate)){const el=document.getElementById(listId);if(el){el.innerHTML='';values.forEach(value=>{const opt=document.createElement('option');opt.value=value;el.appendChild(opt)})}}updateModelDatalist()}
@@ -6149,7 +6149,7 @@ async function handleEditUsageFormSubmit(e){
             incident:document.getElementById('editUsageIncident').value.trim(),
             upgradePlan:document.getElementById('editUsageUpgradePlan').value
         };
-        await sendRequest('updateUsageRecord',{data:data,skipLog:true});
+        const{error:uuErr}=await supabaseClient.rpc('update_usage_record',{payload:{data:data}});if(uuErr)throw new Error(uuErr.message);
         const idx=allUsageHistory.findIndex(u=>String(u.id)===String(id));
         if(idx!==-1)allUsageHistory[idx]={...allUsageHistory[idx],...data};
         await logActivity('Edit Usage Record',`Usage ID: ${id} | Part SN: ${data.partSN} | Device SN: ${data.destSN||data.sourceSN} | Qty: ${data.quantity}`);
@@ -6446,8 +6446,8 @@ function handleSparePartActions(event){const perms=currentUser?currentUser.permi
 async function deleteSparePart(id){
     const part=allSpareParts.find(p=>p.id===id);
     const partDesc=part?`Type: ${part.type} | Brand: ${part.brand} | Model: ${part.model} | Qty: ${part.quantity} | Site: ${part.site} | ID: ${id}`:`ID: ${id}`;
-    await sendRequest('deletePart',{id,skipLog:true});
-    await logActivity('Delete Spare Part', partDesc);
+    const{error:dsErr}=await supabaseClient.rpc('delete_spare_part',{payload:{id}});if(dsErr){showNotification(dsErr.message,'error');return}
+    logActivity('Delete Spare Part', partDesc);
     showNotification('Spare part deleted.', 'success');
 }
 async function exportUsageHistoryForPart(partId,btnEl){
@@ -7273,11 +7273,9 @@ async function exportFullDatabase() {
   });
 
   try {
-    const b64 = await sendRequest('downloadFullDB');
-    if (!b64) throw new Error('No data received from server');
-    
-    // فك التشفير للبيانات (JSON)
-    const jsonData = JSON.parse(atob(b64));
+    const [fLaptops,fParts,fUsage,fDeduct,fLogs]=await Promise.all(['laptops','spareparts','usagehistory','deducthistory','logs'].map(fetchAllFromSupabase));
+    const jsonData={laptops:fLaptops,spareparts:fParts,usagehistory:fUsage,deducthistory:fDeduct,logs:fLogs};
+    logActivity('downloadFullDB','Exported Full Database Backup');
     
     // إنشاء ملف Excel جديد
     const wb = XLSX.utils.book_new();
