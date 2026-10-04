@@ -4970,90 +4970,6 @@ applyTheme(localStorage.getItem('darkMode')==='true');(async()=>{await refreshAl
 function applyTheme(isDark){document.body.classList.toggle('dark-mode',isDark);if(themeToggle)themeToggle.checked=isDark;}
 function showModal(overlayElement){if(overlayElement){overlayElement.style.display='flex';document.body.classList.add('modal-open');}}
 function hideModal(overlayElement){if(overlayElement){overlayElement.style.display='none';const anyModalOpen=document.querySelectorAll('.modal-overlay[style*="display: flex"]').length>0;if(!anyModalOpen)document.body.classList.remove('modal-open');}}
-// رابط الـ Web App بتاع Google Apps Script (نفس اللي بتاخده من Deploy > Manage Deployments)
-// بيتستخدم بس لما الصفحة تكون مستضافة برا Google Apps Script (زي GitHub Pages)
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyTPJX4c-aszDlBVkEQzv6KRcvodmP-oHQET5NubismkZoq_MsjLyweSW9foGvo_2Xupw/exec";
-const IS_GAS_ENV = (typeof google !== 'undefined' && google.script && typeof google.script.run !== 'undefined');
-async function sendRequest(action, payload = {}) {
-    const d = document.getElementById('dbStatus');
-    d.innerHTML = '<div class="progress-container"><div class="progress-bar"></div></div>';
-    d.className = 'db-status show syncing-mode';
-    const fullPayload = { action: action, user: currentUser ? currentUser.email : 'Guest/System', ...payload };
-
-    if (IS_GAS_ENV) {
-        // الحالة الأولى: الصفحة شغالة جوه Google Apps Script (Publish as Web App)
-        return new Promise((res, rej) => {
-            google.script.run
-                .withSuccessHandler(r => {
-                    if (r.status === "success") {
-                        d.innerHTML = '<div style="height:3px;background:var(--success-color);width:100%;border-radius:3px;transition:all 0.3s;"></div>';
-                        setTimeout(() => d.classList.remove('show'), 1000);
-                        res(r.data);
-                    } else {
-                        d.innerHTML = '<div style="height:3px;background:var(--danger-color);width:100%;border-radius:3px;"></div>';
-                        showNotification(r.message, 'error');
-                        rej(new Error(r.message));
-                    }
-                })
-                .withFailureHandler(e => {
-                    d.innerHTML = '<div style="height:3px;background:var(--danger-color);width:100%;border-radius:3px;"></div>';
-                    showNotification("Critical Server Error", 'error');
-                    rej(e);
-                })
-                .execSafe(fullPayload);
-        });
-    }
-
-    // الحالة الثانية: الصفحة شغالة برا GAS (زي GitHub Pages)
-    // Google Apps Script Web Apps مش بتدعم CORS للـ fetch/POST خالص، فبنستخدم أسلوب JSONP
-    // (تحميل النتيجة عن طريق <script> tag، ده مش خاضع لسياسة CORS من الأساس)
-    return new Promise((resolve, reject) => {
-        const callbackName = 'gasCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
-        const script = document.createElement('script');
-        let finished = false;
-
-        const cleanup = () => {
-            finished = true;
-            delete window[callbackName];
-            if (script.parentNode) script.parentNode.removeChild(script);
-            clearTimeout(timeoutId);
-        };
-
-        const timeoutId = setTimeout(() => {
-            if (finished) return;
-            cleanup();
-            d.innerHTML = '<div style="height:3px;background:var(--danger-color);width:100%;border-radius:3px;"></div>';
-            showNotification("Request timed out. Please try again.", 'error');
-            reject(new Error('Request timed out'));
-        }, 30000);
-
-        window[callbackName] = (r) => {
-            if (finished) return;
-            cleanup();
-            if (r.status === "success") {
-                d.innerHTML = '<div style="height:3px;background:var(--success-color);width:100%;border-radius:3px;transition:all 0.3s;"></div>';
-                setTimeout(() => d.classList.remove('show'), 1000);
-                resolve(r.data);
-            } else {
-                d.innerHTML = '<div style="height:3px;background:var(--danger-color);width:100%;border-radius:3px;"></div>';
-                showNotification(r.message, 'error');
-                reject(new Error(r.message));
-            }
-        };
-
-        script.onerror = () => {
-            if (finished) return;
-            cleanup();
-            d.innerHTML = '<div style="height:3px;background:var(--danger-color);width:100%;border-radius:3px;"></div>';
-            showNotification("Critical Server Error", 'error');
-            reject(new Error('Failed to load script'));
-        };
-
-        const url = GAS_API_URL + '?callback=' + encodeURIComponent(callbackName) + '&payload=' + encodeURIComponent(JSON.stringify(fullPayload));
-        script.src = url;
-        document.body.appendChild(script);
-    });
-}
 // استبدل الدالة القديمة refreshAllDataAndViews بهذا الكود بالكامل
 async function refreshAllDataAndViews() {
     try {
@@ -5486,7 +5402,6 @@ function displayLaptopsForComponent(componentName){
     }
 }
 function generateChangeLog(oldData,newData){const changes=[];const keysToCompare=['brand','laptop_model','serial_number','site','current_location','move_incidents','email_status','custody_status','comment','screen','keyboard','touchpad','mb','hing','fan','battery','hdd','ssd','ssd_type'];keysToCompare.forEach(key=>{const oldValue=oldData[key]||'';const newValue=newData[key]||'';if(String(oldValue)!==String(newValue))changes.push(`${key}: "${oldValue}" -> "${newValue}"`)});if(JSON.stringify(oldData.rams||[])!==JSON.stringify(newData.rams||[]))changes.push(`rams: "${JSON.stringify(oldData.rams||[])}" -> "${JSON.stringify(newData.rams||[])}"`);return changes.length>0?changes.join(', '):'No changes detected.'}
-async function findAndIncrementPart(partData){const{type,brand,model,category,site,location,reservedFor,incident,comment,quantityToAdd=1}=partData;try{const existingPart=allSpareParts.find(p=>p.type===type&&p.brand===brand&&p.model===model&&p.category===category&&p.site===site&&p.location===location&&p.reservedFor===reservedFor);if(existingPart){const updatedPart={...existingPart,quantity:Number(existingPart.quantity)+Number(quantityToAdd)};if(comment&&!updatedPart.comment.includes(comment))updatedPart.comment+=` | ${comment}`;await sendRequest('savePart',{data:updatedPart,isUpdate:true,skipLog:true});await logActivity('Auto-Add Spare Part',`Incremented Card ID: ${existingPart.id} (${type} ${brand} ${model}) by ${quantityToAdd} | Site: ${site} | Room: ${location} | Reserved For: ${reservedFor}`)}else{const newPart={type,brand,model,category,site,location,reservedFor,incident,comment,quantity:Number(quantityToAdd)};const created=await sendRequest('savePart',{data:newPart,isUpdate:false,skipLog:true});const newId=created&&created.id?created.id:'N/A';await logActivity('Auto-Add Spare Part',`New Card Created — ID: ${newId} | Qty: ${quantityToAdd} | Type: ${type} ${brand} ${model} | Site: ${site} | Room: ${location} | Reserved For: ${reservedFor}`)}}catch(error){console.error(`Error in findAndIncrementPart for ${type} ${model}:`,error)}}
 async function addOrUpdateLaptopInDB(laptopData,isUpdate=false){const serialNumber=String(laptopData.serial_number||'').trim().toUpperCase();laptopData.serial_number=serialNumber;if(!serialNumber)return showNotification('Serial Number required.','warning');if(serialNumber.includes(' '))return showNotification('Serial number cannot contain spaces.','error');if(serialNumber.toUpperCase().includes('O'))return showNotification("Use number '0', not letter 'O'.",'error');if(!laptopData.brand||!laptopData.laptop_model)return showNotification('Brand and Model required.','error');const ramEntries=ramEntriesContainer.querySelectorAll('.ram-entry');const rams=[];let ramIsValid=true;if(ramEntries.length===0)ramIsValid=false;else{ramEntries.forEach(entry=>{const manufacturer=entry.querySelector('.ram-manufacturer').value.trim();const path=entry.querySelector('.ram-path').value.trim();const size=Number(entry.querySelector('.ram-size').value);if(!manufacturer||!path||isNaN(size)||size<1)ramIsValid=false;rams.push({manufacturer,path,size})})}if(!ramIsValid)return showNotification('Fill all RAM fields.','error');laptopData.rams=rams;const ssdTypeElem=document.getElementById('ssdType');if(ssdTypeElem)laptopData.ssd_type=ssdTypeElem.value;delete laptopData.ram_manufacturer;delete laptopData.ram_path;delete laptopData.ram_size_per_stick;delete laptopData.ram_sticks_count;try{if(isUpdate){laptopData.id=Number(originalLaptopIdInput.value);const originalLaptop=allLaptops.find(l=>l.id===laptopData.id);const {error:saveErr}=await supabaseClient.rpc('save_laptop',{payload:{data:laptopData,isUpdate:true}});if(saveErr)throw new Error(saveErr.message);const changeDetails=generateChangeLog(originalLaptop,laptopData);logActivity('Update Laptop',`SN: ${laptopData.serial_number}. Changes: [${changeDetails}]`);showNotification('Laptop updated!','success')}else{delete laptopData.id;const existing=allLaptops.find(l=>l.serial_number===laptopData.serial_number);if(existing)return showNotification(`Serial Number "${laptopData.serial_number}" exists.`,'error');const {error:saveErr}=await supabaseClient.rpc('save_laptop',{payload:{data:laptopData,isUpdate:false}});if(saveErr)throw new Error(saveErr.message);logActivity('Create Laptop',`Added new laptop SN: ${laptopData.serial_number}`);showNotification('Laptop added!','success')}resetFormForAdd();showTab('data-management')}catch(error){showNotification('Error saving data: '+error.message,'error')}}
 function editLaptop(id){const laptop=allLaptops.find(l=>l.id===Number(id));if(laptop){isEditing=true;formTitle.textContent='Edit Laptop Data';document.getElementById('submitButton').textContent='Update Data';cancelEditButton.style.display='inline-block';document.getElementById('brand').value=laptop.brand||'';updateModelDatalist(laptop.brand||null);document.getElementById('laptopModel').value=laptop.laptop_model||'';document.getElementById('serialNumber').value=laptop.serial_number||'';document.getElementById('site').value=laptop.site||'';document.getElementById('laptopID').value=laptop.id||'';document.getElementById('currentLocation').value=laptop.current_location||'';document.getElementById('moveIncidents').value=laptop.move_incidents||'';document.getElementById('emailStatus').value=laptop.email_status||'';document.getElementById('custodyStatus').value=laptop.custody_status||'';document.getElementById('comment').value=laptop.comment||'';const isChecked=(val)=>(val===true||String(val).toUpperCase()==='TRUE'||val==='Yes');document.getElementById('screen').checked=isChecked(laptop.screen);document.getElementById('keyboard').checked=isChecked(laptop.keyboard);document.getElementById('touchpad').checked=isChecked(laptop.touchpad);document.getElementById('mb').checked=isChecked(laptop.mb);document.getElementById('hing').checked=isChecked(laptop.hing);document.getElementById('fan').checked=isChecked(laptop.fan);document.getElementById('battery').checked=isChecked(laptop.battery);document.getElementById('hdd').checked=isChecked(laptop.hdd);document.getElementById('ssd').checked=isChecked(laptop.ssd);document.getElementById('frame_a').checked=isChecked(laptop.frame_a);document.getElementById('frame_b').checked=isChecked(laptop.frame_b);document.getElementById('frame_c').checked=isChecked(laptop.frame_c);document.getElementById('frame_d').checked=isChecked(laptop.frame_d);document.getElementById('frame_e').checked=isChecked(laptop.frame_e);const ssdTypeElem=document.getElementById('ssdType');if(ssdTypeElem)ssdTypeElem.value=laptop.ssd_type||'';syncSsdUI();ramEntriesContainer.innerHTML='';if(laptop.rams&&Array.isArray(laptop.rams)&&laptop.rams.length>0)laptop.rams.forEach(ram=>addRamEntry(ram));else addRamEntry();originalLaptopIdInput.value=laptop.id;showTab('add-edit-laptop')}}
 
