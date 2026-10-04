@@ -6621,8 +6621,8 @@ async function checkWarrantyStatus(){
             const delBtn=document.getElementById('warrantyDeleteBtn');
             if(delBtn)delBtn.addEventListener('click',()=>{
                 confirmAction('Delete this warranty record?',async()=>{
-                    await sendRequest('deleteWarrantyRecord',{id:currentWarrantyRecord.id,skipLog:true});
-                    await logActivity('Delete Warranty Record','Deleted Warranty Record | SN: '+(currentWarrantyRecord.serial_number||'N/A')+' | Item: '+(currentWarrantyRecord.item||'N/A'));
+                    const{error:dwErr}=await supabaseClient.rpc('delete_warranty_record',{payload:{id:currentWarrantyRecord.id}});if(dwErr)return showNotification(dwErr.message,'error');
+                    logActivity('Delete Warranty Record','Deleted Warranty Record | SN: '+(currentWarrantyRecord.serial_number||'N/A')+' | Item: '+(currentWarrantyRecord.item||'N/A'));
                     showNotification('Warranty record deleted.','success');
                     resultEl.style.display='none';
                     currentWarrantyRecord=null;
@@ -6696,8 +6696,8 @@ async function handleWarrantyRecordSubmit(e){
             comments:document.getElementById('wrComments').value.trim()
         };
         if(isUpdate)data.id=Number(id);
-        await sendRequest('saveWarrantyRecord',{data,isUpdate,skipLog:true});
-        await logActivity(isUpdate?'Edit Warranty Record':'Add Warranty Record',(isUpdate?'Updated':'Added')+' Warranty Record | SN: '+(data.serial_number||'N/A')+' | Item: '+(data.item||'N/A'));
+        const{error:swErr}=await supabaseClient.rpc('save_warranty_record',{payload:{data,isUpdate}});if(swErr)throw new Error(swErr.message);
+        logActivity(isUpdate?'Edit Warranty Record':'Add Warranty Record',(isUpdate?'Updated':'Added')+' Warranty Record | SN: '+(data.serial_number||'N/A')+' | Item: '+(data.item||'N/A'));
         showNotification('Warranty record saved.','success');
         hideModal(document.getElementById('warrantyRecordOverlay'));
         const searchInput=document.getElementById('warrantySerialInput');
@@ -6804,8 +6804,8 @@ async function handlePrinterRecordSubmit(e){
     toggleButtonLoading(submitBtn,true);
     try{
         if(isUpdate)data.id=Number(id);
-        await sendRequest('savePrinter',{data,isUpdate,skipLog:true});
-        await logActivity(isUpdate?'Edit Printer':'Add Printer',(isUpdate?'Updated':'Added')+' Printer | ID: '+(data.printer_id||'N/A')+' | Model: '+(data.printer_model||'N/A'));
+        const{error:spErr}=await supabaseClient.rpc('save_printer',{payload:{data,isUpdate}});if(spErr)throw new Error(spErr.message);
+        logActivity(isUpdate?'Edit Printer':'Add Printer',(isUpdate?'Updated':'Added')+' Printer | ID: '+(data.printer_id||'N/A')+' | Model: '+(data.printer_model||'N/A'));
         showNotification('Printer saved.','success');
         hideModal(document.getElementById('printerRecordOverlay'));
         await loadPrintersData();
@@ -6825,8 +6825,8 @@ function handlePrintersTableActions(event){
         const id=Number(delBtn.dataset.id);
         const record=allPrintersData.find(p=>Number(p.id)===id);
         confirmAction('Delete this printer?',async()=>{
-            await sendRequest('deletePrinter',{id,skipLog:true});
-            await logActivity('Delete Printer','Deleted Printer ID: '+id+(record?(' | Model: '+(record.printer_model||'N/A')):''));
+            const{error:dpErr}=await supabaseClient.rpc('delete_printer',{payload:{id}});if(dpErr)return showNotification(dpErr.message,'error');
+            logActivity('Delete Printer','Deleted Printer ID: '+id+(record?(' | Model: '+(record.printer_model||'N/A')):''));
             showNotification('Printer deleted.','success');
             await loadPrintersData();
         });
@@ -6884,8 +6884,8 @@ async function handlePrintersImportFile(e){
         if(rows.length===0){showNotification('No valid rows found in the file.','warning');e.target.value='';return;}
         confirmAction('Import '+rows.length+' printer(s) from this file?',async()=>{
             try{
-                const result=await sendRequest('bulkAddPrinters',{rows,skipLog:true});
-                await logActivity('Bulk Import Printers','Bulk Import: Added '+(result&&result.added||rows.length)+' Printer(s)');
+                const{data:result,error:bpErr}=await supabaseClient.rpc('bulk_add_printers',{payload:{rows}});if(bpErr)throw new Error(bpErr.message);
+                logActivity('Bulk Import Printers','Bulk Import: Added '+(result&&result.added||rows.length)+' Printer(s)');
                 showNotification('Imported '+(result&&result.added||rows.length)+' printer(s) successfully.','success');
                 await loadPrintersData();
             }catch(err){
@@ -6933,23 +6933,57 @@ async function handleWarrantyImportFile(e){
         const buf=await file.arrayBuffer();
         const wb=XLSX.read(buf,{type:'array'});
         const sheet=wb.Sheets[wb.SheetNames[0]];
-        const json=XLSX.utils.sheet_to_json(sheet,{defval:''});
-        if(json.length===0){showNotification('The file is empty.','warning');e.target.value='';return;}
-        const rows=json.map(r=>({
-            serial_number:String(r['Serial Number']||r['serial_number']||'').trim(),
-            item:String(r['Item']||r['item']||'').trim(),
-            asset_description:String(r['Model']||r['asset_description']||'').trim(),
-            provider:String(r['Provider']||r['provider']||'').trim(),
-            dis:String(r['Receive Date']||r['dis']||'').trim()||null,
-            warranty_years:r['Warranty Years']||r['warranty_years']?Number(r['Warranty Years']||r['warranty_years']):null,
-            comments:String(r['Comments']||r['comments']||'').trim()
-        })).filter(r=>r.serial_number);
+        const grid=XLSX.utils.sheet_to_json(sheet,{header:1,defval:'',raw:true,blankrows:false});
+        if(grid.length===0){showNotification('The file is empty.','warning');e.target.value='';return;}
+        const pad=n=>String(n).padStart(2,'0');
+        const toDate=v=>{
+            if(v===''||v===null||v===undefined)return{ok:true,v:null};
+            if(typeof v==='number'){const c=XLSX.SSF.parse_date_code(v);if(!c)return{ok:false};return{ok:true,v:c.y+'-'+pad(c.m)+'-'+pad(c.d)};}
+            if(v instanceof Date)return{ok:true,v:v.getFullYear()+'-'+pad(v.getMonth()+1)+'-'+pad(v.getDate())};
+            const t=String(v).trim();
+            if(!t)return{ok:true,v:null};
+            let m=t.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);
+            if(m)return{ok:true,v:m[1]+'-'+pad(m[2])+'-'+pad(m[3])};
+            m=t.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/);
+            if(m)return{ok:true,v:m[3]+'-'+pad(m[2])+'-'+pad(m[1])};
+            return{ok:false};
+        };
+        const toInt=v=>{
+            if(v===''||v===null||v===undefined)return{ok:true,v:null};
+            const n=Number(String(v).trim());
+            if(!isFinite(n))return{ok:false};
+            return{ok:true,v:String(Math.round(n))};
+        };
+        const toText=v=>{if(v===''||v===null||v===undefined)return null;const t=String(v).trim();return t===''?null:t;};
+        let start=0;
+        const firstSn=String(grid[0][2]||'').trim().toLowerCase();
+        if(firstSn==='serial_number'||firstSn==='serial number')start=1;
+        const rows=[];const errors=[];let skipped=0;
+        for(let i=start;i<grid.length;i++){
+            const r=grid[i];
+            const sn=toText(r[2]);
+            if(!sn){if(r.some(c=>String(c).trim()!==''))skipped++;continue;}
+            const dis=toDate(r[3]),eow=toDate(r[4]),rem=toInt(r[6]),yrs=toInt(r[8]);
+            const bad=[];
+            if(!dis.ok)bad.push('Receive Date');
+            if(!eow.ok)bad.push('End of Warranty');
+            if(!rem.ok)bad.push('Remaining Days');
+            if(!yrs.ok)bad.push('Warranty Years');
+            if(bad.length){errors.push('Row '+(i+1)+': invalid '+bad.join(', '));continue;}
+            rows.push({item:toText(r[0]),asset_description:toText(r[1]),serial_number:sn,dis:dis.v,end_of_warranty:eow.v,warranty_status:toText(r[5]),remaining_days:rem.v,provider:toText(r[7]),warranty_years:yrs.v,po:toText(r[9]),comments:toText(r[10]),column3:toText(r[11])});
+        }
+        if(errors.length){
+            Swal.fire({icon:'error',title:'Import cancelled',html:'<div style="text-align:left;max-height:260px;overflow:auto;">'+errors.slice(0,30).map(x=>escapeHtml(x)).join('<br>')+(errors.length>30?'<br>...':'')+'</div>'});
+            e.target.value='';return;
+        }
         if(rows.length===0){showNotification('No valid rows found (Serial Number is required).','warning');e.target.value='';return;}
-        confirmAction('Import '+rows.length+' warranty record(s) from this file?',async()=>{
+        confirmAction('Import '+rows.length+' warranty record(s) from this file?'+(skipped?(' ('+skipped+' row(s) without Serial Number will be skipped)'):''),async()=>{
             try{
-                const result=await sendRequest('bulkAddWarrantyRecords',{rows,skipLog:true});
-                await logActivity('Bulk Import Warranty','Bulk Import: Added '+(result&&result.added||rows.length)+' Warranty Record(s)');
-                showNotification('Imported '+(result&&result.added||rows.length)+' warranty record(s) successfully.','success');
+                const{data:result,error}=await supabaseClient.rpc('bulk_add_warranty_records',{payload:{rows}});
+                if(error)throw new Error(error.message);
+                const added=(result&&result.added)||rows.length;
+                logActivity('Bulk Import Warranty','Bulk Import: Added '+added+' Warranty Record(s)');
+                showNotification('Imported '+added+' warranty record(s) successfully.','success');
                 loadWarrantyWidget();
             }catch(err){
                 showNotification(err.message||'Import failed.','error');
