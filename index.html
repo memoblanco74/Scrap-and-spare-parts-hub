@@ -4508,7 +4508,7 @@ function handleRealtimeUpdate(payload) {
         if (eventType === 'INSERT') {
             // إضافة السطر الجديد في أول الجدول مباشرة (الأحدث فوق)
             const r = logsTableBody.insertRow(0);
-            r.innerHTML = `<td>${(newRow.timestamp || '').replace('T', ' ')}</td><td>${newRow.user}</td><td>${newRow.action}</td><td>${newRow.details}</td>`;
+            r.innerHTML = `<td>${formatDT(newRow.timestamp)}</td><td>${newRow.user}</td><td>${newRow.action}</td><td>${newRow.details}</td>`;
             
             // لو الجدول زاد عن 500 سطر، امسح السطر الأخير (الأقدم)
             if (logsTableBody.rows.length > 500) {
@@ -4859,7 +4859,7 @@ function renderLogsRows(rows){
     }
     rows.forEach(l=>{
         const r=logsTableBody.insertRow();
-        r.innerHTML=`<td>${escapeHtml((l.timestamp||'').replace('T',' '))}</td><td>${escapeHtml(l.user)}</td><td>${escapeHtml(l.action)}</td><td>${escapeHtml(l.details)}</td>`;
+        r.innerHTML=`<td>${escapeHtml(formatDT(l.timestamp))}</td><td>${escapeHtml(l.user)}</td><td>${escapeHtml(l.action)}</td><td>${escapeHtml(l.details)}</td>`;
     });
 }
 let logsSearchDebounceTimer=null;
@@ -5631,7 +5631,7 @@ const upgradePlan = x.upgradePlan || x.upgrade_plan || '-';
 const usageId = x.usageId || x.usage_id || x.id || '';
 h += '<tr>' +
 '<td style="text-align:center;"><input type="checkbox" class="usage-row-checkbox" data-usage-id="' + usageId + '"></td>' +
-'<td style="white-space:nowrap;">' + (x.date ? x.date.replace('T', ' ') : '-') + '</td>' +
+'<td style="white-space:nowrap;">' + (x.date ? formatDT(x.date) : '-') + '</td>' +
 '<td>' + partId + '</td>' +
 '<td>' + partSN + '</td>' +
 '<td>' + (x.type || '-') + '</td>' +
@@ -5709,9 +5709,25 @@ function normalizePartTypeColumn(rawType){
     }
     return null;
 }
+function formatDT(v,dateOnly){
+    if(v===null||v===undefined||v==='')return '';
+    const p2=n=>String(n).padStart(2,'0');
+    if(v instanceof Date){
+        if(isNaN(v.getTime()))return '';
+        const ds=v.getFullYear()+'-'+(v.getMonth()+1)+'-'+v.getDate();
+        return dateOnly?ds:ds+'  '+p2(v.getHours())+':'+p2(v.getMinutes())+':'+p2(v.getSeconds());
+    }
+    const t=String(v).trim();
+    const m=t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T ](\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+    if(!m)return t;
+    const ds=m[1]+'-'+Number(m[2])+'-'+Number(m[3]);
+    if(dateOnly||m[4]===undefined)return ds;
+    return ds+'  '+p2(m[4])+':'+m[5]+':'+(m[6]!==undefined?m[6]:'00');
+}
+function fmtRowsDT(rows){const keys=['date','timestamp','dis','end_of_warranty'];return(rows||[]).map(r=>{const o={...r};keys.forEach(k=>{if(o[k]!==undefined&&o[k]!==null&&o[k]!=='')o[k]=formatDT(o[k],k==='dis'||k==='end_of_warranty')});return o})}
 function formatDateYMD(d){
     if(!d||isNaN(d))return '-';
-    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    return formatDT(d);
 }
 async function ensureEmailTemplateSettingsLoaded(){
     if(emailTemplateSettingsLoaded)return;
@@ -6141,7 +6157,7 @@ if (selectedConditions.length > 0) {
 let ud = parseCustomDate(u.date);
 if (st && (!ud || ud < st)) return;
 if (en && (!ud || ud > en)) return;
-rU.push({"Date": u.date || "-", "Part ID": partId, "Part SN": u.part_sn||u.partSN || "", "Type": u.type, "Part Brand": u.brand, "Part Model": u.model, "Quantity": u.quantity, "Source Brand": u.source_brand||u.sourceBrand || "", "Source Model": u.source_model||u.sourceModel || "", "Source SN": u.source_sn||u.sourceSN || "", "Dest Brand": u.dest_brand||u.destBrand || "", "Dest Model": u.dest_model||u.destModel || "", "Dest SN": u.dest_sn||u.destSN || "", "Account": u.account, "Asset": u.asset || "", "Change": u.change || "", "Incident": u.incident || "", "Upgrade Plan": u.upgrade_plan||u.upgradePlan || "No", "rawDate": ud});
+rU.push({"Date": formatDT(u.date) || "-", "Part ID": partId, "Part SN": u.part_sn||u.partSN || "", "Type": u.type, "Part Brand": u.brand, "Part Model": u.model, "Quantity": u.quantity, "Source Brand": u.source_brand||u.sourceBrand || "", "Source Model": u.source_model||u.sourceModel || "", "Source SN": u.source_sn||u.sourceSN || "", "Dest Brand": u.dest_brand||u.destBrand || "", "Dest Model": u.dest_model||u.destModel || "", "Dest SN": u.dest_sn||u.destSN || "", "Account": u.account, "Asset": u.asset || "", "Change": u.change || "", "Incident": u.incident || "", "Upgrade Plan": u.upgrade_plan||u.upgradePlan || "No", "rawDate": ud});
 });
 freshDeductData.forEach(d => {const partId=d.part_id!==undefined?d.part_id:d.partId;if (reservedPartIds.length > 0 && !reservedPartIds.includes(Number(partId))) return;
 if (t.length > 0) {
@@ -6158,7 +6174,7 @@ if (selectedConditions.length > 0) {
 let ud = parseCustomDate(d.date);
 if (st && (!ud || ud < st)) return;
 if (en && (!ud || ud > en)) return;
-rD.push({"Date": d.date || "-", "Part ID": partId, "Type": d.type, "Brand": d.brand, "Model": d.model, "Quantity": d.quantity, "Reason": d.reason || "", "Account": d.account || "", "rawDate": ud});
+rD.push({"Date": formatDT(d.date) || "-", "Part ID": partId, "Type": d.type, "Brand": d.brand, "Model": d.model, "Quantity": d.quantity, "Reason": d.reason || "", "Account": d.account || "", "rawDate": ud});
 });
 freshDowngradesData.forEach(dg => {
 if (t.length > 0) {
@@ -6168,7 +6184,7 @@ if (!m) return;
 let ud = parseCustomDate(dg.timestamp);
 if (st && (!ud || ud < st)) return;
 if (en && (!ud || ud > en)) return;
-rDg.push({"Date": dg.timestamp || "-", "Part SN": dg.part_sn || dg.partSN || "", "Part Model": dg.part_model || dg.partModel || "", "Device SN": dg.device_sn || dg.deviceSN || "", "Device Brand": dg.device_brand || dg.deviceBrand || "", "Device Model": dg.device_model || dg.deviceModel || "", "Reason": dg.reason || "", "User": dg.user || "", "rawDate": ud});
+rDg.push({"Date": formatDT(dg.timestamp) || "-", "Part SN": dg.part_sn || dg.partSN || "", "Part Model": dg.part_model || dg.partModel || "", "Device SN": dg.device_sn || dg.deviceSN || "", "Device Brand": dg.device_brand || dg.deviceBrand || "", "Device Model": dg.device_model || dg.deviceModel || "", "Reason": dg.reason || "", "User": dg.user || "", "rawDate": ud});
 });
 if (rU.length === 0 && rD.length === 0 && rDg.length === 0) return showNotification("No records found.", "info");
 const wb = XLSX.utils.book_new();
@@ -6410,8 +6426,8 @@ async function exportUsageHistoryForPart(partId,btnEl){
         }));
         if(!uh.length&&!dh.length)return showNotification('No history found for this part.','info');
         const wb=XLSX.utils.book_new();
-        if(uh.length){const h=["Date","Part ID","Part SN","Type","Brand","Model","Quantity","Source Brand","Source Model","Source SN","Dest Brand","Dest Model","Dest SN","Account","Asset","Change","Incident","Upgrade Plan"];const d=uh.map(u=>[u.date||"-",partId,u.partSN||'',u.type,u.brand||'',u.model,u.quantity||0,u.sourceBrand||'',u.sourceModel||'',u.sourceSN||'',u.destBrand||'',u.destModel||'',u.destSN||'',u.account||'',u.asset||'',u.change||'',u.incident||'',u.upgradePlan||'No']);XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([h,...d]),"UsageHistory")}
-        if(dh.length){const h=["Date","Part ID","Type","Brand","Model","Quantity","Reason","Account"];const d=dh.map(x=>[x.date||"-",partId,x.type,x.brand,x.model,x.quantity||0,x.reason||'',x.account||'']);XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([h,...d]),"DeductHistory")}
+        if(uh.length){const h=["Date","Part ID","Part SN","Type","Brand","Model","Quantity","Source Brand","Source Model","Source SN","Dest Brand","Dest Model","Dest SN","Account","Asset","Change","Incident","Upgrade Plan"];const d=uh.map(u=>[formatDT(u.date)||"-",partId,u.partSN||'',u.type,u.brand||'',u.model,u.quantity||0,u.sourceBrand||'',u.sourceModel||'',u.sourceSN||'',u.destBrand||'',u.destModel||'',u.destSN||'',u.account||'',u.asset||'',u.change||'',u.incident||'',u.upgradePlan||'No']);XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([h,...d]),"UsageHistory")}
+        if(dh.length){const h=["Date","Part ID","Type","Brand","Model","Quantity","Reason","Account"];const d=dh.map(x=>[formatDT(x.date)||"-",partId,x.type,x.brand,x.model,x.quantity||0,x.reason||'',x.account||'']);XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([h,...d]),"DeductHistory")}
         await logActivity('Export Part History','Exported history for Part ID: '+part.id+' ('+part.type+' '+part.model+')');
         XLSX.writeFile(wb,'Report_Part_ID_'+part.id+'_'+part.type+'_'+part.model+'.xlsx');
     }catch(err){
@@ -6453,7 +6469,7 @@ async function openPartHistoryModal(partIds){
             uh.forEach(u=>{
                 const src=[u.source_brand||u.sourceBrand,u.source_model||u.sourceModel,u.source_sn||u.sourceSN].filter(Boolean).join(' ');
                 const dst=[u.dest_brand||u.destBrand,u.dest_model||u.destModel,u.dest_sn||u.destSN].filter(Boolean).join(' ');
-                html+='<tr><td>'+escapeHtml(u.date||'-')+'</td><td>'+escapeHtml(u.part_sn||u.partSN||'')+'</td><td>'+escapeHtml(u.quantity||0)+'</td><td>'+escapeHtml(src||'-')+'</td><td>'+escapeHtml(dst||'-')+'</td><td>'+escapeHtml(u.account||'')+'</td><td>'+escapeHtml(u.asset||'')+'</td><td>'+escapeHtml(u.incident||'')+'</td></tr>';
+                html+='<tr><td>'+escapeHtml(formatDT(u.date)||'-')+'</td><td>'+escapeHtml(u.part_sn||u.partSN||'')+'</td><td>'+escapeHtml(u.quantity||0)+'</td><td>'+escapeHtml(src||'-')+'</td><td>'+escapeHtml(dst||'-')+'</td><td>'+escapeHtml(u.account||'')+'</td><td>'+escapeHtml(u.asset||'')+'</td><td>'+escapeHtml(u.incident||'')+'</td></tr>';
             });
             html+='</tbody></table></div>';
         }
@@ -6461,7 +6477,7 @@ async function openPartHistoryModal(partIds){
             html+='<h3>Deduct History ('+dh.length+')</h3>';
             html+='<div class="table-container" style="max-height:280px;"><table><thead><tr><th>Date</th><th>Type</th><th>Brand</th><th>Model</th><th>Qty</th><th>Reason</th><th>Account</th></tr></thead><tbody>';
             dh.forEach(d=>{
-                html+='<tr><td>'+escapeHtml(d.date||'-')+'</td><td>'+escapeHtml(d.type||'')+'</td><td>'+escapeHtml(d.brand||'')+'</td><td>'+escapeHtml(d.model||'')+'</td><td>'+escapeHtml(d.quantity||0)+'</td><td>'+escapeHtml(d.reason||'')+'</td><td>'+escapeHtml(d.account||'')+'</td></tr>';
+                html+='<tr><td>'+escapeHtml(formatDT(d.date)||'-')+'</td><td>'+escapeHtml(d.type||'')+'</td><td>'+escapeHtml(d.brand||'')+'</td><td>'+escapeHtml(d.model||'')+'</td><td>'+escapeHtml(d.quantity||0)+'</td><td>'+escapeHtml(d.reason||'')+'</td><td>'+escapeHtml(d.account||'')+'</td></tr>';
             });
             html+='</tbody></table></div>';
         }
@@ -6478,7 +6494,7 @@ function computeWarrantyStatus(receiveDateStr,warrantyYears){
     if(isNaN(receiveDate.getTime()))return{status:'Unknown',remainingDays:0,endOfWarranty:'-'};
     const endDate=new Date(receiveDate);
     endDate.setFullYear(endDate.getFullYear()+Number(warrantyYears));
-    const endOfWarranty=endDate.toLocaleDateString('en-GB');
+    const endOfWarranty=formatDT(endDate,true);
     const today=new Date();today.setHours(0,0,0,0);
     const endCmp=new Date(endDate);endCmp.setHours(0,0,0,0);
     const daysDiff=Math.ceil((endCmp.getTime()-today.getTime())/(1000*3600*24));
@@ -6999,7 +7015,7 @@ function renderSparePartsCards(p) {
         }
         bh += '</div>';
         
-        c.innerHTML = '<div class="sp-card-header"><div class="sp-info" style="display:flex; align-items:flex-start; gap:10px;"><input type="checkbox" class="multi-use-checkbox" value="' + did + '"><div><div class="sp-type">' + (x.type || 'Unknown') + '</div>' + dh + '</div></div>' + (isHid ? '' : (isDg || isScrapped ? '<div class="sp-qty-badge-modern"><span class="qty-current">' + (x.quantity || 0) + '</span><span class="qty-text">Units</span></div>' : '<div class="sp-qty-badge-modern"><span class="qty-current">' + (x.quantity || 0) + '</span><span class="qty-divider">/</span><span class="qty-initial">' + (x.initial_quantity || x.quantity || 0) + '</span><span class="qty-text">Units</span></div>')) + '</div><div class="sp-card-details"><div class="sp-detail-item"><span class="sp-label">Ref ID</span><span class="sp-value">' + (did || '-') + '</span></div><div class="sp-detail-item"><span class="sp-label">Category</span><span class="sp-value">' + (x.category || '-') + '</span></div><div class="sp-detail-item"><span class="sp-label">Site</span><span class="sp-value">' + (x.site || '-') + '</span></div><div class="sp-detail-item"><span class="sp-label">Location</span><span class="sp-value">' + (x.location || '-') + '</span></div><div class="sp-detail-item"><span class="sp-label">Reserved</span><span class="sp-value">' + (x.reservedFor || '-') + '</span></div>' + (x.incident ? '<div class="sp-detail-item"><span class="sp-label">Incident</span><span class="sp-value">' + x.incident + '</span></div>' : '') + (x.purchaseOrder ? '<div class="sp-detail-item"><span class="sp-label">PO</span><span class="sp-value">' + x.purchaseOrder + '</span></div>' : '') + (x.date ? '<div class="sp-detail-item"><span class="sp-label">Date</span><span class="sp-value">' + (String(x.date).split('T')[0].split(' ')[0]) + '</span></div>' : '') + '<div class="sp-detail-item" style="grid-column: 1 / -1;"><span class="sp-label">Comment</span><span class="sp-value">' + (cc || '') + '</span></div></div>' + bh;
+        c.innerHTML = '<div class="sp-card-header"><div class="sp-info" style="display:flex; align-items:flex-start; gap:10px;"><input type="checkbox" class="multi-use-checkbox" value="' + did + '"><div><div class="sp-type">' + (x.type || 'Unknown') + '</div>' + dh + '</div></div>' + (isHid ? '' : (isDg || isScrapped ? '<div class="sp-qty-badge-modern"><span class="qty-current">' + (x.quantity || 0) + '</span><span class="qty-text">Units</span></div>' : '<div class="sp-qty-badge-modern"><span class="qty-current">' + (x.quantity || 0) + '</span><span class="qty-divider">/</span><span class="qty-initial">' + (x.initial_quantity || x.quantity || 0) + '</span><span class="qty-text">Units</span></div>')) + '</div><div class="sp-card-details"><div class="sp-detail-item"><span class="sp-label">Ref ID</span><span class="sp-value">' + (did || '-') + '</span></div><div class="sp-detail-item"><span class="sp-label">Category</span><span class="sp-value">' + (x.category || '-') + '</span></div><div class="sp-detail-item"><span class="sp-label">Site</span><span class="sp-value">' + (x.site || '-') + '</span></div><div class="sp-detail-item"><span class="sp-label">Location</span><span class="sp-value">' + (x.location || '-') + '</span></div><div class="sp-detail-item"><span class="sp-label">Reserved</span><span class="sp-value">' + (x.reservedFor || '-') + '</span></div>' + (x.incident ? '<div class="sp-detail-item"><span class="sp-label">Incident</span><span class="sp-value">' + x.incident + '</span></div>' : '') + (x.purchaseOrder ? '<div class="sp-detail-item"><span class="sp-label">PO</span><span class="sp-value">' + x.purchaseOrder + '</span></div>' : '') + (x.date ? '<div class="sp-detail-item"><span class="sp-label">Date</span><span class="sp-value">' + formatDT(x.date,true) + '</span></div>' : '') + '<div class="sp-detail-item" style="grid-column: 1 / -1;"><span class="sp-label">Comment</span><span class="sp-value">' + (cc || '') + '</span></div></div>' + bh;
         sparePartsCardContainer.appendChild(c);
     });
     applySparePartsSearch();
@@ -7197,19 +7213,19 @@ async function exportFullDatabase() {
     
     // تحويل كل جدول إلى ورقة عمل (Sheet)
     if(jsonData.laptops && jsonData.laptops.length) {
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(jsonData.laptops), "Laptops");
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(fmtRowsDT(jsonData.laptops)), "Laptops");
     }
     if(jsonData.spareparts && jsonData.spareparts.length) {
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(jsonData.spareparts), "SpareParts");
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(fmtRowsDT(jsonData.spareparts)), "SpareParts");
     }
     if(jsonData.usagehistory && jsonData.usagehistory.length) {
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(jsonData.usagehistory), "UsageHistory");
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(fmtRowsDT(jsonData.usagehistory)), "UsageHistory");
     }
     if(jsonData.deducthistory && jsonData.deducthistory.length) {
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(jsonData.deducthistory), "DeductHistory");
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(fmtRowsDT(jsonData.deducthistory)), "DeductHistory");
     }
     if(jsonData.logs && jsonData.logs.length) {
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(jsonData.logs), "Logs");
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(fmtRowsDT(jsonData.logs)), "Logs");
     }
 
     // تجهيز اسم الملف وتنزيله
@@ -7533,7 +7549,7 @@ async function renderDailyWorkEntries() {
         if (dateKey === 'Unknown Date') return 'Unknown Date';
         const d = new Date(dateKey + 'T00:00:00');
         if (isNaN(d.getTime())) return dateKey;
-        return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        return d.toLocaleDateString('en-GB', { weekday: 'long' }) + ', ' + formatDT(d, true);
     };
     container.innerHTML = sortedDates.map(dateKey => {
         const dayEntries = groups[dateKey].slice().reverse();
