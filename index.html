@@ -5727,7 +5727,7 @@ function formatDT(v,dateOnly){
 function fmtRowsDT(rows){const keys=['date','timestamp','dis','end_of_warranty'];return(rows||[]).map(r=>{const o={...r};keys.forEach(k=>{if(o[k]!==undefined&&o[k]!==null&&o[k]!=='')o[k]=formatDT(o[k],k==='dis'||k==='end_of_warranty')});return o})}
 function formatDateYMD(d){
     if(!d||isNaN(d))return '-';
-    return formatDT(d);
+    return d.getDate()+'-'+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]+'-'+d.getFullYear();
 }
 async function ensureEmailTemplateSettingsLoaded(){
     if(emailTemplateSettingsLoaded)return;
