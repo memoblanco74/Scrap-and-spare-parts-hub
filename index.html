@@ -6220,7 +6220,7 @@ function populateSparePartCommentDatalist(){populateDatalistFromParts('spare-par
 function resetSparePartForm(){addSparePartForm.reset();isEditingSparePart=false;editingSparePartId=null;populateSparePartModelDatalist(null);const formCard=addSparePartForm.closest('.card');if(formCard){const heading=formCard.querySelector('h3');if(heading)heading.textContent='Add Spare Parts'}const submitBtn=addSparePartForm.querySelector('button[type="submit"]');if(submitBtn){submitBtn.textContent='Add Spare Parts';submitBtn.style.backgroundColor=''}const cancelBtn=document.getElementById('cancelSparePartEditBtn');if(cancelBtn)cancelBtn.remove();if(formCard)formCard.style.display='none';if(toggleAddSparePartFormBtn)toggleAddSparePartFormBtn.innerHTML='<i class="fa-solid fa-plus"></i> Add Spare Part'}
 async function handleAddSparePart(event){event.preventDefault();if(!currentUser||!currentUser.permissions.spareParts.canAdd)return showNotification('Permission denied.','error');const submitBtn=event.target.querySelector('button[type="submit"]');const form=event.target;const type=sparePartTypeInput.value.trim();const brand=sparePartBrandInput.value.trim();const model=sparePartModelInput.value.trim();const quantity=parseInt(sparePartQuantityInput.value);const category=sparePartCategoryInput.value.trim();const site=sparePartSiteInput.value.trim();const location=sparePartLocationInput.value.trim();const reservedFor=sparePartReservedForInput.value.trim();const incident=sparePartIncidentInput.value;const comment=sparePartCommentInput.value.trim();const purchaseOrder=sparePartPurchaseOrderInput.value.trim();const date=sparePartDateInput.value;if(!type||!brand||!model||isNaN(quantity)||quantity<=0||!category||!site||!location||!reservedFor||!incident){return showNotification('Please fill all required fields.','error');}toggleButtonLoading(submitBtn,true);try{let partData={type,brand,model,quantity,initial_quantity:quantity,category,site,location,reservedFor,incident,comment,purchaseOrder,date};if(isEditingSparePart&&editingSparePartId){const originalPart=allSpareParts.find(p=>p.id===editingSparePartId);if(!originalPart)throw new Error('Part not found.');partData={...originalPart,...partData,id:editingSparePartId};partData.initial_quantity=Number(originalPart.initial_quantity||originalPart.quantity);const changes=[];if(originalPart.quantity!==quantity)changes.push(`Qty: ${originalPart.quantity} → ${quantity}`);if(originalPart.location!==location)changes.push(`Location: ${originalPart.location} → ${location}`);if(originalPart.site!==site)changes.push(`Site: ${originalPart.site} → ${site}`);if((originalPart.reservedFor||'')!==reservedFor)changes.push(`Reserved: ${originalPart.reservedFor} → ${reservedFor}`);if((originalPart.comment||'')!==comment)changes.push(`Comment: "${originalPart.comment}" → "${comment}"`);const{error:editErr}=await supabaseClient.rpc('edit_part_transaction',{payload:{partId:editingSparePartId,type:type,brand:brand,model:model,quantity:quantity,category:category,site:site,location:location,reservedFor:reservedFor,incident:incident,purchaseOrder:purchaseOrder,comment:comment,date:date}});if(editErr)throw new Error(editErr.message);logActivity('Edit Spare Part',`ID: ${editingSparePartId} | ${type} ${brand} ${model} | Changes: [${changes.length?changes.join(' | '):'No changes'}]`);}else{const isBulkNew=(category==="New (Purchased in bulk)"&&location==="Smart Village Store");let existingPart=null;if(!isBulkNew){existingPart=allSpareParts.find(p=>p.type===type&&p.brand===brand&&p.model===model&&p.category===category&&p.site===site&&p.location===location&&p.reservedFor===reservedFor);}if(existingPart){const{data:addRes,error:addErr}=await supabaseClient.rpc('add_part_transaction',{payload:{mode:'merge',partId:existingPart.id,quantity:quantity,comment:comment,purchaseOrder:purchaseOrder,date:date}});if(addErr)throw new Error(addErr.message);const idx=allSpareParts.findIndex(x=>x.id===existingPart.id);if(idx!==-1&&addRes)allSpareParts[idx]={...allSpareParts[idx],quantity:addRes.newQuantity};logActivity('Add Spare Part',`Merged ${quantity} into Card ID: ${existingPart.id} (${type} ${brand} ${model}) | Site: ${existingPart.site} | Room: ${existingPart.location} | Reserved For: ${existingPart.reservedFor}`);}else{const{data:addNew,error:addNewErr}=await supabaseClient.rpc('add_part_transaction',{payload:{mode:'new',type:type,brand:brand,model:model,quantity:quantity,category:category,site:site,location:location,reservedFor:reservedFor,incident:incident,comment:comment,purchaseOrder:purchaseOrder,date:date}});if(addNewErr)throw new Error(addNewErr.message);const newId=addNew&&addNew.newCardId?addNew.newCardId:'N/A';logActivity('Add Spare Part',`New Card Created — ID: ${newId} | Qty: ${quantity} | Type: ${type} ${brand} ${model} | Site: ${site} | Room: ${location} | Reserved For: ${reservedFor}`);}}resetSparePartForm();showNotification('Spare part saved successfully.','success');renderSparePartsCards(allSpareParts);}catch(error){console.error(error);showNotification('Error: '+error.message,'error');}finally{toggleButtonLoading(submitBtn,false);}}
 function openDeductModal(id){const part=allSpareParts.find(p=>p.id===id);if(!part)return showNotification('Part not found.','error');deductPartForm.reset();deductPartInfo.textContent=`Deducting from: ${part.type} ${part.brand} ${part.model} (Available: ${Number(part.quantity)})`;deductPartIdInput.value=id;document.getElementById('deductPartQuantity').max=part.quantity;const isStore=part.location==="Smart Village Store";document.getElementById('isStoreTransfer').value=isStore;const standardFields=document.getElementById('standardDeductFields');const transferFields=document.getElementById('storeTransferFields');const reasonInput=document.getElementById('deductPartReason');const siteInput=document.getElementById('deductTransferSite');const locInput=document.getElementById('deductTransferLocation');const resInput=document.getElementById('deductTransferReserved');const dateInput=document.getElementById('deductTransferDate');const incInput=document.getElementById('deductTransferIncident');const typeChoiceRow=document.getElementById('deductTypeChoiceRow');const typeChoiceSelect=document.getElementById('deductTypeChoice');const returnNote=document.getElementById('returnToStoreNote');const returnParentIdInput=document.getElementById('returnToStoreParentId');typeChoiceSelect.value='standard';returnNote.style.display='none';returnParentIdInput.value='';if(isStore){standardFields.style.display='none';transferFields.style.display='block';typeChoiceRow.style.display='none';reasonInput.required=false;siteInput.required=true;locInput.required=true;resInput.required=true;dateInput.required=true;incInput.required=true;populateSparePartLocationDatalist(siteInput.value);document.querySelector('#deductPartForm .submit-btn').textContent="Transfer to Room";}else{const refMatch=(part.comment||'').match(/Transferred from SV Store \(Ref:\s*(\d+)\)/);if(refMatch){const parentId=Number(refMatch[1]);const parentExists=allSpareParts.some(p=>p.id===parentId);if(parentExists){typeChoiceRow.style.display='flex';returnParentIdInput.value=parentId;const dRec=allDeductHistory.find(d=>d.reason&&d.reason.includes('(New Ref: '+id+')'));returnNote.textContent=dRec?`This card originated from Store card ID ${parentId}. Originally transferred: ${dRec.quantity}.`:`This card originated from Store card ID ${parentId}.`;}else{typeChoiceRow.style.display='none';}}else{typeChoiceRow.style.display='none';}standardFields.style.display='flex';transferFields.style.display='none';reasonInput.required=true;siteInput.required=false;locInput.required=false;resInput.required=false;dateInput.required=false;incInput.required=false;document.querySelector('#deductPartForm .submit-btn').textContent="Confirm Deduction";}showModal(deductPartOverlay);}
-async function lookupPartModelBySerial(serial){const sn=String(serial).trim().toLowerCase();const esc=sn.replace(/[\\%_]/g,'\\$&');const{data,error}=await supabaseClient.from('data').select('asset_description').ilike('serial_number',esc).limit(1);if(error)throw new Error(error.message);return data&&data.length>0?data[0].asset_description:null;}
+async function lookupPartModelBySerial(serial){const sn=String(serial).trim().toLowerCase();const esc=sn.replace(/[\\%_]/g,'\\$&');const{data,error}=await supabaseClient.from('data').select('asset_description,serial_number').ilike('serial_number','%'+esc+'%').limit(100);if(error)throw new Error(error.message);const hit=(data||[]).filter(r=>serialSegments(r.serial_number).some(x=>x.toLowerCase()===sn)).sort((x,y)=>(String(x.serial_number||'').trim().toLowerCase()===sn?0:1)-(String(y.serial_number||'').trim().toLowerCase()===sn?0:1));return hit.length>0?hit[0].asset_description:null;}
 async function lookupDeviceTypesBySerials(serials){const result={};if(!serials||!serials.length)return result;const lookup={};const uniq=[...new Set(serials.map(x=>String(x).trim()).filter(Boolean))];for(let i=0;i<uniq.length;i+=40){const chunk=uniq.slice(i,i+40);const orFilter=chunk.map(x=>'serial_number.ilike."'+x.replace(/[\\%_"]/g,'\\$&')+'"').join(',');const{data,error}=await supabaseClient.from('data').select('serial_number,item').or(orFilter);if(error)throw new Error(error.message);(data||[]).forEach(row=>{if(row.serial_number)lookup[String(row.serial_number).trim().toLowerCase()]=row.item;});}serials.forEach(sn=>{const item=lookup[String(sn).trim().toLowerCase()];let deviceType='Laptop/Desktop';if(item){const il=String(item).toLowerCase();if(il.indexOf('desktop')!==-1)deviceType='Desktop';else if(il.indexOf('laptop')!==-1)deviceType='Laptop';}result[sn]=deviceType;});return result;}
 async function checkPartSnUsage(pSN){const esc=String(pSN).replace(/[\\%_]/g,'\\$&');const{data:uRows,error:uErr}=await supabaseClient.from('usagehistory').select('date,part_sn,source_sn,dest_sn').ilike('part_sn',esc);if(uErr)throw new Error('Failed to verify part serial number: '+uErr.message);const past=(uRows||[]).filter(u=>u.part_sn&&String(u.part_sn).toUpperCase()===pSN);if(!past.length)return{freed:true,lastDeviceSN:''};past.sort((a,b)=>{const da=parseCustomDate(a.date);const db=parseCustomDate(b.date);return(db?db.getTime():0)-(da?da.getTime():0);});const newest=past[0];const usageDate=parseCustomDate(newest.date).getTime();const lastDeviceSN=newest.dest_sn||newest.source_sn||'Unknown';const{data:dRows,error:dErr}=await supabaseClient.from('downgrade').select('timestamp,part_sn').ilike('part_sn',esc);if(dErr)throw new Error('Failed to verify part serial number: '+dErr.message);const dg=(dRows||[]).filter(d=>d.part_sn&&String(d.part_sn).toUpperCase()===pSN);let freed=false;if(dg.length){dg.sort((a,b)=>{const da=parseCustomDate(a.timestamp);const db=parseCustomDate(b.timestamp);return(db?db.getTime():0)-(da?da.getTime():0);});const downgradeDate=parseCustomDate(dg[0].timestamp).getTime();if(downgradeDate>=usageDate)freed=true;}return{freed:freed,lastDeviceSN:lastDeviceSN};}
 async function handleDeductFormSubmit(e){e.preventDefault();if(!currentUser||!currentUser.permissions.spareParts.canDeduct)return showNotification('Permission denied.','error');const btn=e.target.querySelector('button[type="submit"]');toggleButtonLoading(btn,true);try{const partId=Number(e.target.partId.value);const quantity=parseInt(e.target.deductPartQuantity.value);const isStore=document.getElementById('isStoreTransfer').value==='true';const part=allSpareParts.find(p=>p.id===partId);if(!part||quantity<=0)throw new Error('Invalid quantity.');const account=currentUser?currentUser.email:'Unknown';const deductTypeChoice=document.getElementById('deductTypeChoice')?document.getElementById('deductTypeChoice').value:'standard';let payload;
@@ -6511,8 +6511,8 @@ async function checkWarrantyStatus(){
     loadingEl.style.display='block';
     currentWarrantyRecord=null;
     try{
-        const{data:records,error}=await supabaseClient.from('data').select('*').ilike('serial_number',serial);
-        if(error)throw error;
+        const sLow=serial.toLowerCase();
+        const records=await findSerialRows('data',serial);
         if(records&&records.length>0){
             const d=records[0];
             currentWarrantyRecord=d;
@@ -6531,6 +6531,7 @@ async function checkWarrantyStatus(){
             let html='<div style="background:var(--secondary-bg-color); padding:20px; border-radius:12px; border:1px solid var(--border-color);">';
             html+='<div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; font-size:0.95em;">';
             html+='<div style="grid-column:1/-1; border-bottom:1px solid var(--border-color); padding-bottom:10px; margin-bottom:5px;"><span style="color:var(--secondary-color);">Item:</span> <strong style="color:var(--header-color); font-size:1.1em; margin-right:25px;">'+escapeHtml(d.item||'-')+'</strong><span style="color:var(--secondary-color);">Model:</span> <strong style="color:var(--header-color); font-size:1.1em;">'+escapeHtml(d.asset_description||'-')+'</strong></div>';
+            {const parts=String(d.serial_number||'').split('/').map(x=>x.trim()).filter(Boolean);const others=parts.filter(x=>x.toLowerCase()!==sLow);html+='<div style="grid-column:1/-1;"><span style="color:var(--secondary-color);">Serial Number:</span> <strong>'+escapeHtml(d.serial_number||'-')+'</strong>'+(parts.length>1&&others.length?'<div style="margin-top:6px; padding:8px 10px; border-radius:6px; background:rgba(255,193,7,0.15); border:1px solid var(--warning-color);"><i class="fa-solid fa-circle-info"></i> This device has more than one serial. Other serial: <strong>'+others.map(x=>escapeHtml(x)).join(' / ')+'</strong></div>':'')+(records.length>1?'<div style="margin-top:6px; color:var(--secondary-color);">'+records.length+' records matched this serial, showing the first one.</div>':'')+'</div>';}
             html+='<div><span style="color:var(--secondary-color);">Status:</span> <strong style="color:'+statusColor+'; background:rgba(0,0,0,0.1); padding:4px 10px; border-radius:6px; border:1px solid '+statusColor+';">'+escapeHtml(status)+'</strong></div>';
             html+='<div><span style="color:var(--secondary-color);">End Date:</span> <strong>'+escapeHtml(endOfWarranty)+'</strong></div>';
             if(remainingDays>0)html+='<div><span style="color:var(--secondary-color);">Remaining Days:</span> <strong>'+remainingDays+' Days</strong></div>';
@@ -6565,10 +6566,10 @@ async function checkWarrantyStatus(){
             let assetInfo=null;
             const localLaptop=allLaptops.find(l=>String(l.serial_number||'').toLowerCase()===serial.toLowerCase());
             if(localLaptop){
-                assetInfo={brand:localLaptop.brand,model:localLaptop.laptop_model,serialNumber:localLaptop.serial_number};
+                assetInfo={brand:localLaptop.brand,model:localLaptop.laptop_model,serialNumber:localLaptop.serial_number,others:[]};
             }else{
                 const asset=await findAssetBySerial(serial);
-                if(asset)assetInfo={brand:asset.brand,model:asset.model,serialNumber:serial};
+                if(asset)assetInfo={brand:asset.brand,model:asset.model,serialNumber:asset.serial_number||serial,others:asset.otherSerials||[]};
             }
             const canAdd=currentUser&&currentUser.permissions.warrantyCheck&&currentUser.permissions.warrantyCheck.canAdd;
             let html='';
@@ -6578,7 +6579,7 @@ async function checkWarrantyStatus(){
                 html+='<div style="margin-top:10px; text-align:left; font-size:0.9em; background:rgba(0,0,0,0.05); padding:10px; border-radius:6px;">';
                 html+='<div><span style="color:var(--secondary-color);">Brand:</span> <strong>'+escapeHtml(assetInfo.brand||'Unknown')+'</strong></div>';
                 html+='<div><span style="color:var(--secondary-color);">Model:</span> <strong>'+escapeHtml(assetInfo.model||'Unknown')+'</strong></div>';
-                html+='<div><span style="color:var(--secondary-color);">Serial Number:</span> <strong>'+escapeHtml(assetInfo.serialNumber||'-')+'</strong></div></div></div>';
+                html+='<div><span style="color:var(--secondary-color);">Serial Number:</span> <strong>'+escapeHtml(assetInfo.serialNumber||'-')+'</strong></div>';if(assetInfo.others&&assetInfo.others.length)html+='<div style="margin-top:6px;"><i class="fa-solid fa-circle-info"></i> This device has more than one serial. Other serial: <strong>'+assetInfo.others.map(x=>escapeHtml(x)).join(' / ')+'</strong></div>';html+='</div></div>';
             }else{
                 html='<div style="color:var(--danger-color); text-align:center; padding:15px; background:rgba(239,68,68,0.1); border-radius:8px;"><i class="fa-solid fa-circle-exclamation"></i> Serial number not found in the warranty database, and it does not match any known asset.</div>';
             }
@@ -7252,38 +7253,22 @@ function handleSnChangeForRoomToRoom(event){const sn=event.target.value;const la
 function addSparePartItem(listElement){const item=document.createElement('div');item.className='spare-part-item';item.innerHTML=`<input type="number" class="part-qty" placeholder="Quantity" min="1"><select class="part-type"><option>HDD</option><option>SSD</option><option>Fan</option><option>Battery</option><option>RAM</option></select><div class="part-laptop-model-details" style="display:none;"><input type="text" class="part-laptop-model" placeholder="Laptop Model for Part" list="model-list"></div><div class="part-ram-details" style="display:none;"><input type="text" class="part-ram-model" placeholder="RAM Manufacturer" list="ram-manufacturer-list"><input type="text" class="part-ram-path" placeholder="RAM Type/Path" list="ram-path-list"></div><button type="button" class="remove-part-btn">&times;</button>`;listElement.appendChild(item);item.querySelectorAll('input, select').forEach(el=>el.addEventListener('input',updateIncidentText));item.querySelector('.remove-part-btn').addEventListener('click',()=>{item.remove();updateIncidentText()});item.querySelector('.part-type').addEventListener('change',(e)=>{const ramDetails=item.querySelector('.part-ram-details');const laptopModelDetails=item.querySelector('.part-laptop-model-details');const selectedType=e.target.value;ramDetails.style.display=selectedType==='RAM'?'flex':'none';laptopModelDetails.style.display=(selectedType==='Fan'||selectedType==='Battery')?'flex':'none';updateIncidentText()});item.querySelector('.part-type').dispatchEvent(new Event('change'))}
 function updateRamPathDatalistForRow(manufacturer,datalistId){const ramPathDatalist=document.getElementById(datalistId);if(!ramPathDatalist)return;let pathsToShow;if(manufacturer){pathsToShow=[...new Set(allLaptops.flatMap(l=>l.rams||[]).filter(ram=>ram.manufacturer&&ram.manufacturer.toLowerCase()===manufacturer.toLowerCase()).map(ram=>ram.path).filter(Boolean))].sort()}else{pathsToShow=[...new Set(allLaptops.flatMap(l=>l.rams?l.rams.map(r=>r.path):[]).filter(Boolean))].sort()}ramPathDatalist.innerHTML='';pathsToShow.forEach(value=>{const opt=document.createElement('option');opt.value=value;ramPathDatalist.appendChild(opt)})}
 function addRamEntry(ram={}){ramEntryCounter++;const pathDatalistId=`ram-path-list-${ramEntryCounter}`;const entryDiv=document.createElement('div');entryDiv.className='ram-entry';entryDiv.innerHTML=`<div class="form-group"><label>Manufacturer *:</label><input type="text" class="ram-manufacturer" value="${ram.manufacturer||''}" required list="ram-manufacturer-list"></div><div class="form-group"><label>Type/Path *:</label><input type="text" class="ram-path" value="${ram.path||''}" required list="${pathDatalistId}"><datalist id="${pathDatalistId}"></datalist></div><div class="form-group"><label>Size (GB) *:</label><input type="number" class="ram-size" value="${ram.size||''}" required min="1"></div><button type="button" class="remove-ram-btn">&times;</button>`;const ramManufacturerInput=entryDiv.querySelector('.ram-manufacturer');const ramPathInput=entryDiv.querySelector('.ram-path');ramManufacturerInput.addEventListener('input',(e)=>{updateRamPathDatalistForRow(e.target.value,pathDatalistId);ramPathInput.value=''});entryDiv.querySelector('.remove-ram-btn').addEventListener('click',()=>entryDiv.remove());ramEntriesContainer.appendChild(entryDiv);updateRamPathDatalistForRow(ram.manufacturer||null,pathDatalistId)}
+function serialSegments(v){return String(v||'').split('/').map(x=>x.trim()).filter(Boolean);}
+async function findSerialRows(table,serial){const t=String(serial||'').trim();if(!t)return[];const low=t.toLowerCase();const clean=t.replace(/[,()*]/g,'').replace(/[\\%_]/g,'\\$&');const{data,error}=await supabaseClient.from(table).select('*').ilike('serial_number','%'+clean+'%').limit(100);if(error)throw new Error(error.message);return(data||[]).filter(r=>serialSegments(r.serial_number).some(x=>x.toLowerCase()===low)).sort((x,y)=>(String(x.serial_number||'').trim().toLowerCase()===low?0:1)-(String(y.serial_number||'').trim().toLowerCase()===low?0:1));}
+function otherSerialsOf(stored,serial){const low=String(serial||'').trim().toLowerCase();return serialSegments(stored).filter(x=>x.toLowerCase()!==low);}
 async function findAssetBySerial(serial) {
     if (!serial) return null;
     try {
-        // بنعمل استعلام مباشر لجدول assets
-        const { data, error } = await supabaseClient
-            .from('assets') 
-            .select('*')
-            .ilike('serial_number', serial) // بحث يتجاهل حالة الحروف
-            .limit(1);
-
-        if (error) {
-            console.error("Error fetching asset:", error.message);
-        } else if (data && data.length > 0) {
-            return data[0];
+        const assetRows = await findSerialRows('assets', serial);
+        if (assetRows.length > 0) {
+            const row = assetRows[0];
+            return { ...row, otherSerials: otherSerialsOf(row.serial_number, serial) };
         }
-
-        // لو مالقاش في assets، ندور في جدول data (مفيهوش عمود brand، فبنحط الـ description بدل الموديل)
-        const { data: dataTableRows, error: dataTableError } = await supabaseClient
-            .from('data')
-            .select('*')
-            .ilike('serial_number', serial)
-            .limit(1);
-
-        if (dataTableError) {
-            console.error("Error fetching from data table:", dataTableError.message);
-            return null;
+        const dataRows = await findSerialRows('data', serial);
+        if (dataRows.length > 0) {
+            const row = dataRows[0];
+            return { brand: '', model: row.asset_description || '', serial_number: row.serial_number, otherSerials: otherSerialsOf(row.serial_number, serial) };
         }
-        if (dataTableRows && dataTableRows.length > 0) {
-            const row = dataTableRows[0];
-            return { brand: '', model: row.asset_description || '', serial_number: row.serial_number };
-        }
-
         return null;
     } catch (e) {
         console.error("Fetch asset exception:", e);
@@ -7866,7 +7851,7 @@ if (muDestSnInput) {
             if (a) {
                 document.getElementById('muDestBrand').value = a.brand || '';
                 document.getElementById('muDestModel').value = a.model || '';
-                displayDbStatus('Dest Asset Found: ' + a.model, 'success');
+                displayDbStatus('Dest Asset Found: ' + a.model + (a.otherSerials&&a.otherSerials.length?' (other serial: '+a.otherSerials.join(' / ')+')':''), 'success');
             } else {
                 document.getElementById('dbStatus').classList.remove('show');
             }
@@ -8039,7 +8024,7 @@ document.getElementById('muSrcSN')?.addEventListener('change', async (e)=>{
         if(a){
             document.getElementById('muSrcBrand').value=a.brand||'';
             document.getElementById('muSrcModel').value=a.model||'';
-            displayDbStatus('Source Asset: '+a.model,'success');
+            displayDbStatus('Source Asset: '+a.model + (a.otherSerials&&a.otherSerials.length?' (other serial: '+a.otherSerials.join(' / ')+')':''),'success');
         }
     }
 });
@@ -8073,7 +8058,7 @@ document.getElementById('muNhDestSN')?.addEventListener('change', async (e) => {
         if (a) {
             document.getElementById('muNhDestBrand').value = a.brand || '';
             document.getElementById('muNhDestModel').value = a.model || '';
-            displayDbStatus('Dest Asset Found: ' + a.model, 'success');
+            displayDbStatus('Dest Asset Found: ' + a.model + (a.otherSerials&&a.otherSerials.length?' (other serial: '+a.otherSerials.join(' / ')+')':''), 'success');
         } else {
             document.getElementById('dbStatus').classList.remove('show');
         }
