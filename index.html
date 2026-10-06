@@ -5535,6 +5535,50 @@ function getFilteredUsageReportLocal(types, sites, startDate, endDate, usageData
     filtered.sort((a, b) => b.rawDate - a.rawDate);
     return filtered;
 }
+function buildUsageTableHtml(f){
+let tl = 0;
+let h = '<table id="reportTable" style="font-size:0.8em;"><thead><tr><th style="text-align:center;"><input type="checkbox" id="reportSelectAllCheckbox" title="Select All"></th><th>Date</th><th>Part ID</th><th>Part SN</th><th>Type</th><th>Part Brand</th><th>Part Model</th><th>Qty</th><th>Source Brand</th><th>Source Model</th><th>Source SN</th><th>Dest Brand</th><th>Dest Model</th><th>Dest SN</th><th>Account</th><th>Asset</th><th>Change</th><th>Incident</th><th>Upgrade Plan</th><th>Action</th></tr></thead><tbody>';
+if (!f || f.length === 0) {
+h += '<tr><td colspan="20" style="text-align:center;">No records found.</td></tr>';
+} else {
+f.forEach(x => {
+tl += Number(x.quantity || 0);
+const partId = x.partId || x.part_id || '-';
+const partSN = x.partSN || x.part_sn || '-';
+const srcBrand = x.sourceBrand || x.source_brand || '-';
+const srcModel = x.sourceModel || x.source_model || '-';
+const srcSN = x.sourceSN || x.source_sn || '-';
+const destBrand = x.destBrand || x.dest_brand || '-';
+const destModel = x.destModel || x.dest_model || '-';
+const destSN = x.destSN || x.dest_sn || '-';
+const upgradePlan = x.upgradePlan || x.upgrade_plan || '-';
+const usageId = x.usageId || x.usage_id || x.id || '';
+h += '<tr>' +
+'<td style="text-align:center;"><input type="checkbox" class="usage-row-checkbox" data-usage-id="' + usageId + '"></td>' +
+'<td style="white-space:nowrap;">' + (x.date ? formatDT(x.date) : '-') + '</td>' +
+'<td>' + partId + '</td>' +
+'<td>' + partSN + '</td>' +
+'<td>' + (x.type || '-') + '</td>' +
+'<td>' + (x.brand || '-') + '</td>' +
+'<td>' + (x.model || '-') + '</td>' +
+'<td style="font-weight:bold;color:var(--primary-accent-color);">' + (x.quantity || 0) + '</td>' +
+'<td>' + srcBrand + '</td>' +
+'<td>' + srcModel + '</td>' +
+'<td>' + srcSN + '</td>' +
+'<td>' + destBrand + '</td>' +
+'<td>' + destModel + '</td>' +
+'<td>' + destSN + '</td>' +
+'<td>' + (x.account || '-') + '</td>' +
+'<td>' + (x.asset || '-') + '</td>' +
+'<td>' + (x.change || '-') + '</td>' +
+'<td>' + (x.incident || '-') + '</td>' +
+'<td>' + upgradePlan + '</td>' +
+'<td>' + ((currentUser && currentUser.permissions && currentUser.permissions.spareParts && currentUser.permissions.spareParts.canEditUsage) ? ('<button class="custom-btn" style="padding: 4px 8px; font-size: 0.8em; background:var(--fancy-grad-1); color:#fff; margin-right:4px;" onclick="openEditUsageModal(\'' + usageId + '\')"><i class="fa-solid fa-pen"></i> Edit</button>') : '') + ((currentUser && currentUser.permissions && currentUser.permissions.spareParts && currentUser.permissions.spareParts.canRollback) ? ('<button class="custom-btn delete-btn" style="padding: 4px 8px; font-size: 0.8em;" onclick="rollbackUsage(this, \'' + usageId + '\', \'' + partId + '\', ' + (x.quantity || 0) + ')"><i class="fa-solid fa-rotate-left"></i> Rollback</button>') : '') + '</td>' +
+'</tr>';
+});
+}
+return {html: h + '</tbody></table>', total: tl};
+}
 async function handleGenerateReport() {
 const t = Array.from(document.querySelectorAll('#reportTypes input[type="checkbox"]:checked')).map(cb => cb.value);
 const s = Array.from(document.querySelectorAll('#reportSites input[type="checkbox"]:checked')).map(cb => cb.value);
@@ -5650,6 +5694,7 @@ h += '<tr>' +
 reportOutputContainer.style.display = 'block';
 reportTotalCount.textContent = tl;
 reportDetailsTable.innerHTML = h + '</tbody></table>';
+usageReportSnapshot={html:h + '</tbody></table>',total:tl,rows:lastUsageReportRows};
 applyUsageReportSearch();
 updateUsageEmailToolbar();
 } catch (e) {
@@ -7276,6 +7321,63 @@ function generateNextId(){ laptopIDInput.value=""; idHint.textContent="ID is Aut
 function updateTableCounts(){const visibleRows=tableBody.querySelectorAll('tr:not([style*="display: none"])');const selectedCheckboxes=tableBody.querySelectorAll('input[type="checkbox"]:checked:not(#selectAll)');displayedLaptopsCount.textContent=visibleRows.length;selectedLaptopsCount.textContent=selectedCheckboxes.length;updateSelectAllCheckboxState()}
 function updateSelectAllCheckboxState(){const visibleCheckboxes=Array.from(tableBody.querySelectorAll('tr:not([style*="display: none"]) input[type="checkbox"]'));if(visibleCheckboxes.length===0){selectAllCheckbox.checked=false;selectAllCheckbox.indeterminate=false;return}const allChecked=visibleCheckboxes.every(cb=>cb.checked);const someChecked=visibleCheckboxes.some(cb=>cb.checked);selectAllCheckbox.checked=allChecked;selectAllCheckbox.indeterminate=!allChecked&&someChecked}
 function applyGlobalSearch(){const filter=globalSearchInput.value.toLowerCase();tableBody.querySelectorAll('tr').forEach(row=>{row.style.display=row.textContent.toLowerCase().includes(filter)?'':'none'});updateTableCounts()}
+let usageReportSnapshot=null,usageLiveSeq=0,usageLiveTimer=null;
+function mapUsageRowForReport(u){
+    const d=u.date?new Date(String(u.date).trim().replace(" ","T")):null;
+    return {date:u.date||"-",partId:u.part_id,partSN:u.part_sn||"",type:u.type,brand:u.brand,model:u.model,quantity:Number(u.quantity)||0,sourceBrand:u.source_brand||"",sourceModel:u.source_model||"",sourceSN:u.source_sn||"",destBrand:u.dest_brand||"",destModel:u.dest_model||"",destSN:u.dest_sn||"",account:u.account,asset:u.asset||"",change:u.change||"",incident:u.incident||"",upgradePlan:u.upgrade_plan===true?"Yes":(u.upgrade_plan===false?"No":(u.upgrade_plan||"No")),rawDate:(d&&!isNaN(d.getTime()))?d.getTime():0,usageId:u.id};
+}
+async function runLiveUsageSearch(){
+    const inp=document.getElementById('usageReportSearchInput');
+    const countEl=document.getElementById('usageReportSearchCount');
+    if(!inp)return;
+    const terms=inp.value.split(',').map(t=>t.trim()).filter(Boolean);
+    const seq=++usageLiveSeq;
+    if(!terms.length){
+        if(countEl)countEl.textContent='';
+        if(usageReportSnapshot){reportOutputContainer.style.display='block';reportDetailsTable.innerHTML=usageReportSnapshot.html;reportTotalCount.textContent=usageReportSnapshot.total;lastUsageReportRows=usageReportSnapshot.rows;updateUsageEmailToolbar();}
+        else{reportOutputContainer.style.display='none';reportDetailsTable.innerHTML='';}
+        return;
+    }
+    if(countEl)countEl.textContent='Searching...';
+    try{
+        const textCols=['part_sn','type','brand','model','source_brand','source_model','source_sn','dest_brand','dest_model','dest_sn','account','asset','change','incident'];
+        let q=supabaseClient.from('usagehistory').select('*').order('date',{ascending:false}).limit(500);
+        terms.forEach(t=>{
+            const dm=t.match(/^(\d{4})-(\d{1,2})(?:-(\d{1,2}))?$/);
+            if(dm){
+                const y=Number(dm[1]),mo=Number(dm[2]),dd=dm[3]?Number(dm[3]):null;
+                const p2=n=>String(n).padStart(2,'0');
+                const from=y+'-'+p2(mo)+'-'+p2(dd||1)+'T00:00:00';
+                let to;
+                if(dd){const nx=new Date(y,mo-1,dd+1);to=nx.getFullYear()+'-'+p2(nx.getMonth()+1)+'-'+p2(nx.getDate())+'T00:00:00';}
+                else{const nx=new Date(y,mo,1);to=nx.getFullYear()+'-'+p2(nx.getMonth()+1)+'-01T00:00:00';}
+                q=q.gte('date',from).lt('date',to);
+                return;
+            }
+            const esc=t.replace(/[,()*%]/g,' ').replace(/\\/g,' ').replace(/_/g,'\\_').trim();
+            const conds=textCols.map(c=>c+'.ilike.*'+esc+'*');
+            if(/^\d+$/.test(t)){conds.push('id.eq.'+t,'part_id.eq.'+t,'quantity.eq.'+t);}
+            const lt=t.toLowerCase();
+            if(lt==='yes'||lt==='no')conds.push('upgrade_plan.eq.'+(lt==='yes'));
+            q=q.or(conds.join(','));
+        });
+        const{data,error}=await q;
+        if(seq!==usageLiveSeq)return;
+        if(error)throw new Error(error.message);
+        const rows=(data||[]).map(mapUsageRowForReport);
+        const built=buildUsageTableHtml(rows);
+        lastUsageReportRows=rows;
+        reportOutputContainer.style.display='block';
+        reportDetailsTable.innerHTML=built.html;
+        reportTotalCount.textContent=built.total;
+        updateUsageEmailToolbar();
+        if(countEl)countEl.textContent=rows.length>=500?'500+ (showing first 500)':(rows.length+' found');
+    }catch(err){
+        if(seq!==usageLiveSeq)return;
+        if(countEl)countEl.textContent='';
+        showNotification('Search failed: '+err.message,'error');
+    }
+}
 function applyUsageReportSearch(){
     const inp=document.getElementById('usageReportSearchInput');
     const countEl=document.getElementById('usageReportSearchCount');
@@ -7293,7 +7395,7 @@ function applyUsageReportSearch(){
     if(countEl)countEl.textContent=terms.length&&rows.length?(shown+' / '+rows.length):'';
     if(typeof updateUsageEmailSelectedCount==='function')updateUsageEmailSelectedCount();
 }
-const usageReportSearchInput=document.getElementById('usageReportSearchInput');if(usageReportSearchInput)usageReportSearchInput.addEventListener('input',applyUsageReportSearch);
+const usageReportSearchInput=document.getElementById('usageReportSearchInput');if(usageReportSearchInput)usageReportSearchInput.addEventListener('input',()=>{clearTimeout(usageLiveTimer);usageLiveTimer=setTimeout(runLiveUsageSearch,350);});
 function applySparePartsSearch(){if(!sparePartsSearchInput)return;const filterString=sparePartsSearchInput.value.toLowerCase();const searchTerms=filterString.split(',').map(t=>t.trim()).filter(t=>t);const cards=sparePartsCardContainer.querySelectorAll('.spare-part-card');cards.forEach(card=>{const text=card.textContent.toLowerCase();const isMatch=searchTerms.length===0?true:searchTerms.every(term=>text.includes(term));const isOutOfStock=card.classList.contains('out-of-stock');card.style.display=searchTerms.length===0?(isOutOfStock?'none':'flex'):(isMatch?'flex':'none');})}
 async function openGuidedSparePartsSearch(){
     const steps=[['Site','site'],['Location','location'],['Reserved For','reservedFor'],['Part Type','type'],['Brand','brand'],['Model','model']];
