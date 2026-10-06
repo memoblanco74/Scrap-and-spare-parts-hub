@@ -7341,7 +7341,7 @@ async function runLiveUsageSearch(){
     if(countEl)countEl.textContent='Searching...';
     try{
         const textCols=['part_sn','type','brand','model','source_brand','source_model','source_sn','dest_brand','dest_model','dest_sn','account','asset','change','incident'];
-        let q=supabaseClient.from('usagehistory').select('*').order('date',{ascending:false}).limit(500);
+        let q=supabaseClient.from('usagehistory').select('*').order('date',{ascending:false}).order('id',{ascending:false});
         terms.forEach(t=>{
             const dm=t.match(/^(\d{4})-(\d{1,2})(?:-(\d{1,2}))?$/);
             if(dm){
@@ -7361,17 +7361,15 @@ async function runLiveUsageSearch(){
             if(lt==='yes'||lt==='no')conds.push('upgrade_plan.eq.'+(lt==='yes'));
             q=q.or(conds.join(','));
         });
-        const{data,error}=await q;
-        if(seq!==usageLiveSeq)return;
-        if(error)throw new Error(error.message);
-        const rows=(data||[]).map(mapUsageRowForReport);
+        let all=[];const step=1000;for(let from=0;;from+=step){const{data,error}=await q.range(from,from+step-1);if(seq!==usageLiveSeq)return;if(error)throw new Error(error.message);all=all.concat(data||[]);if(!data||data.length<step)break;}
+        const rows=all.map(mapUsageRowForReport);
         const built=buildUsageTableHtml(rows);
         lastUsageReportRows=rows;
         reportOutputContainer.style.display='block';
         reportDetailsTable.innerHTML=built.html;
         reportTotalCount.textContent=built.total;
         updateUsageEmailToolbar();
-        if(countEl)countEl.textContent=rows.length>=500?'500+ (showing first 500)':(rows.length+' found');
+        if(countEl)countEl.textContent=rows.length+' found';
     }catch(err){
         if(seq!==usageLiveSeq)return;
         if(countEl)countEl.textContent='';
