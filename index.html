@@ -7280,17 +7280,18 @@ async function openGuidedSparePartsSearch(){
     const dark=document.body.classList.contains('dark-mode');
     let pool=allSpareParts.slice();
     const picked=[];
+    const btnStyle='margin:4px;padding:9px 16px;border-radius:8px;border:1px solid var(--border-color,#888);background:var(--secondary-bg-color,#2a2a2a);color:var(--text-color,inherit);cursor:pointer;font-size:0.95em;';
     for(let i=0;i<steps.length;i++){
         const label=steps[i][0],field=steps[i][1];
         const vals=[...new Set(pool.map(x=>String(x[field]||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'}));
         if(vals.length===0)continue;
-        const opts=new Map([['','- Any -']]);
-        vals.forEach(v=>opts.set(v,v));
-        const r=await Swal.fire({title:label+' ('+(i+1)+'/'+steps.length+')',text:picked.length?('Selected: '+picked.join(' > ')):'Choose, or pick Any to skip this step',input:'select',inputOptions:opts,showCancelButton:true,showDenyButton:true,confirmButtonText:i<steps.length-1?'Next':'Search',denyButtonText:'Search now',cancelButtonText:'Cancel',preDeny:()=>Swal.getInput().value,background:dark?'#1e1e1e':'#fff',color:dark?'#e0e0e0':'#333'});
+        let chosen=null;
+        const html='<div style="max-height:50vh;overflow-y:auto;display:flex;flex-wrap:wrap;justify-content:center;">'+'<button type="button" class="gs-opt" data-val="" style="'+btnStyle+'border-style:dashed;opacity:0.85;">- Any -</button>'+vals.map(v=>'<button type="button" class="gs-opt" data-val="'+escapeHtml(v).replace(/"/g,'&quot;')+'" style="'+btnStyle+'">'+escapeHtml(v)+'</button>').join('')+'</div>';
+        const r=await Swal.fire({title:label+' ('+(i+1)+'/'+steps.length+')',text:picked.length?('Selected: '+picked.join(' > ')):'Choose one, or pick Any to skip this step',html:html,width:'min(680px,94vw)',showConfirmButton:true,showDenyButton:true,showCancelButton:true,confirmButtonText:'Next',denyButtonText:'Search now',cancelButtonText:'Cancel',background:dark?'#1e1e1e':'#fff',color:dark?'#e0e0e0':'#333',didOpen:()=>{const cb=Swal.getConfirmButton();if(cb)cb.style.display='none';Swal.getHtmlContainer().querySelectorAll('.gs-opt').forEach(btn=>btn.addEventListener('click',()=>{chosen=btn.getAttribute('data-val');Swal.clickConfirm();}));}});
         if(r.isDismissed)return;
-        const v=r.value;
-        if(v){picked.push(v);pool=pool.filter(x=>String(x[field]||'').trim()===v);}
         if(r.isDenied)break;
+        const v=chosen||'';
+        if(v){picked.push(v);pool=pool.filter(x=>String(x[field]||'').trim()===v);}
     }
     sparePartsSearchInput.value=picked.map(v=>v.replace(/,/g,' ')).join(', ')+(picked.length?', ':'');
     applySparePartsSearch();
