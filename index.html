@@ -5944,7 +5944,7 @@ function renderReportHtmlTable(header,rows,hlHeaders){
     html+='<tr>'+header.map(h=>'<td align="center" '+thStyle+'><b><font color="#ffffff">'+escapeHtml(h)+'</font></b></td>').join('')+'</tr>';
     rows.forEach(r=>{
         const hl=new Set((hlHeaders||[]).map(x=>String(x).toLowerCase()));
-        html+='<tr>'+r.map((v,ci)=>{const t=String(v);const inner=t===''?'&nbsp;':escapeHtml(t);const hot=hl.has(String(header[ci]||'').toLowerCase())&&Number(t)>0;const st=hot?tdStyle.replace('border:1px solid #8c8c8c;','border:1px solid #8c8c8c;background-color:#FF0000;color:#ffffff;font-weight:bold;'):tdStyle;const body=hot?'<b><font color="#ffffff">'+inner+'</font></b>':inner;return '<td align="center" '+(hot?'bgcolor="#FF0000" ':'')+st+'><p style="margin:0;text-align:center;" align="center">'+body+'</p></td>';}).join('')+'</tr>';
+        html+='<tr>'+r.map((v,ci)=>{const t=String(v);const inner=t===''?'&nbsp;':escapeHtml(t);const hot=hl.has(String(header[ci]||'').toLowerCase())&&Number(t)>0;const st=hot?tdStyle.replace('border:1px solid #8c8c8c;','border:1px solid #8c8c8c;background-color:#FF0000;color:#ffffff;font-weight:bold;'):tdStyle;const body=hot?'<b><font color="#ffffff"><span style="color:#ffffff;font-weight:bold;">'+inner+'</span></font></b>':inner;const pst=hot?'margin:0;text-align:center;color:#ffffff;font-weight:bold;':'margin:0;text-align:center;';return '<td align="center" '+(hot?'bgcolor="#FF0000" ':'')+st+'><p style="'+pst+'" align="center">'+body+'</p></td>';}).join('')+'</tr>';
     });
     html+='</table>';
     return html;
