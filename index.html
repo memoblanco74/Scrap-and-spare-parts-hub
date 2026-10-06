@@ -4501,7 +4501,7 @@ function handleRealtimeUpdate(payload) {
         if (eventType === 'INSERT') {
             // إضافة السطر الجديد في أول الجدول مباشرة (الأحدث فوق)
             const r = logsTableBody.insertRow(0);
-            r.innerHTML = `<td>${formatDT(newRow.timestamp)}</td><td>${newRow.user}</td><td>${newRow.action}</td><td>${newRow.details}</td>`;
+            r.innerHTML = `<td style="white-space:pre;">${formatDT(newRow.timestamp)}</td><td>${newRow.user}</td><td>${newRow.action}</td><td>${newRow.details}</td>`;
             
             // لو الجدول زاد عن 500 سطر، امسح السطر الأخير (الأقدم)
             if (logsTableBody.rows.length > 500) {
@@ -4852,7 +4852,7 @@ function renderLogsRows(rows){
     }
     rows.forEach(l=>{
         const r=logsTableBody.insertRow();
-        r.innerHTML=`<td>${escapeHtml(formatDT(l.timestamp))}</td><td>${escapeHtml(l.user)}</td><td>${escapeHtml(l.action)}</td><td>${escapeHtml(l.details)}</td>`;
+        r.innerHTML=`<td style="white-space:pre;">${escapeHtml(formatDT(l.timestamp))}</td><td>${escapeHtml(l.user)}</td><td>${escapeHtml(l.action)}</td><td>${escapeHtml(l.details)}</td>`;
     });
 }
 let logsSearchDebounceTimer=null;
@@ -5555,7 +5555,7 @@ const upgradePlan = x.upgradePlan || x.upgrade_plan || '-';
 const usageId = x.usageId || x.usage_id || x.id || '';
 h += '<tr>' +
 '<td style="text-align:center;"><input type="checkbox" class="usage-row-checkbox" data-usage-id="' + usageId + '"></td>' +
-'<td style="white-space:nowrap;">' + (x.date ? formatDT(x.date) : '-') + '</td>' +
+'<td style="white-space:pre;">' + (x.date ? formatDT(x.date) : '-') + '</td>' +
 '<td>' + partId + '</td>' +
 '<td>' + partSN + '</td>' +
 '<td>' + (x.type || '-') + '</td>' +
@@ -5668,7 +5668,7 @@ const upgradePlan = x.upgradePlan || x.upgrade_plan || '-';
 const usageId = x.usageId || x.usage_id || x.id || '';
 h += '<tr>' +
 '<td style="text-align:center;"><input type="checkbox" class="usage-row-checkbox" data-usage-id="' + usageId + '"></td>' +
-'<td style="white-space:nowrap;">' + (x.date ? formatDT(x.date) : '-') + '</td>' +
+'<td style="white-space:pre;">' + (x.date ? formatDT(x.date) : '-') + '</td>' +
 '<td>' + partId + '</td>' +
 '<td>' + partSN + '</td>' +
 '<td>' + (x.type || '-') + '</td>' +
@@ -6509,7 +6509,7 @@ async function openPartHistoryModal(partIds){
             uh.forEach(u=>{
                 const src=[u.source_brand||u.sourceBrand,u.source_model||u.sourceModel,u.source_sn||u.sourceSN].filter(Boolean).join(' ');
                 const dst=[u.dest_brand||u.destBrand,u.dest_model||u.destModel,u.dest_sn||u.destSN].filter(Boolean).join(' ');
-                html+='<tr><td>'+escapeHtml(formatDT(u.date)||'-')+'</td><td>'+escapeHtml(u.part_sn||u.partSN||'')+'</td><td>'+escapeHtml(u.quantity||0)+'</td><td>'+escapeHtml(src||'-')+'</td><td>'+escapeHtml(dst||'-')+'</td><td>'+escapeHtml(u.account||'')+'</td><td>'+escapeHtml(u.asset||'')+'</td><td>'+escapeHtml(u.incident||'')+'</td></tr>';
+                html+='<tr><td style="white-space:pre;">'+escapeHtml(formatDT(u.date)||'-')+'</td><td>'+escapeHtml(u.part_sn||u.partSN||'')+'</td><td>'+escapeHtml(u.quantity||0)+'</td><td>'+escapeHtml(src||'-')+'</td><td>'+escapeHtml(dst||'-')+'</td><td>'+escapeHtml(u.account||'')+'</td><td>'+escapeHtml(u.asset||'')+'</td><td>'+escapeHtml(u.incident||'')+'</td></tr>';
             });
             html+='</tbody></table></div>';
         }
@@ -6517,7 +6517,7 @@ async function openPartHistoryModal(partIds){
             html+='<h3>Deduct History ('+dh.length+')</h3>';
             html+='<div class="table-container" style="max-height:280px;"><table><thead><tr><th>Date</th><th>Type</th><th>Brand</th><th>Model</th><th>Qty</th><th>Reason</th><th>Account</th></tr></thead><tbody>';
             dh.forEach(d=>{
-                html+='<tr><td>'+escapeHtml(formatDT(d.date)||'-')+'</td><td>'+escapeHtml(d.type||'')+'</td><td>'+escapeHtml(d.brand||'')+'</td><td>'+escapeHtml(d.model||'')+'</td><td>'+escapeHtml(d.quantity||0)+'</td><td>'+escapeHtml(d.reason||'')+'</td><td>'+escapeHtml(d.account||'')+'</td></tr>';
+                html+='<tr><td style="white-space:pre;">'+escapeHtml(formatDT(d.date)||'-')+'</td><td>'+escapeHtml(d.type||'')+'</td><td>'+escapeHtml(d.brand||'')+'</td><td>'+escapeHtml(d.model||'')+'</td><td>'+escapeHtml(d.quantity||0)+'</td><td>'+escapeHtml(d.reason||'')+'</td><td>'+escapeHtml(d.account||'')+'</td></tr>';
             });
             html+='</tbody></table></div>';
         }
@@ -7369,7 +7369,7 @@ async function runLiveUsageSearch(){
         reportDetailsTable.innerHTML=built.html;
         reportTotalCount.textContent=built.total;
         updateUsageEmailToolbar();
-        if(countEl)countEl.textContent=rows.length+' found';
+        if(countEl)countEl.textContent=rows.length+' found / '+built.total+' units';
     }catch(err){
         if(seq!==usageLiveSeq)return;
         if(countEl)countEl.textContent='';
