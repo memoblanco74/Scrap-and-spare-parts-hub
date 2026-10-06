@@ -5939,11 +5939,11 @@ function extractFirstNameFromEmail(email){
 }
 function renderReportHtmlTable(header,rows){
     const thStyle='style="border:1px solid #8c8c8c;background-color:#4472C4;color:#ffffff;padding:5px 7px;font-family:Calibri,Arial,sans-serif;font-size:11px;font-weight:bold;text-align:center;vertical-align:middle;white-space:nowrap;"';
-    const tdStyle='style="border:1px solid #8c8c8c;padding:4px 7px;font-family:Calibri,Arial,sans-serif;font-size:11px;text-align:center;vertical-align:middle;"';
-    let html='<table cellspacing="0" cellpadding="0" style="border-collapse:collapse;border:1px solid #8c8c8c;">';
+    const tdStyle='style="border:1px solid #8c8c8c;padding:4px 7px;font-family:Calibri,Arial,sans-serif;font-size:11px;text-align:center;vertical-align:middle;white-space:nowrap;"';
+    let html='<table cellspacing="0" cellpadding="0" style="border-collapse:collapse;border:1px solid #8c8c8c;width:auto;">';
     html+='<tr>'+header.map(h=>'<td align="center" '+thStyle+'><b><font color="#ffffff">'+escapeHtml(h)+'</font></b></td>').join('')+'</tr>';
     rows.forEach(r=>{
-        html+='<tr>'+r.map(v=>'<td align="center" '+tdStyle+'>'+escapeHtml(String(v))+'</td>').join('')+'</tr>';
+        html+='<tr>'+r.map(v=>{const t=String(v);return '<td align="center" '+tdStyle+'>'+(t===''?'&nbsp;':escapeHtml(t))+'</td>';}).join('')+'</tr>';
     });
     html+='</table>';
     return html;
