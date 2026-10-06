@@ -5937,13 +5937,14 @@ function extractFirstNameFromEmail(email){
     if(!namePart)return '';
     return namePart.charAt(0).toUpperCase()+namePart.slice(1).toLowerCase();
 }
-function renderReportHtmlTable(header,rows){
+function renderReportHtmlTable(header,rows,hlHeaders){
     const thStyle='style="border:1px solid #8c8c8c;background-color:#4472C4;color:#ffffff;padding:5px 7px;font-family:Calibri,Arial,sans-serif;font-size:11px;font-weight:bold;text-align:center;vertical-align:middle;white-space:nowrap;"';
     const tdStyle='style="border:1px solid #8c8c8c;padding:4px 7px;font-family:Calibri,Arial,sans-serif;font-size:11px;text-align:center;vertical-align:middle;white-space:nowrap;"';
     let html='<table cellspacing="0" cellpadding="0" style="border-collapse:collapse;border:1px solid #8c8c8c;width:auto;">';
     html+='<tr>'+header.map(h=>'<td align="center" '+thStyle+'><b><font color="#ffffff">'+escapeHtml(h)+'</font></b></td>').join('')+'</tr>';
     rows.forEach(r=>{
-        html+='<tr>'+r.map(v=>{const t=String(v);return '<td align="center" '+tdStyle+'>'+(t===''?'&nbsp;':escapeHtml(t))+'</td>';}).join('')+'</tr>';
+        const hl=new Set((hlHeaders||[]).map(x=>String(x).toLowerCase()));
+        html+='<tr>'+r.map((v,ci)=>{const t=String(v);const inner=t===''?'&nbsp;':escapeHtml(t);const hot=hl.has(String(header[ci]||'').toLowerCase())&&Number(t)>0;const st=hot?tdStyle.replace('border:1px solid #8c8c8c;','border:1px solid #8c8c8c;background-color:#FF0000;color:#ffffff;font-weight:bold;'):tdStyle;const body=hot?'<b><font color="#ffffff">'+inner+'</font></b>':inner;return '<td align="center" '+(hot?'bgcolor="#FF0000" ':'')+st+'><p style="margin:0;text-align:center;" align="center">'+body+'</p></td>';}).join('')+'</tr>';
     });
     html+='</table>';
     return html;
@@ -5995,7 +5996,7 @@ async function handlePrepareUsageEmail(){
         const recipientName=extractFirstNameFromEmail(toAddr);
         const introHtml='<p style="font-family:Calibri,Arial,sans-serif;font-size:12px;">Dear '+escapeHtml(recipientName)+',</p><p style="font-family:Calibri,Arial,sans-serif;font-size:12px;">Kindly update the below record on Out of warranty sheet.</p>';
         const introPlain='Dear '+recipientName+',\r\n\r\nKindly update the below record on Out of warranty sheet.\r\n\r\n';
-        const fullHtml=introHtml+renderReportHtmlTable(header,rows);
+        const fullHtml=introHtml+renderReportHtmlTable(header,rows,[...OUT_OF_WARRANTY_COLUMNS,'Total']);
         const fullPlain=introPlain+renderReportPlainTable(header,rows);
         const copied=await copyRichTableToClipboard(fullHtml,fullPlain);
         if(copied){
