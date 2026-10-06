@@ -3885,7 +3885,8 @@
                 <input type="date" id="reportEndDate">
               </div>
             </div>
-            <div class="form-buttons">
+            <div class="form-buttons" style="align-items:center; flex-wrap:wrap;">
+              <div style="flex:1 1 260px; max-width:420px; margin-right:auto; display:flex; align-items:center; gap:8px;"><input type="text" id="usageReportSearchInput" placeholder="Search anything in the usage report... (comma = AND)" style="width:100%; margin:0;"><span id="usageReportSearchCount" style="font-size:0.8em; color:var(--secondary-color); white-space:nowrap;"></span></div>
               <button id="btnGenerateReport" class="form-btn submit-btn">Show Usage Report</button>
               <button id="btnExportUsageReport" class="form-btn custom-btn export-btn"><i class="fa-solid fa-file-excel"></i> Export to Excel</button>
             </div>
@@ -5649,6 +5650,7 @@ h += '<tr>' +
 reportOutputContainer.style.display = 'block';
 reportTotalCount.textContent = tl;
 reportDetailsTable.innerHTML = h + '</tbody></table>';
+applyUsageReportSearch();
 updateUsageEmailToolbar();
 } catch (e) {
 showNotification(e.message, 'error');
@@ -5740,7 +5742,7 @@ function updateUsageEmailToolbar(){
 function updateUsageEmailSelectedCount(){
     const span=document.getElementById('usageEmailSelectedCount');
     if(!span)return;
-    const n=document.querySelectorAll('#reportDetailsTable .usage-row-checkbox:checked').length;
+    const n=Array.from(document.querySelectorAll('#reportDetailsTable .usage-row-checkbox:checked')).filter(cb=>{const tr=cb.closest('tr');return !tr||tr.style.display!=='none';}).length;
     span.textContent=n+' selected';
 }
 function buildOutOfWarrantyEmailData(selectedRows,templateKey){
@@ -5973,7 +5975,7 @@ async function handlePrepareUsageEmail(){
     const templateKey=document.getElementById('emailTemplateSelect').value;
     const template=EMAIL_TEMPLATES[templateKey];
     if(!template)return showNotification('Unknown email template.','error');
-    const checkedBoxes=Array.from(document.querySelectorAll('#reportDetailsTable .usage-row-checkbox:checked'));
+    const checkedBoxes=Array.from(document.querySelectorAll('#reportDetailsTable .usage-row-checkbox:checked')).filter(cb=>{const tr=cb.closest('tr');return !tr||tr.style.display!=='none';});
     if(checkedBoxes.length===0)return showNotification('Select at least one usage record from the table first.','info');
     const selectedIds=checkedBoxes.map(cb=>String(cb.dataset.usageId));
     const selectedRows=lastUsageReportRows.filter(r=>selectedIds.includes(String(r.usageId||r.usage_id||r.id||'')));
@@ -7274,6 +7276,24 @@ function generateNextId(){ laptopIDInput.value=""; idHint.textContent="ID is Aut
 function updateTableCounts(){const visibleRows=tableBody.querySelectorAll('tr:not([style*="display: none"])');const selectedCheckboxes=tableBody.querySelectorAll('input[type="checkbox"]:checked:not(#selectAll)');displayedLaptopsCount.textContent=visibleRows.length;selectedLaptopsCount.textContent=selectedCheckboxes.length;updateSelectAllCheckboxState()}
 function updateSelectAllCheckboxState(){const visibleCheckboxes=Array.from(tableBody.querySelectorAll('tr:not([style*="display: none"]) input[type="checkbox"]'));if(visibleCheckboxes.length===0){selectAllCheckbox.checked=false;selectAllCheckbox.indeterminate=false;return}const allChecked=visibleCheckboxes.every(cb=>cb.checked);const someChecked=visibleCheckboxes.some(cb=>cb.checked);selectAllCheckbox.checked=allChecked;selectAllCheckbox.indeterminate=!allChecked&&someChecked}
 function applyGlobalSearch(){const filter=globalSearchInput.value.toLowerCase();tableBody.querySelectorAll('tr').forEach(row=>{row.style.display=row.textContent.toLowerCase().includes(filter)?'':'none'});updateTableCounts()}
+function applyUsageReportSearch(){
+    const inp=document.getElementById('usageReportSearchInput');
+    const countEl=document.getElementById('usageReportSearchCount');
+    if(!inp||typeof reportDetailsTable==='undefined'||!reportDetailsTable)return;
+    const terms=inp.value.toLowerCase().split(',').map(t=>t.trim()).filter(Boolean);
+    const rows=Array.from(reportDetailsTable.querySelectorAll('tbody tr')).filter(tr=>!tr.querySelector('td[colspan]'));
+    let shown=0;
+    rows.forEach(tr=>{
+        const cells=Array.from(tr.children);
+        const text=cells.slice(0,cells.length-1).map(c=>c.textContent).join(' ').toLowerCase();
+        const ok=terms.every(t=>text.includes(t));
+        tr.style.display=ok?'':'none';
+        if(ok)shown++;
+    });
+    if(countEl)countEl.textContent=terms.length&&rows.length?(shown+' / '+rows.length):'';
+    if(typeof updateUsageEmailSelectedCount==='function')updateUsageEmailSelectedCount();
+}
+const usageReportSearchInput=document.getElementById('usageReportSearchInput');if(usageReportSearchInput)usageReportSearchInput.addEventListener('input',applyUsageReportSearch);
 function applySparePartsSearch(){if(!sparePartsSearchInput)return;const filterString=sparePartsSearchInput.value.toLowerCase();const searchTerms=filterString.split(',').map(t=>t.trim()).filter(t=>t);const cards=sparePartsCardContainer.querySelectorAll('.spare-part-card');cards.forEach(card=>{const text=card.textContent.toLowerCase();const isMatch=searchTerms.length===0?true:searchTerms.every(term=>text.includes(term));const isOutOfStock=card.classList.contains('out-of-stock');card.style.display=searchTerms.length===0?(isOutOfStock?'none':'flex'):(isMatch?'flex':'none');})}
 async function openGuidedSparePartsSearch(){
     const steps=[['Site','site'],['Location','location'],['Reserved For','reservedFor'],['Part Type','type'],['Brand','brand'],['Model','model']];
@@ -7807,7 +7827,7 @@ window.resetITWorkspace = function() {
 const userSearchInput = document.getElementById("userSearchInput"); if (userSearchInput) { userSearchInput.addEventListener('input', function() { const filter = this.value.toLowerCase(); const rows = document.querySelectorAll("#usersTable tbody tr"); rows.forEach(row => { const userInfo = row.getElementsByTagName("td")[1]?.textContent.toLowerCase() || ""; row.style.display = userInfo.includes(filter) ? "" : "none"; }); }); }
 const permReportSearchInput = document.getElementById("permReportSearchInput"); if (permReportSearchInput) { permReportSearchInput.addEventListener('input', filterPermissionsReport); }
 const permissionsAccessReportContainer = document.getElementById("permissionsAccessReportContainer"); if (permissionsAccessReportContainer) { permissionsAccessReportContainer.addEventListener('click', handlePermissionsReportClick); }
-if(reportDetailsTable){reportDetailsTable.addEventListener('change',function(e){if(e.target.id==='reportSelectAllCheckbox'){const checked=e.target.checked;reportDetailsTable.querySelectorAll('.usage-row-checkbox').forEach(cb=>cb.checked=checked);}updateUsageEmailSelectedCount();});}
+if(reportDetailsTable){reportDetailsTable.addEventListener('change',function(e){if(e.target.id==='reportSelectAllCheckbox'){const checked=e.target.checked;reportDetailsTable.querySelectorAll('.usage-row-checkbox').forEach(cb=>{const tr=cb.closest('tr');if(!tr||tr.style.display!=='none')cb.checked=checked;});}updateUsageEmailSelectedCount();});}
 const btnPrepareUsageEmail=document.getElementById('btnPrepareUsageEmail');if(btnPrepareUsageEmail)btnPrepareUsageEmail.addEventListener('click',handlePrepareUsageEmail);
 const btnEditEmailRecipients=document.getElementById('btnEditEmailRecipients');if(btnEditEmailRecipients)btnEditEmailRecipients.addEventListener('click',async()=>{if(!currentUser||!currentUser.permissions.manageUsers||!currentUser.permissions.manageUsers.visible)return showNotification('Permission denied.','error');await ensureEmailTemplateSettingsLoaded();const list=document.getElementById('emailRecipientsList');list.innerHTML=Object.keys(EMAIL_TEMPLATES).map(key=>{const tmpl=EMAIL_TEMPLATES[key];const saved=emailTemplateSettings[key]||{};const to=saved.to||tmpl.defaultTo||'';const cc=saved.cc||tmpl.defaultCc||'';return '<div style="border:1px solid var(--border-color); border-radius:10px; padding:12px; margin-bottom:12px;"><h4 style="margin:0 0 8px 0;">'+escapeHtml(tmpl.label)+'</h4><div class="form-group full-span-group"><label>To:</label><input type="text" class="er-to" data-key="'+key+'" required value="'+escapeHtml(to).replace(/"/g,'&quot;')+'" placeholder="name@company.com"></div><div class="form-group full-span-group"><label>CC:</label><input type="text" class="er-cc" data-key="'+key+'" value="'+escapeHtml(cc).replace(/"/g,'&quot;')+'" placeholder="team1@company.com;team2@company.com"></div></div>';}).join('');showModal(document.getElementById('emailRecipientsOverlay'));});
 const closeEmailRecipientsModal=document.getElementById('closeEmailRecipientsModal');if(closeEmailRecipientsModal)closeEmailRecipientsModal.addEventListener('click',()=>hideModal(document.getElementById('emailRecipientsOverlay')));
