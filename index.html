@@ -6522,40 +6522,56 @@ window.rollbackTransfer=async function(childId,btnEl){
     const parent=allSpareParts.find(p=>p.id===parentId);
     if(!parent)return showNotification('Original Store card (ID: '+parentId+') no longer exists. Contact an admin to fix this manually.','error');
     const qty=Number(child.quantity)||0;
+    if(qty<=0)return showNotification('Cannot rollback: this card has no units left (all were used). Rollback the usage first from the Usage Report, then rollback the transfer.','error');
     const dedRec=allDeductHistory.find(d=>d.reason&&d.reason.includes('(New Ref: '+childId+')'));
     const usedQ=await supabaseClient.from('usagehistory').select('id',{count:'exact',head:true}).eq('part_id',childId);
-    if(usedQ&&!usedQ.error&&(usedQ.count||0)>0)return showNotification('Cannot rollback this transfer: units from this card were already used ('+usedQ.count+' usage record). Rollback the usage first from the Usage Report, then rollback the transfer.','error');
-    if(dedRec&&Number(dedRec.quantity)!==qty)return showNotification('Cannot rollback this transfer: the card has '+qty+' unit(s) but '+dedRec.quantity+' were transferred. Part of it was already consumed.','error');
-    confirmAction(`Rollback this transfer? This will delete card ID ${childId} (${child.type} ${child.brand} ${child.model}, Qty: ${qty}) and return ${qty} unit(s) to the Store card (ID: ${parentId}).`,async()=>{
-        if(btnEl){btnEl.disabled=true;btnEl.dataset.originalHtml=btnEl.innerHTML;btnEl.innerHTML='<i class="fas fa-circle-notch fa-spin app-spinner"></i> Rolling back...';}
-        try{
-            // نظافة الكومنت بتاع الكارت الأساسي من إشارة الـ Ref بتاع الكارت ده تحديداً (منطق محسوب في المتصفح، بس التنفيذ الفعلي كله هيحصل في عملية واحدة ذرّية)
-            let newComment=parent.comment||'';
+    const usedCount=(usedQ&&!usedQ.error)?(usedQ.count||0):0;
+    const dark=document.body.classList.contains('dark-mode');
+    const ask=await Swal.fire({
+        title:'Rollback Transfer',
+        html:'<div style="text-align:center;line-height:1.7">'+child.type+' '+child.brand+' '+child.model+'<br>Card ID: <b>'+childId+'</b> &nbsp;|&nbsp; Available now: <b>'+qty+'</b>'+(usedCount>0?'<br><small>'+usedCount+' usage record(s) already made from this card (they stay as they are).</small>':'')+'<br>Return to Store card (ID: <b>'+parentId+'</b>)<br><br>How many units to return?</div>',
+        input:'number',
+        inputValue:qty,
+        inputAttributes:{min:1,max:qty,step:1},
+        showCancelButton:true,
+        confirmButtonText:'Rollback',
+        confirmButtonColor:'#7e22ce',
+        background:dark?'#1e293b':'#fff',
+        color:dark?'#e2e8f0':'#333',
+        inputValidator:(v)=>{const n=Number(v);if(!Number.isInteger(n)||n<1||n>qty)return 'Enter a whole number between 1 and '+qty;}
+    });
+    if(!ask.isConfirmed)return;
+    const retQty=Number(ask.value);
+    const willDelete=(retQty===qty&&usedCount===0);
+    if(btnEl){btnEl.disabled=true;btnEl.dataset.originalHtml=btnEl.innerHTML;btnEl.innerHTML='<i class="fas fa-circle-notch fa-spin app-spinner"></i> Rolling back...';}
+    try{
+        let newComment=parent.comment||'';
+        if(willDelete){
             newComment=newComment.replace(new RegExp('\\s*\\|\\s*Transferred to Room \\(Ref:\\s*'+childId+'\\)','g'),'');
             newComment=newComment.replace(new RegExp('\\s*\\|\\s*\\(Ref:\\s*'+childId+'\\)','g'),'');
             newComment=newComment.replace(new RegExp('^Transferred to Room \\(Ref:\\s*'+childId+'\\)\\s*\\|?\\s*'),'');
             newComment=newComment.replace(/^\s*\|\s*|\s*\|\s*$/g,'').trim();
-
-            const deductRecord=allDeductHistory.find(d=>d.reason&&d.reason.includes('(New Ref: '+childId+')'));
-
-            // عملية واحدة ذرّية (Atomic Transaction) جوه Supabase نفسها: لو أي خطوة فشلت، كل حاجة بترجع زي ما كانت تلقائيًا من غير أي تدخل من المتصفح
-            const{data:txResult,error:txErr}=await supabaseClient.rpc('rollback_transfer_transaction',{payload:{childId:childId,parentId:parentId,quantity:qty,newParentComment:newComment,deductRecordId:deductRecord?deductRecord.id:null}});
-            if(txErr)throw new Error(txErr.message||'Operation failed. No changes were made. Please try again.');
-
-            const idxParent=allSpareParts.findIndex(x=>x.id===parentId);
-            if(idxParent!==-1)allSpareParts[idxParent]={...allSpareParts[idxParent],quantity:txResult.parentNewQuantity,comment:newComment};
-            allSpareParts=allSpareParts.filter(x=>x.id!==childId);
-            if(deductRecord)allDeductHistory=allDeductHistory.filter(d=>d.id!==deductRecord.id);
-
-            logActivity('Rollback Transfer',`Rolled back ${qty}x ${child.type} ${child.brand} ${child.model} | Deleted Card ID: ${childId} | Returned to Store Card ID: ${parentId}`);
-            showNotification('Transfer rolled back successfully.','success');
-            renderSparePartsCards(allSpareParts);
-        }catch(err){
-            showNotification(err.message,'error');
-            if(btnEl){btnEl.disabled=false;btnEl.innerHTML=btnEl.dataset.originalHtml||'<i class="fa-solid fa-rotate-left"></i> Rollback';}
         }
-    });
-}
+        const{data:txResult,error:txErr}=await supabaseClient.rpc('rollback_transfer_transaction',{payload:{childId:childId,parentId:parentId,quantity:retQty,newParentComment:newComment,deductRecordId:dedRec?dedRec.id:null}});
+        if(txErr)throw new Error(txErr.message||'Operation failed. No changes were made. Please try again.');
+        if(!txResult||txResult.returned===undefined)throw new Error('Database function is outdated (partial rollback not installed). No changes were made.');
+        const idxParent=allSpareParts.findIndex(x=>x.id===parentId);
+        if(idxParent!==-1)allSpareParts[idxParent]={...allSpareParts[idxParent],quantity:txResult.parentNewQuantity,comment:txResult.cardDeleted?newComment:allSpareParts[idxParent].comment};
+        if(txResult.cardDeleted){
+            allSpareParts=allSpareParts.filter(x=>x.id!==childId);
+            if(dedRec)allDeductHistory=allDeductHistory.filter(d=>d.id!==dedRec.id);
+        }else{
+            const idxChild=allSpareParts.findIndex(x=>x.id===childId);
+            if(idxChild!==-1)allSpareParts[idxChild]={...allSpareParts[idxChild],quantity:txResult.childNewQuantity,initial_quantity:Math.max((Number(allSpareParts[idxChild].initial_quantity)||0)-retQty,0)};
+        }
+        logActivity('Rollback Transfer',`Rolled back ${retQty}x ${child.type} ${child.brand} ${child.model} | ${txResult.cardDeleted?'Deleted Card ID: '+childId:'Card ID: '+childId+' (remaining '+txResult.childNewQuantity+')'} | Returned to Store Card ID: ${parentId}`);
+        showNotification(txResult.cardDeleted?'Transfer rolled back successfully.':('Returned '+retQty+' unit(s) to the Store card. '+txResult.childNewQuantity+' left on this card.'),'success');
+        renderSparePartsCards(allSpareParts);
+    }catch(err){
+        showNotification(err.message,'error');
+        if(btnEl){btnEl.disabled=false;btnEl.innerHTML=btnEl.dataset.originalHtml||'<i class="fa-solid fa-rotate-left"></i> Rollback';}
+    }
+};
 function handleSparePartActions(event){const perms=currentUser?currentUser.permissions.spareParts:{};const actionButton=event.target.closest('.custom-btn');if(!actionButton){if(event.target.closest('input,a,select,textarea'))return;const sel=window.getSelection&&window.getSelection();if(sel&&String(sel).length>0)return;const t=event.target;if(Array.from(t.childNodes).some(n=>n.nodeType===3&&n.textContent.trim()!==''))return;const card=t.closest('.spare-part-card');if(card){const groupIds=(card.dataset.cardIds||'').split(',').map(Number).filter(n=>!isNaN(n));if(groupIds.length)openPartHistoryModal(groupIds);}return;}const id=parseInt(actionButton.dataset.id);if(isNaN(id))return;if(actionButton.classList.contains('pin-part-btn')){togglePin(id)}else if(actionButton.classList.contains('edit-spare-part-btn')){if(!perms.canAdd)return showNotification('Permission denied.','error');editSparePart(id)}else if(actionButton.classList.contains('delete-spare-part-btn')){if(!perms.canDelete)return showNotification('Permission denied.','error');confirmAction('Delete this spare part?',()=>deleteSparePart(id))}else if(actionButton.classList.contains('deduct-part-btn')){if(!perms.canDeduct)return showNotification('Permission denied.','error');openDeductModal(id)}else if(actionButton.classList.contains('use-part-btn')){if(!perms.canUse)return showNotification('Permission denied.','error');openUseModal(id)}else if(actionButton.classList.contains('rollback-transfer-btn')){if(!perms.canRollback)return showNotification('Permission denied.','error');rollbackTransfer(id,actionButton)}else if(actionButton.classList.contains('report-usage-btn')){exportUsageHistoryForPart(id,actionButton)}}
 async function deleteSparePart(id){
     const part=allSpareParts.find(p=>p.id===id);
