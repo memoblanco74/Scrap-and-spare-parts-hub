@@ -2687,6 +2687,51 @@
     .it-btn.bg-purple{background:linear-gradient(135deg,#a855f7,#7e22ce)}
     .form-btn.reset-btn{box-shadow:none;border:2px solid var(--border-color)}
     .form-btn.submit-btn{border-color:transparent}
+    /* ===== Polish: font, skeleton, toasts, empty states, sticky headers, mobile layout ===== */
+    html{background:var(--bg-color)}
+    body,button,input,select,textarea,.swal2-popup,.swal2-container{font-family:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif}
+    table td,table th,.sp-card,.spare-part-card{font-variant-numeric:tabular-nums}
+    .container{min-height:100vh;box-sizing:border-box}
+
+    .table-container thead th{position:sticky;top:0;z-index:5;background-color:var(--bg-color);box-shadow:0 1px 0 var(--border-color)}
+    .table-container{overflow:auto}
+
+    .skeleton{position:relative;overflow:hidden;background:rgba(148,163,184,.22);border-radius:8px}
+    .skeleton::after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);animation:skShimmer 1.3s infinite}
+    @keyframes skShimmer{100%{transform:translateX(100%)}}
+    .skeleton-block{display:flex;flex-direction:column;gap:10px;padding:6px 0}
+    .sk-line{height:14px}
+
+    .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:34px 16px;color:var(--secondary-color);text-align:center;width:100%;box-sizing:border-box}
+    .empty-state i{font-size:2.4em;opacity:.55}
+    .empty-state p{margin:0;font-weight:500}
+
+    .swal2-popup.swal2-toast.modern-toast{border-radius:14px;padding:12px 16px;box-shadow:0 10px 30px rgba(0,0,0,.35);border:1px solid rgba(148,163,184,.25);border-inline-start:5px solid #3b82f6;backdrop-filter:blur(8px)}
+    .swal2-popup.swal2-toast.modern-toast.toast-success{border-inline-start-color:#22c55e}
+    .swal2-popup.swal2-toast.modern-toast.toast-error{border-inline-start-color:#ef4444}
+    .swal2-popup.swal2-toast.modern-toast.toast-warning{border-inline-start-color:#f59e0b}
+    .swal2-popup.swal2-toast.modern-toast .swal2-title{font-size:.95em;font-weight:600;margin:0 0 0 8px}
+    .swal2-popup.swal2-toast.modern-toast .swal2-timer-progress-bar{height:3px;background:rgba(148,163,184,.55)}
+
+    #logsTable td:nth-child(-n+3){white-space:nowrap;word-break:normal}
+    #logsTable td:nth-child(4){min-width:240px;white-space:normal;word-break:break-word}
+    #printersTable td,#printersTable th{padding:8px 12px}
+
+    .comp-laptops-table{width:100% !important;margin:0}
+    #modelComponentLaptopListElem .table-container{width:100%}
+    #modelComponentLaptopListElem table td,#modelComponentLaptopListElem table th{padding:8px 14px}
+    #modelComponentLaptopListElem table td:nth-child(5){white-space:normal}
+
+    @media (max-width:768px){
+      .tab-content{padding:12px}
+      #warranty-check>.card,#add-edit-laptop>.form-section,#incidents>.form-section{background:transparent !important;border:none !important;box-shadow:none !important;padding:0 !important}
+      #warranty-check>.card{max-width:100% !important}
+      #add-edit-laptop .form-row{gap:12px}
+      #add-edit-laptop .form-row .form-group{flex:1 1 calc(50% - 6px);min-width:0}
+      #add-edit-laptop .form-row .form-group input,#add-edit-laptop .form-row .form-group select{min-width:0;width:100%}
+      #laptopTable th,#laptopTable td{font-size:.85em;padding:6px 8px}
+      #laptopTable td:last-child,#laptopTable th:last-child{min-width:90px}
+    }
   </style>
 </head>
 
@@ -3505,7 +3550,7 @@
           <div class="card full-width-card" id="warrantyWidgetCard" data-permission="warrantyWidget_visible" style="display: none;">
             <h2><i class="fa-solid fa-shield-halved" style="color: var(--warning-color);"></i> Warranty Expiring Soon (30 Days)</h2>
             <div id="warrantyWidgetContent">
-              <p class="input-hint"><i class="fas fa-circle-notch fa-spin app-spinner"></i> Loading...</p>
+              <div class="skeleton-block"><div class="skeleton sk-line" style="width:70%"></div><div class="skeleton sk-line" style="width:90%"></div><div class="skeleton sk-line" style="width:55%"></div></div>
             </div>
           </div>
           <div class="component-summary-section card full-width-card">
@@ -4926,7 +4971,7 @@ async function fetchAllFromSupabase(tableName) {
 function renderLogsRows(rows){
     logsTableBody.innerHTML='';
     if(!rows||rows.length===0){
-        logsTableBody.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--secondary-color);">No logs found.</td></tr>';
+        logsTableBody.innerHTML='<tr><td colspan="4">'+emptyStateHtml('fa-clipboard-list','No logs found.')+'</td></tr>';
         return;
     }
     rows.forEach(l=>{
@@ -5618,7 +5663,7 @@ function buildUsageTableHtml(f){
 let tl = 0;
 let h = '<table id="reportTable" style="font-size:0.8em;"><thead><tr><th style="text-align:center;"><input type="checkbox" id="reportSelectAllCheckbox" title="Select All"></th><th>Date</th><th>Part ID</th><th>Part SN</th><th>Type</th><th>Part Brand</th><th>Part Model</th><th>Qty</th><th>Source Brand</th><th>Source Model</th><th>Source SN</th><th>Dest Brand</th><th>Dest Model</th><th>Dest SN</th><th>Account</th><th>Asset</th><th>Change</th><th>Incident</th><th>Upgrade Plan</th><th>Action</th></tr></thead><tbody>';
 if (!f || f.length === 0) {
-h += '<tr><td colspan="20" style="text-align:center;">No records found.</td></tr>';
+h += '<tr><td colspan="20">'+emptyStateHtml('fa-folder-open','No records found.')+'</td></tr>';
 } else {
 f.forEach(x => {
 tl += Number(x.quantity || 0);
@@ -5709,7 +5754,7 @@ const r = getFilteredUsageReportLocal(t.includes('Frame') ? [] : t, s, st, en, f
 let tl = 0;
 let h = '<table id="reportTable" style="font-size:0.8em;"><thead><tr><th style="text-align:center;"><input type="checkbox" id="reportSelectAllCheckbox" title="Select All"></th><th>Date</th><th>Part ID</th><th>Part SN</th><th>Type</th><th>Part Brand</th><th>Part Model</th><th>Qty</th><th>Source Brand</th><th>Source Model</th><th>Source SN</th><th>Dest Brand</th><th>Dest Model</th><th>Dest SN</th><th>Account</th><th>Asset</th><th>Change</th><th>Incident</th><th>Upgrade Plan</th><th>Action</th></tr></thead><tbody>';
 if (!r || r.length === 0) {
-h += '<tr><td colspan="20" style="text-align:center;">No records found.</td></tr>';
+h += '<tr><td colspan="20">'+emptyStateHtml('fa-folder-open','No records found.')+'</td></tr>';
 } else {
 const f = r.filter(x => {
     // فلتر الـ Reserved لو مختار
@@ -5731,7 +5776,7 @@ return x.type === y;
 });
 lastUsageReportRows = f;
 if (f.length === 0) {
-h += '<tr><td colspan="20" style="text-align:center;">No records found.</td></tr>';
+h += '<tr><td colspan="20">'+emptyStateHtml('fa-folder-open','No records found.')+'</td></tr>';
 } else {
 f.forEach(x => {
 tl += Number(x.quantity || 0);
@@ -6778,7 +6823,7 @@ async function loadPrintersData(){
 function renderPrintersTable(rows){
     const tbody=document.getElementById('printersTableBody');
     if(!rows||rows.length===0){
-        tbody.innerHTML='<tr><td colspan="11" style="text-align:center; color:var(--secondary-color);">No printers found.</td></tr>';
+        tbody.innerHTML='<tr><td colspan="11">'+emptyStateHtml('fa-print','No printers found.')+'</td></tr>';
         return;
     }
     const canEdit=currentUser&&currentUser.permissions.printers&&currentUser.permissions.printers.canEdit;
@@ -6796,10 +6841,10 @@ function renderPrintersTable(rows){
         html+='<td>'+escapeHtml(p.status||'')+'</td>';
         html+='<td>'+escapeHtml(p.password||'')+'</td>';
         html+='<td>'+(p.is_modified?'<span style="color:var(--success-color);font-weight:600;">Yes</span>':'No')+'</td>';
-        html+='<td style="white-space:nowrap;">';
-        if(canEdit)html+='<button class="custom-btn edit-printer-btn" data-id="'+p.id+'" style="padding:6px 10px;"><i class="fa-solid fa-pen"></i></button> ';
+        html+='<td><div style="display:flex;gap:6px;justify-content:center;">';
+        if(canEdit)html+='<button class="custom-btn edit-printer-btn" data-id="'+p.id+'" style="padding:6px 10px;"><i class="fa-solid fa-pen"></i></button>';
         if(canDelete)html+='<button class="custom-btn delete-btn delete-printer-btn" data-id="'+p.id+'" style="padding:6px 10px;"><i class="fa-solid fa-trash"></i></button>';
-        html+='</td></tr>';
+        html+='</div></td></tr>';
     });
     tbody.innerHTML=html;
 }
@@ -7050,7 +7095,7 @@ async function handleWarrantyImportFile(e){
 function renderSparePartsCards(p) {
     sparePartsCardContainer.innerHTML = '';
     if (p.length === 0) {
-        sparePartsCardContainer.innerHTML = '<p class="prompt-message">No spare parts in inventory.</p>';
+        sparePartsCardContainer.innerHTML = emptyStateHtml('fa-box-open','No spare parts in inventory.');
         return;
     }
     const pm = currentUser ? currentUser.permissions.spareParts : {};
@@ -7603,7 +7648,8 @@ const {data:bulkRes,error:bulkErr}=await supabaseClient.rpc('bulk_edit_laptops',
 logActivity('Bulk Edit',`Field: ${f} → Value: "${v}" | ${ids.length} Laptops | SNs: [${editedSNs}]`);
 showNotification(r, 'success');hideModal(beOv);}catch(err){showNotification(err.message, 'error');}finally{toggleButtonLoading(b,false)}}); 
 const usePartDestSnInput=document.getElementById('usePartDestSN');if(usePartDestSnInput){usePartDestSnInput.addEventListener('change',async (e)=>{const s=e.target.value.trim();const l=allLaptops.find(x=>String(x.serial_number).toLowerCase()===String(s).toLowerCase());if(l){document.getElementById('usePartDestBrand').value=l.brand||'';document.getElementById('usePartDestModel').value=l.laptop_model||'';displayDbStatus('Dest Found: '+l.laptop_model,'success')}else{displayDbStatus('Searching DB for Asset...','info');const a=await findAssetBySerial(s);if(a){document.getElementById('usePartDestBrand').value=a.brand||'';document.getElementById('usePartDestModel').value=a.model||'';displayDbStatus('Dest Asset Found: '+a.model,'success')}else{document.getElementById('dbStatus').classList.remove('show');}}})}
-function showNotification(m,t){const i=t==='error'?'error':(t==='warning'?'warning':(t==='info'?'info':'success'));Swal.fire({toast:true,position:'top-end',icon:i,title:m,showConfirmButton:false,timer:3000,timerProgressBar:true,background:document.body.classList.contains('dark-mode')?'#1e1e1e':'#fff',color:document.body.classList.contains('dark-mode')?'#e0e0e0':'#333'});}
+function emptyStateHtml(icon,msg){return '<div class="empty-state"><i class="fa-solid '+icon+'"></i><p>'+msg+'</p></div>';}
+function showNotification(m,t){const i=t==='error'?'error':(t==='warning'?'warning':(t==='info'?'info':'success'));Swal.fire({toast:true,position:'top-end',icon:i,title:m,showConfirmButton:false,timer:3200,timerProgressBar:true,customClass:{popup:'modern-toast toast-'+i},background:document.body.classList.contains('dark-mode')?'#1e1e1e':'#fff',color:document.body.classList.contains('dark-mode')?'#e0e0e0':'#333'});}
 function confirmAction(msg,action){Swal.fire({title:'Are you sure?',text:msg,icon:'warning',showCancelButton:true,confirmButtonColor:'#3085d6',cancelButtonColor:'#d33',confirmButtonText:'Yes, do it!'}).then((r)=>{if(r.isConfirmed){action();}});}
 function parseCustomDate(d){if(!d)return null;if(d instanceof Date)return d;return new Date(String(d).trim().replace(" ", "T"));}
 async function togglePin(id){
@@ -7722,7 +7768,7 @@ async function setDailyWorkEntries(entries) {
 async function renderDailyWorkEntries() {
     const container = document.getElementById('dailyWorkList');
     if (!container) return;
-    container.innerHTML = '<p class="prompt-message" style="margin:0;">Loading...</p>';
+    container.innerHTML = '<div class="skeleton-block"><div class="skeleton sk-line" style="width:70%"></div><div class="skeleton sk-line" style="width:90%"></div><div class="skeleton sk-line" style="width:55%"></div></div>';
     const entries = await getDailyWorkEntries();
     if (!entries.length) {
         container.innerHTML = '<p class="prompt-message" style="margin:0;">No entries saved yet.</p>';
