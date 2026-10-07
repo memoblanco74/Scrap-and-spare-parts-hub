@@ -2656,6 +2656,25 @@
       .filter-group{width:100%}
       .card{padding:14px}
     }
+    .um-container,.um-form-card,.um-table-card,.um-header,.perm-grid,.perm-toggle-item{min-width:0;max-width:100%;box-sizing:border-box}
+    .um-container>*{min-width:0}
+    .um-table-card{overflow-x:auto}
+    .perm-toggle-item .switch{width:34px !important;min-width:34px;flex:0 0 34px}
+    @media (max-width:992px){.um-container{grid-template-columns:minmax(0,1fr) !important}}
+    @media (max-width:768px){.permissions-group{grid-template-columns:minmax(0,1fr)} #editUserModal{width:96%}}
+    .sp-card-footer{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:8px;justify-content:stretch;padding-top:14px}
+    .sp-card-footer .custom-btn{display:flex;align-items:center;justify-content:center;gap:7px;margin:0;padding:10px 12px;font-size:.85em;font-weight:600;border:1px solid rgba(255,255,255,.08);border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,.18);white-space:nowrap;transition:transform .15s ease,box-shadow .15s ease,filter .15s ease}
+    .sp-card-footer .custom-btn:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(0,0,0,.28);filter:brightness(1.08)}
+    .sp-card-footer .custom-btn:active{transform:translateY(0) scale(.97)}
+    .sp-card-footer .custom-btn i{font-size:.95em}
+    .sp-card-footer .delete-spare-part-btn{background:linear-gradient(135deg,#ef4444,#b91c1c) !important;color:#fff !important}
+    .sp-card-footer .pin-part-btn{background:var(--tertiary-bg-color);color:var(--text-color);border-color:var(--border-color)}
+    .sp-card-footer .pin-part-btn.pinned{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff}
+    .sp-card-footer .edit-spare-part-btn{background:linear-gradient(135deg,#3b82f6,#1d4ed8) !important;color:#fff !important}
+    .sp-card-footer .use-part-btn{background:linear-gradient(135deg,#22c55e,#15803d) !important}
+    .sp-card-footer .deduct-part-btn{background:linear-gradient(135deg,#fbbf24,#f59e0b) !important}
+    .sp-card-footer .rollback-transfer-btn{background:linear-gradient(135deg,#a855f7,#7e22ce) !important}
+    .sp-card-footer .report-usage-btn{background:linear-gradient(135deg,#64748b,#475569) !important}
   </style>
 </head>
 
