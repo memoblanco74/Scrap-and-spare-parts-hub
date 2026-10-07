@@ -2732,6 +2732,16 @@
       #laptopTable th,#laptopTable td{font-size:.85em;padding:6px 8px}
       #laptopTable td:last-child,#laptopTable th:last-child{min-width:90px}
     }
+    .modal-content .form-row{display:flex;flex-wrap:nowrap;gap:10px;align-items:flex-end}
+    .modal-content .form-row .form-group{flex:1 1 0;min-width:0;display:flex;flex-direction:column;justify-content:flex-end}
+    .modal-content .form-row .form-group label{font-size:.82em;margin-bottom:6px;line-height:1.25}
+    .modal-content .form-row .form-group input,.modal-content .form-row .form-group select{min-width:0;width:100%;box-sizing:border-box}
+    @media (max-width:480px){
+      .modal-content{padding:20px 14px}
+      .modal-content .form-row{gap:6px}
+      .modal-content .form-row .form-group label{font-size:.74em}
+      .modal-content .form-row .form-group input{padding:8px 6px;font-size:.85em}
+    }
   </style>
 </head>
 
