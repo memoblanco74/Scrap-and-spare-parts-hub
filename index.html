@@ -6412,6 +6412,10 @@ else if(deductTypeChoice==='returnToStore'){const parentId=payload.parentId;cons
 else{if(idx!==-1)allSpareParts[idx]={...allSpareParts[idx],quantity:txResult.newQuantity};const logMsg=`Deduct: ${quantity}x ${part.type} ${part.model} | Card ID: ${partId} | Site: ${part.site} | Room: ${part.location} | Reserved For: ${part.reservedFor} | Reason: ${payload.reason}`;logActivity('Deduct Part',logMsg);}
 showNotification(isStore?'Transferred to room and logged successfully.':(deductTypeChoice==='returnToStore'?'Returned to Store successfully.':'Deduction recorded successfully.'),'success');hideModal(deductPartOverlay);renderSparePartsCards(allSpareParts);}catch(err){showNotification(err.message,'error');}finally{toggleButtonLoading(btn,false);}}
 const harvestTypes=["Screen","Keyboard","Touchpad","Frame","Hing"];
+function resetFrameChips(root){
+    if(!root)return;
+    root.querySelectorAll('input[type="checkbox"][onchange*="toggleFrameBtn"]').forEach(cb=>{cb.checked=false;if(window.toggleFrameBtn)window.toggleFrameBtn(cb);});
+}
 function openUseModal(id) {
     const p = allSpareParts.find(x => x.id === id);
     if (!p) return showNotification('Part not found.', 'error');
@@ -6419,6 +6423,7 @@ function openUseModal(id) {
     if (!isHarvestTypeCheck && Number(p.quantity) <= 0) return showNotification('No stock available for this part.', 'error');
 
     usePartForm.reset();
+    resetFrameChips(usePartForm);
     usePartIdInput.value = id;
 
     const isExcluded = !["ssd", "nvme"].some(t => p.type.toLowerCase().includes(t));
@@ -7197,6 +7202,16 @@ function renderSparePartsCards(p) {
     verifySparePartsQuantitiesLive();
 }
 
+(function(){
+    let t=null;
+    const start=()=>{
+        if(typeof sparePartsCardContainer==='undefined'||!sparePartsCardContainer)return;
+        new MutationObserver(()=>{clearTimeout(t);t=setTimeout(()=>{try{applySparePartsSearch()}catch(e){}},0)}).observe(sparePartsCardContainer,{childList:true});
+        window.addEventListener('focus',()=>{try{applySparePartsSearch()}catch(e){}});
+        document.addEventListener('visibilitychange',()=>{if(!document.hidden){try{applySparePartsSearch()}catch(e){}}});
+    };
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else setTimeout(start,0);
+})();
 async function verifySparePartsQuantitiesLive() {
     // فحص لايف: بنجيب القطع وسجلات الاستخدام والخصم من الداتا بيز مباشرة (مش من الكاش)
     // وبنتأكد إن العدد الظاهر في الكارت (المتبقي) فعلاً بيساوي: الكمية الأصلية - (كل ما استُخدم أو اتخصم لكل قطعة في الكارت)
@@ -8150,6 +8165,7 @@ if(btnMultiUse){btnMultiUse.addEventListener('click',()=>{
  
         window.muSelectedParts=[];
         multiUseForm.reset();
+        resetFrameChips(multiUseForm);
  
         // تصنيف الكروت
         const harvestTypes=["screen","keyboard","touchpad","frame","hing"];
