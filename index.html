@@ -2675,6 +2675,18 @@
     .sp-card-footer .deduct-part-btn{background:linear-gradient(135deg,#fbbf24,#f59e0b) !important}
     .sp-card-footer .rollback-transfer-btn{background:linear-gradient(135deg,#a855f7,#7e22ce) !important}
     .sp-card-footer .report-usage-btn{background:linear-gradient(135deg,#64748b,#475569) !important}
+    .custom-btn,.form-btn,.it-btn{border-radius:12px;font-weight:600;border:1px solid rgba(255,255,255,.08);box-shadow:0 2px 6px rgba(0,0,0,.18);transition:transform .15s ease,box-shadow .15s ease,filter .15s ease;justify-content:center;text-align:center}
+    .custom-btn:hover,.form-btn:hover,.it-btn:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(0,0,0,.28);filter:brightness(1.08)}
+    .custom-btn:active,.form-btn:active,.it-btn:active{transform:translateY(0) scale(.97)}
+    .custom-btn:disabled,.form-btn:disabled,.it-btn:disabled{opacity:.55;cursor:not-allowed;transform:none;filter:none;box-shadow:none}
+    .custom-btn.delete-btn,.it-btn.bg-red{background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff}
+    .custom-btn.export-btn,.it-btn.bg-green{background:linear-gradient(135deg,#22c55e,#15803d);color:#fff}
+    .custom-btn.import-button,.custom-btn.import-btn{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#111}
+    .it-btn.bg-blue{background:linear-gradient(135deg,#3b82f6,#1d4ed8)}
+    .it-btn.bg-orange{background:linear-gradient(135deg,#fbbf24,#f59e0b)}
+    .it-btn.bg-purple{background:linear-gradient(135deg,#a855f7,#7e22ce)}
+    .form-btn.reset-btn{box-shadow:none;border:2px solid var(--border-color)}
+    .form-btn.submit-btn{border-color:transparent}
   </style>
 </head>
 
