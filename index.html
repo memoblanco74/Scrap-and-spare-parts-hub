@@ -282,13 +282,18 @@
 
     .fancy-logo {
       color: var(--primary-accent-color);
+      background: linear-gradient(90deg, #0d8eff, #d946ef, #0d8eff);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: fancyTitleShine 4s linear infinite;
       font-size: 1.3em;
       transition: transform 0.3s ease-in-out, text-shadow 0.3s ease-in-out;
     }
 
     .fancy-logo:hover {
       transform: scale(1.1) rotate(-5deg);
-      text-shadow: 0 5px 15px var(--input-focus-shadow);
     }
 
     .fancy-title-text {
