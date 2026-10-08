@@ -7518,7 +7518,7 @@ function resetFormForAdd(){isEditing=false;clearForm();formTitle.textContent='Ad
 function generateNextId(){ laptopIDInput.value=""; idHint.textContent="ID is Auto-Generated"; }
 function updateTableCounts(){const visibleRows=tableBody.querySelectorAll('tr:not([style*="display: none"])');const selectedCheckboxes=tableBody.querySelectorAll('input[type="checkbox"]:checked:not(#selectAll)');displayedLaptopsCount.textContent=visibleRows.length;selectedLaptopsCount.textContent=selectedCheckboxes.length;updateSelectAllCheckboxState()}
 function updateSelectAllCheckboxState(){const visibleCheckboxes=Array.from(tableBody.querySelectorAll('tr:not([style*="display: none"]) input[type="checkbox"]'));if(visibleCheckboxes.length===0){selectAllCheckbox.checked=false;selectAllCheckbox.indeterminate=false;return}const allChecked=visibleCheckboxes.every(cb=>cb.checked);const someChecked=visibleCheckboxes.some(cb=>cb.checked);selectAllCheckbox.checked=allChecked;selectAllCheckbox.indeterminate=!allChecked&&someChecked}
-function applyGlobalSearch(){const filter=globalSearchInput.value.toLowerCase();tableBody.querySelectorAll('tr').forEach(row=>{row.style.display=row.textContent.toLowerCase().includes(filter)?'':'none'});updateTableCounts()}
+function applyGlobalSearch(){const terms=globalSearchInput.value.toLowerCase().split(',').map(t=>t.trim()).filter(Boolean);tableBody.querySelectorAll('tr').forEach(row=>{const tx=row.textContent.toLowerCase();row.style.display=terms.every(t=>tx.includes(t))?'':'none'});updateTableCounts()}
 let usageReportSnapshot=null,usageLiveSeq=0,usageLiveTimer=null;
 function mapUsageRowForReport(u){
     const d=u.date?new Date(String(u.date).trim().replace(" ","T")):null;
