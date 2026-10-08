@@ -2742,6 +2742,30 @@
       .modal-content .form-row .form-group label{font-size:.74em}
       .modal-content .form-row .form-group input{padding:8px 6px;font-size:.85em}
     }
+    /* ===== Guided search modal + SweetAlert popups styled like app modals ===== */
+    .gs-modal{max-width:640px;max-height:88vh;overflow-y:auto;text-align:center}
+    .gs-progress{height:6px;border-radius:6px;background:var(--tertiary-bg-color);overflow:hidden;margin:6px 0 14px}
+    #gsBar{height:100%;width:0;background:linear-gradient(90deg,var(--primary-accent-color),#7c3aed);border-radius:6px;transition:width .25s ease}
+    .gs-crumbs{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:14px;min-height:26px}
+    .gs-hint{color:var(--secondary-color);font-size:.88em}
+    .gs-chip-done{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;background:var(--tertiary-bg-color);border:1px solid var(--border-color);font-size:.82em;font-weight:600}
+    .gs-chip-done i{color:var(--primary-accent-color)}
+    .gs-options{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-height:44vh;overflow-y:auto;padding:4px}
+    .gs-opt{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:12px;border:1px solid var(--border-color);background:var(--tertiary-bg-color);color:var(--text-color);cursor:pointer;font-family:inherit;font-size:.92em;font-weight:600;box-shadow:0 2px 6px rgba(0,0,0,.18);transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease}
+    .gs-opt i{color:var(--primary-accent-color);font-size:.9em}
+    .gs-opt:hover{transform:translateY(-2px);border-color:var(--primary-accent-color);box-shadow:0 6px 14px rgba(0,0,0,.28)}
+    .gs-actions{display:flex;gap:8px;justify-content:space-between;align-items:center;margin-top:18px;padding-top:14px;border-top:1px solid var(--border-color)}
+    .gs-actions .custom-btn{margin:0;padding:10px 16px;background:var(--tertiary-bg-color);color:var(--text-color)}
+    .swal2-popup:not(.swal2-toast){background:var(--bg-color) !important;color:var(--text-color) !important;border:1px solid var(--border-color);border-radius:10px !important;box-shadow:0 8px 32px rgba(0,0,0,.45) !important;font-family:inherit !important;padding:26px 28px !important}
+    .swal2-popup:not(.swal2-toast) .swal2-title{color:var(--header-color) !important;font-size:1.5em !important;font-weight:700 !important}
+    .swal2-popup:not(.swal2-toast) .swal2-html-container{color:var(--text-color) !important}
+    .swal2-popup:not(.swal2-toast) .swal2-input{background:var(--input-bg-color) !important;color:var(--text-color) !important;border:1.5px solid var(--input-border-color) !important;border-radius:10px !important;box-shadow:none !important}
+    .swal2-popup:not(.swal2-toast) .swal2-input:focus{border-color:var(--primary-accent-color) !important;box-shadow:0 0 0 4px var(--input-focus-shadow) !important}
+    .swal2-popup:not(.swal2-toast) .swal2-actions button{border-radius:12px !important;font-weight:600 !important;font-family:inherit !important;border:1px solid rgba(255,255,255,.08) !important;box-shadow:0 2px 6px rgba(0,0,0,.18) !important}
+    .swal2-popup:not(.swal2-toast) .swal2-confirm{background:linear-gradient(135deg,var(--primary-accent-color),var(--fancy-grad-2)) !important}
+    .swal2-popup:not(.swal2-toast) .swal2-deny{background:linear-gradient(135deg,#ef4444,#b91c1c) !important}
+    .swal2-popup:not(.swal2-toast) .swal2-cancel{background:var(--tertiary-bg-color) !important;color:var(--text-color) !important}
+    .swal2-popup:not(.swal2-toast) .swal2-close{color:var(--secondary-color)}
   </style>
 </head>
 
@@ -4492,11 +4516,11 @@
                   <label for="perm-qr-access">QR Scanner Access</label>
                   <label class="switch"><input type="checkbox" name="qrSystem_access" id="perm-qr-access"><span class="slider-sm"></span></label>
                 </div>
-                </div>
-                  <div class="perm-toggle-item">
+                <div class="perm-toggle-item">
                   <label for="perm-itws-vis">IT Workspace Access</label>
                   <label class="switch"><input type="checkbox" name="itWorkspace_visible" id="perm-itws-vis"><span class="slider-sm"></span></label>
                 </div>
+              </div>
               <div class="form-buttons" style="margin-top: 20px;">
                 <button type="submit" class="form-btn submit-btn" style="width:100%">Create User</button>
               </div>
@@ -7564,29 +7588,48 @@ function applyUsageReportSearch(){
 }
 const usageReportSearchInput=document.getElementById('usageReportSearchInput');if(usageReportSearchInput)usageReportSearchInput.addEventListener('input',()=>{clearTimeout(usageLiveTimer);usageLiveTimer=setTimeout(runLiveUsageSearch,350);});
 function applySparePartsSearch(){if(!sparePartsSearchInput)return;const filterString=sparePartsSearchInput.value.toLowerCase();const searchTerms=filterString.split(',').map(t=>t.trim()).filter(t=>t);const cards=sparePartsCardContainer.querySelectorAll('.spare-part-card');cards.forEach(card=>{const text=card.textContent.toLowerCase();const isMatch=searchTerms.length===0?true:searchTerms.every(term=>text.includes(term));const isOutOfStock=card.classList.contains('out-of-stock');card.style.display=searchTerms.length===0?(isOutOfStock?'none':'flex'):(isMatch?'flex':'none');})}
-async function openGuidedSparePartsSearch(){
-    const steps=[['Site','site'],['Location','location'],['Reserved For','reservedFor'],['Part Type','type'],['Brand','brand'],['Model','model']];
-    const dark=document.body.classList.contains('dark-mode');
-    let pool=allSpareParts.slice();
-    const picked=[];
-    const btnStyle='margin:4px;padding:9px 16px;border-radius:8px;border:1px solid var(--border-color,#888);background:var(--secondary-bg-color,#2a2a2a);color:var(--text-color,inherit);cursor:pointer;font-size:0.95em;';
-    for(let i=0;i<steps.length;i++){
-        const label=steps[i][0],field=steps[i][1];
-        const vals=[...new Set(pool.map(x=>String(x[field]||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'}));
-        if(vals.length===0)continue;
-        let chosen=null;
-        const html='<div style="max-height:50vh;overflow-y:auto;display:flex;flex-wrap:wrap;justify-content:center;">'+'<button type="button" class="gs-opt" data-val="" style="'+btnStyle+'border-style:dashed;opacity:0.85;">- Any -</button>'+vals.map(v=>'<button type="button" class="gs-opt" data-val="'+escapeHtml(v).replace(/"/g,'&quot;')+'" style="'+btnStyle+'">'+escapeHtml(v)+'</button>').join('')+'</div>';
-        const r=await Swal.fire({title:label+' ('+(i+1)+'/'+steps.length+')',text:picked.length?('Selected: '+picked.join(' > ')):'Choose one, or pick Any to skip this step',html:html,width:'min(680px,94vw)',showConfirmButton:true,showDenyButton:true,showCancelButton:true,confirmButtonText:'Next',denyButtonText:'Search now',cancelButtonText:'Cancel',background:dark?'#1e1e1e':'#fff',color:dark?'#e0e0e0':'#333',didOpen:()=>{const cb=Swal.getConfirmButton();if(cb)cb.style.display='none';Swal.getHtmlContainer().querySelectorAll('.gs-opt').forEach(btn=>btn.addEventListener('click',()=>{chosen=btn.getAttribute('data-val');Swal.clickConfirm();}));}});
-        if(r.isDismissed)return;
-        if(r.isDenied)break;
-        const v=chosen||'';
-        if(v){picked.push(v);pool=pool.filter(x=>String(x[field]||'').trim()===v);}
+function openGuidedSparePartsSearch(){
+    const steps=[['Site','site','fa-city'],['Location','location','fa-location-dot'],['Reserved For','reservedFor','fa-bookmark'],['Part Type','type','fa-microchip'],['Brand','brand','fa-tag'],['Model','model','fa-laptop']];
+    let ov=document.getElementById('guidedSearchOverlay');
+    if(!ov){
+        ov=document.createElement('div');
+        ov.id='guidedSearchOverlay';
+        ov.className='modal-overlay';
+        ov.style.display='none';
+        ov.innerHTML='<div class="modal-content gs-modal"><button type="button" class="close-modal-btn" id="gsClose">&times;</button><h2 id="gsTitle"></h2><div class="gs-progress"><div id="gsBar"></div></div><div id="gsCrumbs" class="gs-crumbs"></div><div id="gsOptions" class="gs-options"></div><div class="gs-actions"><button type="button" class="custom-btn" id="gsBack"><i class="fa-solid fa-arrow-left"></i> Back</button><button type="button" class="custom-btn" id="gsSkip">Skip <i class="fa-solid fa-forward-step"></i></button><button type="button" class="custom-btn" id="gsSearch" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;"><i class="fa-solid fa-magnifying-glass"></i> Search now</button></div></div>';
+        document.body.appendChild(ov);
+        ov.addEventListener('click',e=>{if(e.target===ov)hideModal(ov)});
     }
-    sparePartsSearchInput.value=picked.map(v=>v.replace(/,/g,' ')).join(', ')+(picked.length?', ':'');
-    applySparePartsSearch();
-    sparePartsSearchInput.focus();
-    const len=sparePartsSearchInput.value.length;
-    try{sparePartsSearchInput.setSelectionRange(len,len);}catch(e){}
+    const picks=new Array(steps.length).fill('');
+    let idx=0;
+    const poolFor=(upTo)=>{let pool=allSpareParts.slice();for(let k=0;k<upTo;k++){if(picks[k])pool=pool.filter(x=>String(x[steps[k][1]]||'').trim()===picks[k]);}return pool;};
+    const valuesFor=(i)=>[...new Set(poolFor(i).map(x=>String(x[steps[i][1]]||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'}));
+    const finish=()=>{
+        const chosen=picks.filter(Boolean);
+        sparePartsSearchInput.value=chosen.map(v=>v.replace(/,/g,' ')).join(', ')+(chosen.length?', ':'');
+        hideModal(ov);
+        applySparePartsSearch();
+        sparePartsSearchInput.focus();
+    };
+    const render=()=>{
+        while(idx<steps.length&&valuesFor(idx).length===0){picks[idx]='';idx++;}
+        if(idx>=steps.length)return finish();
+        const [label,field,icon]=steps[idx];
+        document.getElementById('gsTitle').innerHTML='<i class="fa-solid '+icon+'" style="color:var(--primary-accent-color);margin-right:8px;"></i>'+label;
+        document.getElementById('gsBar').style.width=(((idx+1)/steps.length)*100)+'%';
+        const crumbs=steps.map((st,k)=>picks[k]?'<span class="gs-chip-done"><i class="fa-solid '+st[2]+'"></i> '+escapeHtml(picks[k])+'</span>':'').join('');
+        document.getElementById('gsCrumbs').innerHTML=crumbs||'<span class="gs-hint">Step '+(idx+1)+' of '+steps.length+' — pick one, or press Search now to search everything</span>';
+        const box=document.getElementById('gsOptions');
+        box.innerHTML=valuesFor(idx).map(v=>'<button type="button" class="gs-opt" data-val="'+escapeHtml(v).replace(/"/g,'&quot;')+'"><i class="fa-solid '+icon+'"></i> '+escapeHtml(v)+'</button>').join('');
+        box.querySelectorAll('.gs-opt').forEach(btn=>btn.addEventListener('click',()=>{picks[idx]=btn.getAttribute('data-val');idx++;render();}));
+        document.getElementById('gsBack').style.visibility=picks.some((v,k)=>k<idx)||idx>0?'visible':'hidden';
+    };
+    document.getElementById('gsClose').onclick=()=>hideModal(ov);
+    document.getElementById('gsSearch').onclick=finish;
+    document.getElementById('gsSkip').onclick=()=>{picks[idx]='';idx++;render();};
+    document.getElementById('gsBack').onclick=()=>{let j=idx-1;while(j>0&&valuesFor(j).length===0)j--;if(j<0)j=0;idx=j;picks[idx]='';for(let k=idx+1;k<steps.length;k++)picks[k]='';render();};
+    showModal(ov);
+    render();
 }
 const btnGuidedSpSearch=document.getElementById('btnGuidedSpSearch');if(btnGuidedSpSearch)btnGuidedSpSearch.addEventListener('click',openGuidedSparePartsSearch);
 function showTab(tabId,skipRefresh=false){tabContents.forEach(content=>content.classList.remove('active'));tabButtons.forEach(btn=>btn.classList.remove('active'));document.getElementById(tabId).classList.add('active');document.querySelector(`.tab-button[data-tab="${tabId}"]`).classList.add('active');if(tabId==='it-workspace')renderDailyWorkEntries();if(!skipRefresh&&(tabId!=='add-edit-laptop'||!isEditing));}
