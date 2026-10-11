@@ -3585,6 +3585,9 @@
         <button id="pwaInstallBtn" class="custom-btn" style="display:none; background-color:#6f42c1; color:white;" title="Install App">
     <i class="fa-solid fa-download"></i> Install App
 </button>
+        <button id="pushBtn" class="custom-btn" style="display:none; background-color:#f59e0b; color:#111;" title="Admin notifications">
+    <i class="fa-solid fa-bell"></i> <span id="pushBtnText">Notifications</span>
+</button>
         <div class="theme-switcher-container">
           <i class="fa-solid fa-sun"></i>
           <label class="theme-switch">
@@ -8476,5 +8479,54 @@ document.getElementById('btnDowngrade').addEventListener('click', () => {const d
 document.getElementById('closeDowngradeModal').addEventListener('click', () => hideModal(document.getElementById('downgradeOverlay')));
 window.loadLaptops=refreshAllDataAndViews;resetFormForAdd()});
       </script>
+<script>
+(function(){
+var PUSH_PUB="BCkoiju474wMoUt_e9LX99CygwZBXyVpZxzNQUg5M0s41Ku_r5jvbP63QzLYGNnY2nJRLeuiyjWOuGGFQztJTss";
+var btn=document.getElementById('pushBtn'),txt=document.getElementById('pushBtnText');
+var supported='serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;
+function b64(v){var p='='.repeat((4-v.length%4)%4),b=(v+p).replace(/-/g,'+').replace(/_/g,'/'),r=atob(b),o=new Uint8Array(r.length);for(var i=0;i<r.length;i++)o[i]=r.charCodeAt(i);return o}
+function isAdmin(){try{return !!(currentUser&&currentUser.permissions&&currentUser.permissions.manageUsers&&currentUser.permissions.manageUsers.visible)}catch(e){return false}}
+async function getReg(){try{return await navigator.serviceWorker.getRegistration()}catch(e){return null}}
+async function refreshBtn(){
+  if(!btn)return;
+  if(!isAdmin()){btn.style.display='none';return}
+  btn.style.display='inline-flex';
+  var on=false;
+  if(supported){var reg=await getReg();if(reg){var sub=await reg.pushManager.getSubscription();on=!!sub&&Notification.permission==='granted'}}
+  txt.textContent=on?'Notifications: ON':'Notifications: OFF';
+  btn.style.backgroundColor=on?'#22c55e':'#f59e0b';
+  btn.dataset.on=on?'1':'0';
+}
+function creds(){var u=(typeof users!=='undefined'&&users[currentUser.email])||{};return{username:currentUser.email,password:u.password}}
+async function enable(){
+  var reg=await getReg();
+  if(!reg){return Swal.fire({icon:'info',title:'Open the GitHub Pages link',text:'Notifications work only from the GitHub Pages address (not the Apps Script link). On iPhone, add the site to the Home Screen first.'})}
+  var perm=await Notification.requestPermission();
+  if(perm!=='granted'){return Swal.fire({icon:'warning',title:'Permission blocked',text:'Allow notifications for this site from the browser settings, then try again.'})}
+  reg=await navigator.serviceWorker.ready;
+  var sub=await reg.pushManager.getSubscription();
+  if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64(PUSH_PUB)});
+  var c=creds();
+  var r=await supabaseClient.rpc('save_push_subscription',{payload:{username:c.username,password:c.password,subscription:sub.toJSON(),userAgent:navigator.userAgent}});
+  if(r.error)throw new Error(r.error.message);
+  showNotification('Notifications enabled on this device.','success');
+}
+async function disable(){
+  var reg=await getReg();var sub=reg&&await reg.pushManager.getSubscription();
+  if(sub){var c=creds();try{await supabaseClient.rpc('remove_push_subscription',{payload:{username:c.username,password:c.password,endpoint:sub.endpoint}})}catch(e){}await sub.unsubscribe()}
+  showNotification('Notifications disabled on this device.','info');
+}
+if(btn)btn.addEventListener('click',async function(){
+  try{
+    if(!supported){return Swal.fire({icon:'info',title:'Not supported',text:'This browser does not support push notifications. On iPhone, add the site to the Home Screen and open it from there.'})}
+    if(btn.dataset.on==='1')await disable();else await enable();
+    await refreshBtn();
+  }catch(e){showNotification(e.message||'Failed','error')}
+});
+var _ap=window.applyPermissions;
+if(typeof _ap==='function')window.applyPermissions=function(){var r=_ap.apply(this,arguments);try{refreshBtn()}catch(e){}return r};
+setTimeout(refreshBtn,1500);
+})();
+</script>
 </body>
 </html>
