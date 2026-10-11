@@ -35,13 +35,29 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('push', (event) => {
   let d = {};
   try { d = event.data ? event.data.json() : {}; } catch (e) { d = { body: event.data ? event.data.text() : '' }; }
-  const title = d.title || 'Scrap & Spare Parts Hub';
-  event.waitUntil(self.registration.showNotification(title, {
-    body: d.body || '',
-    icon: d.icon || 'https://auurmvfaqkxaxowxoqkl.supabase.co/storage/v1/object/public/images/laptop-screen.png?v=2',
-    badge: d.icon || 'https://auurmvfaqkxaxowxoqkl.supabase.co/storage/v1/object/public/images/laptop-screen.png?v=2',
-    tag: d.tag || undefined,
-    data: { url: d.url || './' }
+  const TAG = 'scrap-hub-logs';
+  const badge = new URL('badge.png', self.registration.scope).href;
+  const icon = d.icon || 'https://auurmvfaqkxaxowxoqkl.supabase.co/storage/v1/object/public/images/laptop-screen.png?v=2';
+  const line = (d.title || 'New log') + (d.body ? ' - ' + d.body : '');
+  event.waitUntil(self.registration.getNotifications({ tag: TAG }).then((existing) => {
+    let lines = [line];
+    let count = 1;
+    if (existing && existing.length) {
+      const prev = existing[0].data || {};
+      lines = [line].concat(prev.lines || []).slice(0, 6);
+      count = (prev.count || 1) + 1;
+      existing.forEach((n) => n.close());
+    }
+    const title = count > 1 ? 'Scrap Hub - ' + count + ' new logs' : (d.title || 'Scrap & Spare Parts Hub');
+    const body = count > 1 ? lines.join('\n') : (d.body || '');
+    return self.registration.showNotification(title, {
+      body,
+      icon,
+      badge,
+      tag: TAG,
+      renotify: true,
+      data: { url: d.url || './', lines, count }
+    });
   }));
 });
 

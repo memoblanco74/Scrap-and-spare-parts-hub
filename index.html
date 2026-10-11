@@ -2796,6 +2796,15 @@
     #deductPartModal .form-row .form-group{width:100%}
     #deductPartModal{max-width:480px}
     @media (max-width:560px){#deductPartModal .form-row{grid-template-columns:none}}
+  
+    #pushBtn .fa-bell{margin:0}
+    @media (max-width:700px){
+      #pushBtn{padding:8px 12px;min-width:44px;justify-content:center}
+      #pushBtn #pushBtnText{display:none}
+      #pushBtn .fa-bell{font-size:1.15em}
+      #header-actions-wrapper{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
+      #header-actions-wrapper .theme-switcher-container{margin-left:auto}
+    }
   </style>
 </head>
 
@@ -8520,7 +8529,7 @@ async function refreshBtn(){
   btn.style.display='inline-flex';
   var on=false;
   if(supported){var reg=await getReg();if(reg){var sub=await reg.pushManager.getSubscription();on=!!sub&&Notification.permission==='granted'}}
-  txt.textContent=on?'Notifications: ON':'Notifications: OFF';
+  txt.textContent=on?'Notifications: ON':'Notifications: OFF';btn.title=txt.textContent;
   btn.style.backgroundColor=on?'#22c55e':'#f59e0b';
   btn.dataset.on=on?'1':'0';
 }
