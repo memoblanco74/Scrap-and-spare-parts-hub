@@ -8507,9 +8507,6 @@ window.toggleFrameBtn = function(cb) {
 };
 document.getElementById('btnDowngrade').addEventListener('click', () => {const dgForm=document.getElementById('downgradeForm');if(dgForm)dgForm.reset();const dgModelInput=document.getElementById('dgPartModelAuto');if(dgModelInput)dgModelInput.dataset.size='';const dgDeviceModelAuto=document.getElementById('dgDeviceModelAuto');if(dgDeviceModelAuto){dgDeviceModelAuto.value='';dgDeviceModelAuto.dataset.brand='';dgDeviceModelAuto.dataset.model='';}showModal(document.getElementById('downgradeOverlay'));});
 document.getElementById('closeDowngradeModal').addEventListener('click', () => hideModal(document.getElementById('downgradeOverlay')));
-window.loadLaptops=refreshAllDataAndViews;resetFormForAdd()});
-      </script>
-<script>
 (function(){
 var PUSH_PUB="BCkoiju474wMoUt_e9LX99CygwZBXyVpZxzNQUg5M0s41Ku_r5jvbP63QzLYGNnY2nJRLeuiyjWOuGGFQztJTss";
 var btn=document.getElementById('pushBtn'),txt=document.getElementById('pushBtnText');
@@ -8553,12 +8550,10 @@ if(btn)btn.addEventListener('click',async function(){
     await refreshBtn();
   }catch(e){showNotification(e.message||'Failed','error')}
 });
-var _ap=window.applyPermissions;
-if(typeof _ap==='function')window.applyPermissions=function(){var r=_ap.apply(this,arguments);try{refreshBtn()}catch(e){}return r};
+var _ap=applyPermissions;
+applyPermissions=function(){var r=_ap.apply(this,arguments);try{refreshBtn()}catch(e){}return r};
 setTimeout(refreshBtn,1500);
 })();
-</script>
-<script>
 (function(){
 var b=document.getElementById('pushUpdateBtn');
 if(!b)return;
@@ -8575,6 +8570,7 @@ b.addEventListener('click',async function(){
   }catch(e){showNotification(e.message||'Failed','error')}
 });
 })();
-</script>
+window.loadLaptops=refreshAllDataAndViews;resetFormForAdd()});
+      </script>
 </body>
 </html>
