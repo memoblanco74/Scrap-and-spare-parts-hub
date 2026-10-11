@@ -5348,7 +5348,7 @@ async function refreshAllDataAndViews() {
     }
 }
 function displayDbStatus(message,type){dbStatusDiv.innerHTML=`<i class="fa-solid ${type==='success'?'fa-check-circle':'fa-times-circle'}"></i> <span>${message}</span>`;dbStatusDiv.className='db-status '+type;dbStatusDiv.classList.add('show');setTimeout(()=>{dbStatusDiv.classList.remove('show')},4000)}
-function checkSession(){const userEmail=sessionStorage.getItem('loggedInUser');if(userEmail){if(Object.keys(users).length===0){setTimeout(checkSession,500);return;}if(users[userEmail]){currentUser={email:userEmail,permissions:migratePermissions(users[userEmail].permissions)};applyPermissions();if(currentUser.permissions.manageUsers&&currentUser.permissions.manageUsers.visible){displayUsersInTable();}if(allSpareParts&&allSpareParts.length>0){renderSparePartsCards(allSpareParts);}if(allLaptops&&allLaptops.length>0){tableBody.innerHTML='';allLaptops.forEach(addLaptopRowToTable);}}else{setAsViewOnly();}}else{setAsViewOnly();}}
+function checkSession(){let userEmail=sessionStorage.getItem('loggedInUser');let fromKept=false;if(!userEmail){try{userEmail=localStorage.getItem('keptUser');fromKept=!!userEmail}catch(e){userEmail=null}}if(userEmail){if(Object.keys(users).length===0){setTimeout(checkSession,500);return;}if(fromKept){const kp=users[userEmail]?migratePermissions(users[userEmail].permissions):null;if(kp&&kp.session&&kp.session.keepAlive){sessionStorage.setItem('loggedInUser',userEmail)}else{try{localStorage.removeItem('keptUser')}catch(e){}setAsViewOnly();return}}if(users[userEmail]){currentUser={email:userEmail,permissions:migratePermissions(users[userEmail].permissions)};applyPermissions();if(currentUser.permissions.manageUsers&&currentUser.permissions.manageUsers.visible){displayUsersInTable();}if(allSpareParts&&allSpareParts.length>0){renderSparePartsCards(allSpareParts);}if(allLaptops&&allLaptops.length>0){tableBody.innerHTML='';allLaptops.forEach(addLaptopRowToTable);}}else{setAsViewOnly();}}else{setAsViewOnly();}}
 async function handleLogin(event){
     event.preventDefault();
     const rawEmail=loginForm.email.value.trim();
@@ -5373,7 +5373,7 @@ async function handleLogin(event){
             };
 
             currentUser={email:email,permissions:migratePermissions(users[email].permissions)};
-            sessionStorage.setItem('loggedInUser',email);
+            sessionStorage.setItem('loggedInUser',email);try{if(currentUser.permissions.session&&currentUser.permissions.session.keepAlive)localStorage.setItem('keptUser',email);else localStorage.removeItem('keptUser')}catch(e){}
 
             // بنقفل المودال ونشيل حالة التحميل من الزرار فورًا
             // عشان الواجهة تستجيب على طول ومنعملش فريز في الأنيميشن؛ باقي الشغل الأثقل هيتنفذ بعد كده
@@ -5442,7 +5442,7 @@ async function handleLogin(event){
 async function handleLogout() {
     if(currentUser)supabaseClient.rpc('log_activity',{payload:{user:currentUser.email,action:'Logout',details:'User logged out successfully'}}).then(function(){},function(){});
     currentUser = null;
-    sessionStorage.removeItem('loggedInUser');    
+    sessionStorage.removeItem('loggedInUser');try{localStorage.removeItem('keptUser')}catch(e){}
     setAsViewOnly();
 }
 
