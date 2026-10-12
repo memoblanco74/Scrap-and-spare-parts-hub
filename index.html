@@ -8557,7 +8557,7 @@ if(btn)btn.addEventListener('click',async function(){
     if(!supported){return Swal.fire({icon:'info',title:'Not supported',text:'This browser does not support push notifications. On iPhone, add the site to the Home Screen and open it from there.'})}
     if(btn.dataset.on==='1')await disable();else await enable();
     await refreshBtn();
-  }catch(e){if(/push service|registration failed/i.test(String(e&&e.message))){Swal.fire({icon:'error',title:'Push service blocked',html:'This device could not reach the browser push service. This usually means the work network or firewall blocks it, or the browser has push messaging turned off.<br><br>Try another network (e.g. phone hotspot). In Chrome: Settings, Sync and Google services, turn on <b>Use Google services for push messaging</b>.'})}else{showNotification(e.message||'Failed','error')}}
+  }catch(e){showNotification(e.message||'Failed','error')}
 });
 var _ap=applyPermissions;
 applyPermissions=function(){var r=_ap.apply(this,arguments);try{refreshBtn()}catch(e){}return r};
