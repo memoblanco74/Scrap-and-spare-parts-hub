@@ -3061,15 +3061,27 @@
               </div>
               <div class="permission-item">
                 <input type="checkbox" name="warrantyCheck_canAdd" id="edit-wc-add">
-                <label for="edit-wc-add">Can Add</label>
+                <label for="edit-wc-add">Devices: Can Add</label>
               </div>
               <div class="permission-item">
                 <input type="checkbox" name="warrantyCheck_canEdit" id="edit-wc-edit">
-                <label for="edit-wc-edit">Can Edit</label>
+                <label for="edit-wc-edit">Devices: Can Edit</label>
               </div>
               <div class="permission-item">
                 <input type="checkbox" name="warrantyCheck_canDelete" id="edit-wc-delete">
-                <label for="edit-wc-delete">Can Delete</label>
+                <label for="edit-wc-delete">Devices: Can Delete</label>
+              </div>
+              <div class="permission-item">
+                <input type="checkbox" name="warrantyCheck_canAddVendor" id="edit-wc-vadd">
+                <label for="edit-wc-vadd">Vendors: Can Add</label>
+              </div>
+              <div class="permission-item">
+                <input type="checkbox" name="warrantyCheck_canEditVendor" id="edit-wc-vedit">
+                <label for="edit-wc-vedit">Vendors: Can Edit</label>
+              </div>
+              <div class="permission-item">
+                <input type="checkbox" name="warrantyCheck_canDeleteVendor" id="edit-wc-vdelete">
+                <label for="edit-wc-vdelete">Vendors: Can Delete</label>
               </div>
             </div>
           </div>
@@ -4331,6 +4343,13 @@
           </div>
           <div id="warrantyResult" style="display:none; margin-top:20px;"></div>
         </div>
+        <div class="card" id="vendorsCard" style="max-width: 700px; margin: 20px auto 0;">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+            <h3 style="margin:0;"><i class="fa-solid fa-building" style="color: var(--primary-accent-color);"></i> Vendors</h3>
+            <button class="custom-btn" id="vendorAddBtn" style="display:none; background-color:var(--success-color); color:white;"><i class="fa-solid fa-plus"></i> Add Vendor</button>
+          </div>
+          <div id="vendorsList" style="margin-top:12px;"></div>
+        </div>
       </div>
 
       <div id="warrantyRecordOverlay" class="modal-overlay" style="display: none;">
@@ -5159,7 +5178,7 @@ async function hashPassword(string){const msgBuffer=new TextEncoder().encode(str
 const appContainer=document.getElementById('appContainer'),dbStatusDiv=document.getElementById('dbStatus'),tabButtons=document.querySelectorAll('.tab-button'),tabContents=document.querySelectorAll('.tab-content'),themeToggle=document.getElementById('theme-toggle'),loginOverlay=document.getElementById('loginOverlay'),loginForm=document.getElementById('loginForm'),loginError=document.getElementById('loginError'),loginButton=document.getElementById('loginButton'),logoutButton=document.getElementById('logoutButton'),closeLoginModalBtn=document.getElementById('closeLoginModal'),userInfoDiv=document.getElementById('userInfo'),userEmailDisplay=document.getElementById('userEmailDisplay'),editUserOverlay=document.getElementById('editUserOverlay'),editUserForm=document.getElementById('editUserForm'),closeEditUserModalBtn=document.getElementById('closeEditUserModal'),usePartOverlay=document.getElementById('usePartOverlay'),usePartForm=document.getElementById('usePartForm'),usePartBrandInput=document.getElementById('usePartBrand'),usePartModelInput=document.getElementById('usePartModel'),closeUseModalBtn=document.getElementById('closeUseModal'),usePartInfo=document.getElementById('usePartInfo'),usePartIdInput=document.getElementById('usePartId'),deductPartOverlay=document.getElementById('deductPartOverlay'),deductPartForm=document.getElementById('deductPartForm'),closeDeductModalBtn=document.getElementById('closeDeductModal'),deductPartInfo=document.getElementById('deductPartInfo'),deductPartIdInput=document.getElementById('deductPartId'),componentBrandFilter=document.getElementById('componentBrandFilter'),componentModelFilter=document.getElementById('componentModelFilter'),ramManufacturerFilter=document.getElementById('ramManufacturerFilter'),ramPathFilter=document.getElementById('ramPathFilter'),modelComponentDetailsElem=document.getElementById('modelComponentDetails'),modelComponentLaptopListElem=document.getElementById('modelComponentLaptopList'),ramSummaryListElem=document.getElementById('ramSummaryList'),globalSearchInput=document.getElementById('globalSearchInput'),tableBody=document.querySelector('#laptopTable tbody'),selectAllCheckbox=document.getElementById('selectAll'),exportButton=document.getElementById('exportButton'),deleteSelectedButton=document.getElementById('deleteSelectedButton'),displayedLaptopsCount=document.getElementById('displayedLaptopsCount'),selectedLaptopsCount=document.getElementById('selectedLaptopsCount'),addDataForm=document.getElementById('addDataForm'),formTitle=document.getElementById('formTitle'),laptopIDInput=document.getElementById('laptopID'),originalLaptopIdInput=document.getElementById('originalLaptopId'),idHint=document.getElementById('idHint'),cancelEditButton=document.getElementById('cancelEditButton'),brandInput=document.getElementById('brand'),laptopModelInput=document.getElementById('laptopModel'),modelDatalist=document.getElementById('model-list'),ramEntriesContainer=document.getElementById('ramEntriesContainer'),addRamEntryBtn=document.getElementById('addRamEntryBtn'),groupForm=document.getElementById('compatibilityGroupForm'),groupModelsSelect=document.getElementById('groupModels'),existingGroupsContainer=document.getElementById('existingGroupsContainer'),logsTableBody=document.querySelector('#logsTable tbody'),clearLogsButton=document.getElementById('clearLogsButton'),incidentTypeSelector=document.getElementById('incidentTypeSelector'),incidentFormsContainer=document.getElementById('incidentFormsContainer'),incidentOutputContainer=document.getElementById('incidentOutputContainer'),incidentOutput=document.getElementById('incidentOutput'),copyIncidentBtn=document.getElementById('copyIncidentBtn'),addSparePartBtn_form3=document.getElementById('addSparePartBtn_form3'),sparePartsList_form3=document.getElementById('sparePartsList_form3'),addSparePartBtn_form4=document.getElementById('addSparePartBtn_form4'),sparePartsList_form4=document.getElementById('sparePartsList_form4'),userManagementForm=document.getElementById('userManagementForm'),usersTableBody=document.querySelector('#usersTable tbody'),addSparePartForm=document.getElementById('addSparePartForm'),sparePartsCardContainer=document.getElementById('sparePartsCardContainer'),sparePartsSearchInput=document.getElementById('sparePartsSearchInput'),sparePartsTab=document.getElementById('spare-parts'),sparePartSummaryContainer=document.getElementById('sparePartSummaryContainer'),sparePartPurchaseOrderInput=document.getElementById('sparePartPurchaseOrder'),sparePartDateInput=document.getElementById('sparePartDate'),toggleAddSparePartFormBtn=document.getElementById('toggleAddSparePartFormBtn'),sparePartTypeInput=document.getElementById('sparePartType'),sparePartModelInput=document.getElementById('sparePartModel'),sparePartModelList=document.getElementById('spare-part-model-list'),sparePartQuantityInput=document.getElementById('sparePartQuantity'),sparePartCategoryInput=document.getElementById('sparePartCategory'),sparePartLocationInput=document.getElementById('sparePartLocation'),sparePartBrandInput=document.getElementById('sparePartBrand'),sparePartSiteInput=document.getElementById('sparePartSite'),sparePartReservedForInput=document.getElementById('sparePartReservedFor'),sparePartIncidentInput=document.getElementById('sparePartIncident'),sparePartCommentInput=document.getElementById('sparePartComment'),reportTypesSelect=document.getElementById('reportTypes'),reportSitesSelect=document.getElementById('reportSites'),reportStartDateInput=document.getElementById('reportStartDate'),reportEndDateInput=document.getElementById('reportEndDate'),btnGenerateReport=document.getElementById('btnGenerateReport'),btnExportUsageReport=document.getElementById('btnExportUsageReport'),reportOutputContainer=document.getElementById('reportOutputContainer'),reportTotalCount=document.getElementById('reportTotalCount'),reportDetailsTable=document.getElementById('reportDetailsTable');
 let isEditing=false,isEditingSparePart=false,editingSparePartId=null,allLaptops=[],allGroups=[],allSpareParts=[],allAssets=[],allUsageHistory=[],allDeductHistory=[],allDowngrades=[],currentComponentModelFilteredLaptops=[],currentUser=null,users={},ramEntryCounter=0,lastUsageReportRows=[],emailTemplateSettings={},emailTemplateSettingsLoaded=false;
 function toggleButtonLoading(b,l){b.disabled=l;if(l){b.dataset.tx=b.innerHTML;b.innerHTML='<i class="fas fa-circle-notch fa-spin app-spinner"></i>';}else{b.innerHTML=b.dataset.tx||'Save';}}
-function getDefaultPermissions(isAdmin=false){return {dashboard:{visible:true,manageCompatibility:isAdmin,canBackup:isAdmin},dataManagement:{visible:isAdmin,canImport:isAdmin,canExport:isAdmin,canDelete:isAdmin},addEditLaptop:{visible:isAdmin},spareParts:{visible:isAdmin,canAdd:isAdmin,canUse:isAdmin,canDeduct:isAdmin,canDelete:isAdmin,canRollback:isAdmin,canEditUsage:isAdmin},incidents:{visible:isAdmin},logs:{visible:isAdmin,canClear:isAdmin},manageUsers:{visible:isAdmin},qrSystem:{access:isAdmin},itWorkspace:{visible:isAdmin},warrantyCheck:{visible:isAdmin,canAdd:isAdmin,canEdit:isAdmin,canDelete:isAdmin},printers:{visible:isAdmin,canAdd:isAdmin,canEdit:isAdmin,canDelete:isAdmin},warrantyWidget:{visible:isAdmin},notifications:{receive:false},session:{keepAlive:false}};}
+function getDefaultPermissions(isAdmin=false){return {dashboard:{visible:true,manageCompatibility:isAdmin,canBackup:isAdmin},dataManagement:{visible:isAdmin,canImport:isAdmin,canExport:isAdmin,canDelete:isAdmin},addEditLaptop:{visible:isAdmin},spareParts:{visible:isAdmin,canAdd:isAdmin,canUse:isAdmin,canDeduct:isAdmin,canDelete:isAdmin,canRollback:isAdmin,canEditUsage:isAdmin},incidents:{visible:isAdmin},logs:{visible:isAdmin,canClear:isAdmin},manageUsers:{visible:isAdmin},qrSystem:{access:isAdmin},itWorkspace:{visible:isAdmin},warrantyCheck:{visible:isAdmin,canAdd:isAdmin,canEdit:isAdmin,canDelete:isAdmin,canAddVendor:false,canEditVendor:false,canDeleteVendor:false},printers:{visible:isAdmin,canAdd:isAdmin,canEdit:isAdmin,canDelete:isAdmin},warrantyWidget:{visible:isAdmin},notifications:{receive:false},session:{keepAlive:false}};}
 function migratePermissions(oldPerms){if(oldPerms&&oldPerms.dashboard)return oldPerms;return getDefaultPermissions(false);}
 // ==================== PWA Install & Service Worker ====================
 // تسجيل الـ Service Worker (بيشتغل بس لو الملف sw.js موجود فعلاً على نفس الاستضافة)
@@ -5458,7 +5477,7 @@ async function handleLogout() {
 function setAsViewOnly(){appContainer.classList.add('view-only');userInfoDiv.style.display='none';loginButton.style.display='block';document.querySelectorAll('.tab-button').forEach(tabButton=>{tabButton.style.setProperty('display','none','important')});const dashboardTabButton=document.querySelector('.tab-button[data-tab="dashboard"]');if(dashboardTabButton){dashboardTabButton.style.setProperty('display','flex','important');dashboardTabButton.style.setProperty('pointer-events','auto','important');dashboardTabButton.style.setProperty('opacity','1','important');dashboardTabButton.style.setProperty('cursor','pointer','important')}showTab('dashboard',true);}
 function applyPermissions(){if(!currentUser){setAsViewOnly();return}appContainer.classList.remove('view-only');loginButton.style.display='none';userInfoDiv.style.display='flex';userEmailDisplay.textContent=currentUser.email;const perms=currentUser.permissions;document.querySelectorAll('[data-permission]').forEach(el=>{const permKey=el.dataset.permission;const keys=permKey.split('_');let hasPermission=false;if(keys.length===2&&perms[keys[0]]&&typeof perms[keys[0]][keys[1]]!=='undefined'){hasPermission=perms[keys[0]][keys[1]]}el.style.display='';el.style.pointerEvents='';el.style.opacity='';el.style.cursor='';if(hasPermission){if(el.parentElement.classList.contains('buttons-group')||el.classList.contains('tab-button')){el.style.display='flex'}else{el.style.display=''}}else{el.style.display='none'}});if(document.getElementById('existingGroupsContainer'))displayExistingGroups();}
 function readPermissionsFromForm(form){const formData=new FormData(form);const perms=getDefaultPermissions(false);for(const pageName in perms){for(const permName in perms[pageName]){const key=`${pageName}_${permName}`;if(formData.has(key))perms[pageName][permName]=true}}perms.dashboard.visible=true;return perms}
-const permissionLabelsMap={dashboard:{label:'Dashboard',visible:'View Page',manageCompatibility:'Manage Compatibility',canBackup:'Full DB Export'},dataManagement:{label:'Data Management',visible:'View Page',canImport:'Can Import',canExport:'Can Export',canDelete:'Can Delete'},addEditLaptop:{label:'Add/Edit Laptop',visible:'View Page'},spareParts:{label:'Spare Parts',visible:'View Page',canAdd:'Can Add/Edit',canUse:'Can Use',canDeduct:'Can Deduct',canDelete:'Can Delete',canRollback:'Can Rollback Transfer',canEditUsage:'Can Edit Usage Records'},incidents:{label:'Incidents',visible:'View Page'},logs:{label:'Logs',visible:'View Page',canClear:'Can Clear'},manageUsers:{label:'Manage Users',visible:'View Page'},qrSystem:{label:'QR System',access:'Access QR Scanner'},notifications:{label:'Notifications',receive:'Receive Log Notifications'},session:{label:'Session',keepAlive:'Stay Logged In (no idle logout)'},itWorkspace:{label:'IT Workspace',visible:'View Page'},warrantyCheck:{label:'Warranty Check',visible:'View Page',canAdd:'Can Add',canEdit:'Can Edit',canDelete:'Can Delete'},printers:{label:'Printers',visible:'View Page',canAdd:'Can Add',canEdit:'Can Edit',canDelete:'Can Delete'},warrantyWidget:{label:'Warranty Widget (Dashboard)',visible:'View Widget'}};
+const permissionLabelsMap={dashboard:{label:'Dashboard',visible:'View Page',manageCompatibility:'Manage Compatibility',canBackup:'Full DB Export'},dataManagement:{label:'Data Management',visible:'View Page',canImport:'Can Import',canExport:'Can Export',canDelete:'Can Delete'},addEditLaptop:{label:'Add/Edit Laptop',visible:'View Page'},spareParts:{label:'Spare Parts',visible:'View Page',canAdd:'Can Add/Edit',canUse:'Can Use',canDeduct:'Can Deduct',canDelete:'Can Delete',canRollback:'Can Rollback Transfer',canEditUsage:'Can Edit Usage Records'},incidents:{label:'Incidents',visible:'View Page'},logs:{label:'Logs',visible:'View Page',canClear:'Can Clear'},manageUsers:{label:'Manage Users',visible:'View Page'},qrSystem:{label:'QR System',access:'Access QR Scanner'},notifications:{label:'Notifications',receive:'Receive Log Notifications'},session:{label:'Session',keepAlive:'Stay Logged In (no idle logout)'},itWorkspace:{label:'IT Workspace',visible:'View Page'},warrantyCheck:{label:'Warranty Check',visible:'View Page',canAdd:'Devices: Can Add',canEdit:'Devices: Can Edit',canDelete:'Devices: Can Delete',canAddVendor:'Vendors: Can Add',canEditVendor:'Vendors: Can Edit',canDeleteVendor:'Vendors: Can Delete'},printers:{label:'Printers',visible:'View Page',canAdd:'Can Add',canEdit:'Can Edit',canDelete:'Can Delete'},warrantyWidget:{label:'Warranty Widget (Dashboard)',visible:'View Widget'}};
 function renderPermissionsAccessReport(){
     const container=document.getElementById('permissionsAccessReportContainer');
     if(!container)return;
@@ -8578,6 +8597,58 @@ b.addEventListener('click',async function(){
     showNotification('Update pushed to all open sessions.','success');
   }catch(e){showNotification(e.message||'Failed','error')}
 });
+})();
+(function(){
+var listEl=document.getElementById('vendorsList'),addBtn=document.getElementById('vendorAddBtn');
+if(!listEl)return;
+var vendors=[];
+function can(k){return !!(currentUser&&currentUser.permissions&&currentUser.permissions.warrantyCheck&&currentUser.permissions.warrantyCheck[k])}
+function creds(){var u=(typeof users!=='undefined'&&users[currentUser.email])||{};return{username:currentUser.email,password:u.password}}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function render(){
+  if(addBtn)addBtn.style.display=can('canAddVendor')?'inline-flex':'none';
+  if(!vendors.length){listEl.innerHTML=emptyStateHtml('fa-building','No vendors yet.');return}
+  var ce=can('canEditVendor'),cd=can('canDeleteVendor');
+  var h='<div class="table-container" style="max-height:360px"><table><thead><tr><th>Vendor</th><th>Email</th>'+((ce||cd)?'<th>Actions</th>':'')+'</tr></thead><tbody>';
+  vendors.forEach(function(v,i){
+    h+='<tr><td>'+esc(v.provider_name)+'</td><td>'+esc(v.provider_email||'-')+'</td>';
+    if(ce||cd){h+='<td>'+(ce?'<button class="custom-btn" data-vedit="'+i+'" title="Edit"><i class="fa-solid fa-pen"></i></button> ':'')+(cd?'<button class="custom-btn delete-btn" data-vdel="'+i+'" title="Delete"><i class="fa-solid fa-trash"></i></button>':'')+'</td>'}
+    h+='</tr>';
+  });
+  listEl.innerHTML=h+'</tbody></table></div>';
+}
+async function load(){
+  try{
+    var r=await supabaseClient.from('providers').select('provider_name,provider_email');
+    if(r.error)throw new Error(r.error.message);
+    vendors=(r.data||[]).slice().sort(function(a,b){return String(a.provider_name).localeCompare(String(b.provider_name))});
+    render();
+  }catch(e){listEl.innerHTML='<p class="input-hint">Could not load vendors.</p>'}
+}
+async function form(v){
+  var res=await Swal.fire({title:v?'Edit Vendor':'Add Vendor',html:'<input id="vfName" class="swal2-input" placeholder="Vendor name" value="'+esc(v?v.provider_name:'')+'"><input id="vfEmail" class="swal2-input" placeholder="Email" value="'+esc(v?(v.provider_email||''):'')+'">',showCancelButton:true,confirmButtonText:'Save',preConfirm:function(){var n=document.getElementById('vfName').value.trim(),e=document.getElementById('vfEmail').value.trim();if(!n){Swal.showValidationMessage('Vendor name is required');return false}return{name:n,email:e}}});
+  if(!res.isConfirmed)return;
+  try{
+    var c=creds();
+    var r=await supabaseClient.rpc('save_provider',{payload:{username:c.username,password:c.password,name:res.value.name,email:res.value.email,originalName:v?v.provider_name:'',isUpdate:!!v}});
+    if(r.error)throw new Error(r.error.message);
+    logActivity(v?'Edit Vendor':'Add Vendor',(v?'Edited vendor: '+v.provider_name+' -> ':'Added vendor: ')+res.value.name+' | Email: '+(res.value.email||'N/A'));
+    showNotification(v?'Vendor updated.':'Vendor added.','success');
+    load();
+  }catch(e){showNotification(e.message||'Failed','error')}
+}
+if(addBtn)addBtn.addEventListener('click',function(){form(null)});
+listEl.addEventListener('click',function(e){
+  var ed=e.target.closest('[data-vedit]'),dl=e.target.closest('[data-vdel]');
+  if(ed)form(vendors[Number(ed.dataset.vedit)]);
+  if(dl){var v=vendors[Number(dl.dataset.vdel)];confirmAction('Delete vendor "'+v.provider_name+'"?',async function(){
+    try{var c=creds();var r=await supabaseClient.rpc('delete_provider',{payload:{username:c.username,password:c.password,name:v.provider_name}});if(r.error)throw new Error(r.error.message);logActivity('Delete Vendor','Deleted vendor: '+v.provider_name);showNotification('Vendor deleted.','success');load()}catch(err){showNotification(err.message||'Failed','error')}
+  })}
+});
+var tb=document.querySelector('.tab-button[data-tab="warranty-check"]');
+if(tb)tb.addEventListener('click',load);
+var _ap2=applyPermissions;
+applyPermissions=function(){var r=_ap2.apply(this,arguments);try{render()}catch(e){}return r};
 })();
 window.loadLaptops=refreshAllDataAndViews;resetFormForAdd()});
       </script>
