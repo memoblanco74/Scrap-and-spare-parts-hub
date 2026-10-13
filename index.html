@@ -8723,7 +8723,7 @@ function showPin(){pin.style.display=canPin()?'inline-block':'none'}
 pin.addEventListener('click',async function(){
  var names=[...new Set(allSpareParts.map(function(p){return String(p.site||'').trim()}).filter(Boolean))].sort();
  var opts={};names.forEach(function(n){opts[n]=n+(sites.some(function(s){return s.site.toLowerCase()===n.toLowerCase()})?' (saved)':'')});
- var r=await Swal.fire({title:'Set site location',text:'Stand inside the site, choose it, and save your current location.',input:'select',inputOptions:opts,inputPlaceholder:'Select site',showCancelButton:true,confirmButtonText:'Save here',showDenyButton:true,denyButtonText:'Remove saved',inputValidator:function(v){if(!v)return 'Choose a site'}});
+ var oh='<option value="">Select site</option>';Object.keys(opts).forEach(function(k){oh+='<option value="'+k.replace(/"/g,'&quot;')+'">'+opts[k].replace(/</g,'&lt;')+'</option>'});var r=await Swal.fire({title:'Set site location',html:'<p style="margin:0 0 14px">Stand inside the site, choose it, and save your current location.</p><select id="spLocSel" style="width:100%;margin:0;background-image:none;padding:10px 12px">'+oh+'</select>',showCancelButton:true,confirmButtonText:'Save here',showDenyButton:true,denyButtonText:'Remove saved',preConfirm:function(){var v=document.getElementById('spLocSel').value;if(!v){Swal.showValidationMessage('Choose a site');return false}return v},preDeny:function(){var v=document.getElementById('spLocSel').value;if(!v){Swal.showValidationMessage('Choose a site');return false}return v}});
  if(!r.isConfirmed&&!r.isDenied)return;
  var u=(typeof users!=='undefined'&&users[currentUser.email])||{};
  try{
