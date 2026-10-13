@@ -4710,11 +4710,12 @@ function handleRealtimeUpdate(payload) {
 
     // --- تحديث جدول اللابتوبات ---
     if (table === 'laptops') {
+        const lpRow = newRow ? { ...newRow, mb: newRow.m_b, rams: (typeof newRow.rams_json === 'string') ? JSON.parse(newRow.rams_json || '[]') : (newRow.rams_json || []) } : null;
         if (eventType === 'INSERT') {
-            allLaptops.unshift(newRow); // ضيف في أول الـ Array
+        if (!allLaptops.some(l => l.id === lpRow.id)) allLaptops.unshift(lpRow); // ضيف في أول الـ Array
         } else if (eventType === 'UPDATE') {
             const index = allLaptops.findIndex(l => l.id === newRow.id);
-            if (index !== -1) allLaptops[index] = { ...allLaptops[index], ...newRow };
+            if (index !== -1) allLaptops[index] = { ...allLaptops[index], ...lpRow };
         } else if (eventType === 'DELETE') {
             allLaptops = allLaptops.filter(l => l.id !== oldRow.id);
         }
