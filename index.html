@@ -8718,8 +8718,8 @@ var pend=false;new MutationObserver(function(){if(pend)return;pend=true;setTimeo
 
 (function(){
 var host=document.getElementById('sparePartsCardContainer');if(!host)return;
-var row=document.createElement('div');row.id='spLocRow';row.style.cssText='display:grid;grid-template-columns:1fr auto;grid-template-areas:"sw pin" "st st";align-items:center;column-gap:12px;row-gap:6px;margin:8px 0 12px;padding:10px 14px;border:1px solid var(--border-color);border-radius:12px;background:var(--secondary-bg-color,transparent)';
-row.innerHTML='<label style="grid-area:sw;display:flex;align-items:center;gap:10px;cursor:pointer;margin:0;font-weight:600"><span style="position:relative;display:inline-block;width:44px;height:24px;flex:none"><input type="checkbox" id="spLocSwitch" style="opacity:0;width:100%;height:100%;position:absolute;inset:0;margin:0;cursor:pointer;z-index:2"><span id="spLocTrack" style="position:absolute;inset:0;border-radius:24px;background:#9ca3af;transition:.2s"></span><span id="spLocKnob" style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s"></span></span><span><i class="fa-solid fa-location-dot" style="margin-right:6px;color:var(--primary-accent-color)"></i>Filter by my location</span></label><button type="button" id="spLocPin" title="Set site location here" style="grid-area:pin;display:none;width:36px;height:36px;border:none;border-radius:8px;background:var(--primary-accent-color);color:#fff;cursor:pointer;align-items:center;justify-content:center;font-size:15px;padding:0"><i class="fa-solid fa-crosshairs"></i></button><span id="spLocStatus" style="grid-area:st;font-size:13px;opacity:.8;min-height:1em"></span>';
+var row=document.createElement('div');row.id='spLocRow';row.style.cssText='display:flex;align-items:center;gap:10px;margin:8px 0 12px;padding:10px 14px;border:1px solid var(--border-color);border-radius:12px;background:var(--secondary-bg-color,transparent)';
+row.innerHTML='<label style="flex:none;display:flex;align-items:center;gap:10px;cursor:pointer;margin:0;font-weight:600"><span style="position:relative;display:inline-block;width:44px;height:24px;flex:none"><input type="checkbox" id="spLocSwitch" style="opacity:0;width:100%;height:100%;position:absolute;inset:0;margin:0;cursor:pointer;z-index:2"><span id="spLocTrack" style="position:absolute;inset:0;border-radius:24px;background:#9ca3af;transition:.2s"></span><span id="spLocKnob" style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s"></span></span><span><i class="fa-solid fa-location-dot" style="margin-right:6px;color:var(--primary-accent-color)"></i>My location</span></label><span id="spLocStatus" style="flex:1 1 auto;min-width:0;font-size:13px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right"></span><button type="button" id="spLocPin" title="Set site location here" style="flex:none;display:none;width:36px;height:36px;border:none;border-radius:8px;background:var(--primary-accent-color);color:#fff;cursor:pointer;align-items:center;justify-content:center;font-size:15px;padding:0"><i class="fa-solid fa-crosshairs"></i></button>';
 host.parentNode.insertBefore(row,host);
 var sw=document.getElementById('spLocSwitch'),track=document.getElementById('spLocTrack'),knob=document.getElementById('spLocKnob'),stat=document.getElementById('spLocStatus'),pin=document.getElementById('spLocPin');
 var sites=[],matched=null,pos=null,posAt=0,on=false;
@@ -8738,16 +8738,16 @@ function applyFilter(){
 async function resolve(){
  if(!on){stat.textContent='';matched=null;return}
  if(!sites.length)await loadSites();
- if(!sites.length){matched=null;stat.textContent='No site locations saved yet. Use "Set site location here" at each site.';return}
- stat.textContent='Getting location...';
+ if(!sites.length){matched=null;stat.textContent='No sites saved yet';return}
+ stat.textContent='Locating...';
  try{var p=await getPos(false);var best=null,bd=1e12;sites.forEach(function(s){var d=hav(p.lat,p.lng,s.lat,s.lng);if(d<bd){bd=d;best=s}});
-  if(best&&bd<=(best.radius_m||1500)){matched=best.site;stat.textContent='Showing: '+best.site+' ('+Math.round(bd)+' m away)'}
-  else{matched=null;stat.textContent='You are not near any saved site (nearest: '+(best?best.site+', '+Math.round(bd)+' m':'-')+'). Showing all.'}
- }catch(e){matched=null;stat.textContent=e.message+' Showing all.'}
+  if(best&&bd<=(best.radius_m||1500)){matched=best.site;stat.textContent=best.site+' · '+Math.round(bd)+' m'}
+  else{matched=null;stat.textContent='Not near a saved site'}
+ }catch(e){matched=null;stat.textContent=e.message}
 }
 var _asp=applySparePartsSearch;
 applySparePartsSearch=function(){_asp();applyFilter()};
-async function refresh(){await resolve();try{applySparePartsSearch()}catch(e){}}
+async function refresh(){await resolve();stat.title=stat.textContent;try{applySparePartsSearch()}catch(e){}}
 sw.addEventListener('change',function(){on=sw.checked;try{localStorage.setItem('spLocFilter',on?'1':'0')}catch(e){}paint();refresh()});
 function canPin(){return currentUser&&currentUser.permissions&&currentUser.permissions.spareParts&&currentUser.permissions.spareParts.canAdd}
 function showPin(){pin.style.display=canPin()?'inline-flex':'none'}
