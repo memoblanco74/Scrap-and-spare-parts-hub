@@ -4347,7 +4347,7 @@
           </div>
           <div id="warrantyResult" style="display:none; margin-top:20px;"></div>
         </div>
-        <div class="card" id="vendorsCard" style="max-width: 700px; margin: 20px auto 0;">
+        <div class="card" id="vendorsCard" style="display:none; max-width: 700px; margin: 20px auto 0;">
           <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
             <h3 style="margin:0;"><i class="fa-solid fa-building" style="color: var(--primary-accent-color);"></i> Vendors</h3>
             <button class="custom-btn" id="vendorAddBtn" style="display:none; background-color:var(--success-color); color:white;"><i class="fa-solid fa-plus"></i> Add Vendor</button>
@@ -8616,6 +8616,7 @@ function can(k){return !!(currentUser&&currentUser.permissions&&currentUser.perm
 function creds(){var u=(typeof users!=='undefined'&&users[currentUser.email])||{};return{username:currentUser.email,password:u.password}}
 function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function render(){
+  var vc=document.getElementById('vendorsCard');if(vc)vc.style.display=(can('canAddVendor')||can('canEditVendor')||can('canDeleteVendor'))?'':'none';
   if(addBtn)addBtn.style.display=can('canAddVendor')?'inline-flex':'none';
   if(!vendors.length){listEl.innerHTML=emptyStateHtml('fa-building','No vendors yet.');return}
   var ce=can('canEditVendor'),cd=can('canDeleteVendor');
