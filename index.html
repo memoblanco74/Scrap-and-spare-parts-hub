@@ -5973,6 +5973,13 @@ const EMAIL_TEMPLATES={
     subject:'Hardware Upgrade',
     defaultTo:'Hossam.Ali2@xceedcc.com',
     defaultCc:'IT-Support@xceedcc.com;Xceedhelpdesk@xceedcc.com;SD-Support@xceedcc.com'
+  },
+  vendorTicket:{
+    label:'Vendor Ticket (Warranty Check) - CC only',
+    subject:'',
+    ccOnly:true,
+    defaultTo:'vendor',
+    defaultCc:'Xceedhelpdesk@xceedcc.com;IT-Support@xceedcc.com'
   }
 };
 const OUT_OF_WARRANTY_COLUMNS=['HDD','Fan','Battery','Housing','Touchpad','USB','MB','Power','Keyboard','Flata','Screen','Chargers','Charger socket','Lan','Ram'];
@@ -6805,6 +6812,36 @@ async function openPartHistoryModal(partIds){
 }
 // ==================== Warranty Check ====================
 let currentWarrantyRecord=null;
+async function prepareVendorTicketEmail(d,providerEmail,searched){
+    const toList=String(providerEmail||'').split(/[;,]/).map(x=>x.trim()).filter(x=>x.indexOf('@')>0);
+    if(!toList.length)return showNotification('No vendor email registered for this provider.','error');
+    await ensureEmailTemplateSettingsLoaded();
+    const tmpl=EMAIL_TEMPLATES.vendorTicket;
+    const saved=emailTemplateSettings.vendorTicket||{};
+    const ccAddr=(saved.cc!==undefined&&saved.cc!==null?saved.cc:tmpl.defaultCc||'').trim();
+    const toAddr=toList.join(';');
+    const parts=String(d.serial_number||'').split('/').map(x=>x.trim()).filter(Boolean);
+    const sn=parts.find(x=>x.toLowerCase()===String(searched||'').toLowerCase())||searched||d.serial_number||'';
+    const header=['Item','Model','S/N','Issue','Site','Xceed Ticket','Plan / out plan'];
+    const row=[d.item||'',d.asset_description||'',sn,'','','',''];
+    const subject=(d.provider||'Vendor')+'|Vendor|';
+    const f='font-family:Calibri,Arial,sans-serif;font-size:11pt;';
+    const th='style="border:1px solid #000000;background-color:#006400;color:#ffffff;padding:6px 10px;'+f+'font-weight:bold;text-align:center;vertical-align:middle;"';
+    const td='style="border:1px solid #000000;padding:6px 10px;'+f+'text-align:center;vertical-align:middle;"';
+    let html='<p style="'+f+'">Dears,</p><p style="'+f+'">&nbsp;</p><p style="'+f+'">Kindly we need to open ticket with the below and reply to all with external incident number.</p><p style="'+f+'">&nbsp;</p>';
+    html+='<table cellspacing="0" cellpadding="0" style="border-collapse:collapse;border:1px solid #000000;"><tr>'+header.map(h=>'<td align="center" bgcolor="#006400" '+th+'><b><font color="#ffffff">'+escapeHtml(h)+'</font></b></td>').join('')+'</tr><tr>'+row.map(v=>'<td align="center" '+td+'>'+(v===''?'&nbsp;':escapeHtml(String(v)))+'</td>').join('')+'</tr></table>';
+    html+='<p style="'+f+'">&nbsp;</p><p style="'+f+'">Mobile Number:</p>';
+    const plain='Dears,\r\n\r\nKindly we need to open ticket with the below and reply to all with external incident number.\r\n\r\n'+header.join('\t')+'\r\n'+row.join('\t')+'\r\n\r\nMobile Number:';
+    const copied=await copyRichTableToClipboard(html,plain);
+    if(copied){
+        openMailtoDraft(toAddr,ccAddr,subject,'');
+        showNotification('Email draft opened - press Ctrl+V inside the email body to paste the message and table.','success');
+    }else{
+        openMailtoDraft(toAddr,ccAddr,subject,plain);
+        showNotification('Your browser cannot copy formatted tables, so a plain-text version was placed in the email body.','info');
+    }
+    try{logActivity('Prepare Vendor Email','Provider: '+(d.provider||'-')+' | SN: '+sn+' | To: '+toAddr)}catch(e){}
+}
 function computeWarrantyStatus(receiveDateStr,warrantyYears){
     if(!receiveDateStr||!warrantyYears)return{status:'Unknown',remainingDays:0,endOfWarranty:'-'};
     const receiveDate=new Date(receiveDateStr);
@@ -6855,7 +6892,7 @@ async function checkWarrantyStatus(){
             html+='<div><span style="color:var(--secondary-color);">Warranty Years:</span> <strong>'+escapeHtml(d.warranty_years||0)+' Years</strong></div>';
             html+='<div style="grid-column:1/-1; background:var(--tertiary-bg-color); padding:15px; border-radius:8px; border-left:4px solid var(--primary-accent-color); margin-top:5px;">';
             html+='<div style="margin-bottom:8px;"><i class="fa-solid fa-building" style="color:var(--secondary-color); margin-right:5px;"></i><strong>Provider:</strong> '+escapeHtml(d.provider||'Not Specified')+'</div>';
-            html+='<div><i class="fa-solid fa-envelope" style="color:var(--secondary-color); margin-right:5px;"></i><strong>Email:</strong> <a href="mailto:'+escapeHtml(providerEmail)+'" style="color:var(--primary-accent-color);">'+escapeHtml(providerEmail)+'</a></div></div>';
+            html+='<div><i class="fa-solid fa-envelope" style="color:var(--secondary-color); margin-right:5px;"></i><strong>Email:</strong> <a href="mailto:'+escapeHtml(providerEmail)+'" style="color:var(--primary-accent-color);">'+escapeHtml(providerEmail)+'</a></div><div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;"><button type="button" class="custom-btn import-button" id="warrantyPrepEmailBtn"><i class="fa-solid fa-envelope-open-text"></i> Prepare Email</button>'+((currentUser&&currentUser.permissions.manageUsers&&currentUser.permissions.manageUsers.visible)?'<button type="button" class="custom-btn" id="warrantyEditCcBtn"><i class="fa-solid fa-gear"></i> Edit CC</button>':'')+'</div></div>';
             if(d.comments)html+='<div style="grid-column:1/-1; margin-top:5px; padding:10px; background:rgba(0,0,0,0.05); border-radius:6px;"><span style="color:var(--secondary-color);"><i class="fa-solid fa-comment-dots"></i> Comments:</span><br>'+escapeHtml(d.comments)+'</div>';
             html+='</div>';
             if(canEdit||canDelete){
@@ -6865,6 +6902,10 @@ async function checkWarrantyStatus(){
                 html+='</div>';
             }
             resultEl.innerHTML=html;
+            const prepBtn=document.getElementById('warrantyPrepEmailBtn');
+            if(prepBtn)prepBtn.addEventListener('click',()=>prepareVendorTicketEmail(d,providerEmail,serial));
+            const ccBtn=document.getElementById('warrantyEditCcBtn');
+            if(ccBtn)ccBtn.addEventListener('click',()=>{const b=document.getElementById('btnEditEmailRecipients');if(b)b.click()});
             const editBtn=document.getElementById('warrantyEditBtn');
             if(editBtn)editBtn.addEventListener('click',()=>openWarrantyRecordModal(currentWarrantyRecord));
             const delBtn=document.getElementById('warrantyDeleteBtn');
@@ -8237,7 +8278,7 @@ const permReportSearchInput = document.getElementById("permReportSearchInput"); 
 const permissionsAccessReportContainer = document.getElementById("permissionsAccessReportContainer"); if (permissionsAccessReportContainer) { permissionsAccessReportContainer.addEventListener('click', handlePermissionsReportClick); }
 if(reportDetailsTable){reportDetailsTable.addEventListener('change',function(e){if(e.target.id==='reportSelectAllCheckbox'){const checked=e.target.checked;reportDetailsTable.querySelectorAll('.usage-row-checkbox').forEach(cb=>{const tr=cb.closest('tr');if(!tr||tr.style.display!=='none')cb.checked=checked;});}updateUsageEmailSelectedCount();});}
 const btnPrepareUsageEmail=document.getElementById('btnPrepareUsageEmail');if(btnPrepareUsageEmail)btnPrepareUsageEmail.addEventListener('click',handlePrepareUsageEmail);
-const btnEditEmailRecipients=document.getElementById('btnEditEmailRecipients');if(btnEditEmailRecipients)btnEditEmailRecipients.addEventListener('click',async()=>{if(!currentUser||!currentUser.permissions.manageUsers||!currentUser.permissions.manageUsers.visible)return showNotification('Permission denied.','error');await ensureEmailTemplateSettingsLoaded();const list=document.getElementById('emailRecipientsList');list.innerHTML=Object.keys(EMAIL_TEMPLATES).map(key=>{const tmpl=EMAIL_TEMPLATES[key];const saved=emailTemplateSettings[key]||{};const to=saved.to||tmpl.defaultTo||'';const cc=saved.cc||tmpl.defaultCc||'';return '<div style="border:1px solid var(--border-color); border-radius:10px; padding:12px; margin-bottom:12px;"><h4 style="margin:0 0 8px 0;">'+escapeHtml(tmpl.label)+'</h4><div class="form-group full-span-group"><label>To:</label><input type="text" class="er-to" data-key="'+key+'" required value="'+escapeHtml(to).replace(/"/g,'&quot;')+'" placeholder="name@company.com"></div><div class="form-group full-span-group"><label>CC:</label><input type="text" class="er-cc" data-key="'+key+'" value="'+escapeHtml(cc).replace(/"/g,'&quot;')+'" placeholder="team1@company.com;team2@company.com"></div></div>';}).join('');showModal(document.getElementById('emailRecipientsOverlay'));});
+const btnEditEmailRecipients=document.getElementById('btnEditEmailRecipients');if(btnEditEmailRecipients)btnEditEmailRecipients.addEventListener('click',async()=>{if(!currentUser||!currentUser.permissions.manageUsers||!currentUser.permissions.manageUsers.visible)return showNotification('Permission denied.','error');await ensureEmailTemplateSettingsLoaded();const list=document.getElementById('emailRecipientsList');list.innerHTML=Object.keys(EMAIL_TEMPLATES).map(key=>{const tmpl=EMAIL_TEMPLATES[key];const saved=emailTemplateSettings[key]||{};const to=saved.to||tmpl.defaultTo||'';const cc=saved.cc||tmpl.defaultCc||'';return '<div style="border:1px solid var(--border-color); border-radius:10px; padding:12px; margin-bottom:12px;"><h4 style="margin:0 0 8px 0;">'+escapeHtml(tmpl.label)+'</h4>'+(tmpl.ccOnly?'<input type="hidden" class="er-to" data-key="'+key+'" value="'+escapeHtml(to||'vendor').replace(/"/g,'&quot;')+'"><p class="input-hint" style="margin:0 0 8px 0;">To = the vendor email. Subject = Vendor name|Vendor|</p>':'<div class="form-group full-span-group"><label>To:</label><input type="text" class="er-to" data-key="'+key+'" required value="'+escapeHtml(to).replace(/"/g,'&quot;')+'" placeholder="name@company.com"></div>')+'<div class="form-group full-span-group"><label>CC:</label><input type="text" class="er-cc" data-key="'+key+'" value="'+escapeHtml(cc).replace(/"/g,'&quot;')+'" placeholder="team1@company.com;team2@company.com"></div></div>';}).join('');showModal(document.getElementById('emailRecipientsOverlay'));});
 const closeEmailRecipientsModal=document.getElementById('closeEmailRecipientsModal');if(closeEmailRecipientsModal)closeEmailRecipientsModal.addEventListener('click',()=>hideModal(document.getElementById('emailRecipientsOverlay')));
 const emailRecipientsForm=document.getElementById('emailRecipientsForm');if(emailRecipientsForm)emailRecipientsForm.addEventListener('submit',async(e)=>{e.preventDefault();if(!currentUser||!currentUser.permissions.manageUsers||!currentUser.permissions.manageUsers.visible)return showNotification('Permission denied.','error');const btn=e.target.querySelector('button[type="submit"]');const changes=[];document.querySelectorAll('#emailRecipientsList .er-to').forEach(inp=>{const key=inp.dataset.key;const to=inp.value.trim();const ccEl=document.querySelector('#emailRecipientsList .er-cc[data-key="'+key+'"]');const cc=ccEl?ccEl.value.trim():'';const tmpl=EMAIL_TEMPLATES[key]||{};const saved=emailTemplateSettings[key]||{};const curTo=(saved.to||tmpl.defaultTo||'').trim();const curCc=(saved.cc||tmpl.defaultCc||'').trim();if(to!==curTo||cc!==curCc)changes.push({key,to,cc});});if(changes.some(c=>!c.to))return showNotification('To cannot be empty.','error');if(!changes.length){hideModal(document.getElementById('emailRecipientsOverlay'));return showNotification('No changes.','info');}toggleButtonLoading(btn,true);try{for(const c of changes){const{data:updated,error:etsSaveErr}=await supabaseClient.rpc('save_email_template_setting',{payload:{templateKey:c.key,to:c.to,cc:c.cc}});if(etsSaveErr)throw new Error(etsSaveErr.message);emailTemplateSettings=updated||emailTemplateSettings;}logActivity('Edit Email Recipients',changes.map(c=>'Template: '+c.key+' | To: '+c.to+' | CC: '+c.cc).join(' || '));showNotification('Recipients updated successfully.','success');hideModal(document.getElementById('emailRecipientsOverlay'));}catch(err){showNotification(err.message,'error');}finally{toggleButtonLoading(btn,false);}});
 document.getElementById('dgPartSN').addEventListener('change',async(e)=>{const sn=e.target.value.trim().toUpperCase();if(!sn)return;try{const res=await lookupPartModelBySerial(sn);if(res){const autoInput=document.getElementById('dgPartModelAuto');autoInput.value=res;const sizeMatch=String(res).match(/(\d{2,4})\s*-?\s*GB/i);autoInput.dataset.size=sizeMatch?sizeMatch[1]:'';if(!sizeMatch){displayDbStatus('Verified, but could not detect GB size from: '+res,'warning');}else{displayDbStatus('Part Serial Verified — '+sizeMatch[1]+'GB','success');}}else{document.getElementById('dgPartSN').value='';document.getElementById('dgPartModelAuto').value='';document.getElementById('dgPartModelAuto').dataset.size='';showNotification('Serial not found in Warranty sheet','error');}}catch(err){showNotification(err.message,'error');}});
