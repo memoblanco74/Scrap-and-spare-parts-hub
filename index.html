@@ -7311,6 +7311,7 @@ function renderSparePartsCards(p) {
         const c = document.createElement('div');
         c.className = 'spare-part-card type-' + (x.type || '').toLowerCase().replace(/\s+/g, '-') + (isPinned ? ' pinned-card' : '') + (isOutOfStock ? ' out-of-stock' : '');
         c.dataset.cardIds = (x.ids || []).join(',');
+        c.dataset.site = x.site || '';
         
         let bh = '<div class="sp-card-footer">';
         bh += '<button class="custom-btn pin-part-btn ' + (isPinned ? 'pinned' : '') + '" data-id="' + did + '"><i class="fa-solid fa-thumbtack"></i> ' + (isPinned ? 'Unpin' : 'Pin') + '</button>';
@@ -8682,6 +8683,61 @@ var SN_ID=/(^|[a-z0-9])(SN|Sn)($|[A-Z_])|[Ss]erial/;var SN_PH=/\bSN\b|serial/i;
 function attach(inp){if(inp.dataset.snScan||inp.readOnly||inp.type!=='text'||inp.classList.contains('mu-part-gen-model'))return;if(!(SN_ID.test(inp.id||'')||SN_PH.test(inp.placeholder||'')))return;inp.dataset.snScan='1';var w=document.createElement('span');w.className='sn-wrap';inp.parentNode.insertBefore(w,inp);w.appendChild(inp);var b=document.createElement('button');b.type='button';b.className='sn-scan-btn';b.title='Scan serial';b.innerHTML='<i class="fa-solid fa-camera"></i>';b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();open(inp)});w.appendChild(b)}
 function scanAll(){document.querySelectorAll('input[type="text"]').forEach(attach)}
 var pend=false;new MutationObserver(function(){if(pend)return;pend=true;setTimeout(function(){pend=false;scanAll()},200)}).observe(document.body,{childList:true,subtree:true});scanAll();
+})();
+
+(function(){
+var host=document.getElementById('sparePartsCardContainer');if(!host)return;
+var row=document.createElement('div');row.id='spLocRow';row.style.cssText='display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 0 12px;padding:8px 12px;border:1px solid var(--border-color);border-radius:8px;background:var(--secondary-bg-color,transparent)';
+row.innerHTML='<label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin:0"><span style="position:relative;display:inline-block;width:44px;height:24px"><input type="checkbox" id="spLocSwitch" style="opacity:0;width:100%;height:100%;position:absolute;inset:0;margin:0;cursor:pointer;z-index:2"><span id="spLocTrack" style="position:absolute;inset:0;border-radius:24px;background:#9ca3af;transition:.2s"></span><span id="spLocKnob" style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s"></span></span><span><i class="fa-solid fa-location-dot"></i> Filter by my location</span></label><span id="spLocStatus" style="font-size:13px;opacity:.85"></span><button type="button" id="spLocPin" class="custom-btn" style="display:none;padding:4px 10px;font-size:12px"><i class="fa-solid fa-thumbtack"></i> Set site location here</button>';
+host.parentNode.insertBefore(row,host);
+var sw=document.getElementById('spLocSwitch'),track=document.getElementById('spLocTrack'),knob=document.getElementById('spLocKnob'),stat=document.getElementById('spLocStatus'),pin=document.getElementById('spLocPin');
+var sites=[],matched=null,pos=null,posAt=0,on=false;
+try{on=localStorage.getItem('spLocFilter')==='1'}catch(e){}
+function paint(){track.style.background=on?'#22c55e':'#9ca3af';knob.style.left=on?'23px':'3px';sw.checked=on}
+function hav(a,b,c,d){var R=6371000,t=Math.PI/180,dl=(c-a)*t,dg=(d-b)*t,x=Math.sin(dl/2)*Math.sin(dl/2)+Math.cos(a*t)*Math.cos(c*t)*Math.sin(dg/2)*Math.sin(dg/2);return 2*R*Math.asin(Math.sqrt(x))}
+async function loadSites(){try{var r=await supabaseClient.from('site_locations').select('site,lat,lng,radius_m');if(!r.error&&r.data)sites=r.data}catch(e){}}
+function getPos(hi){return new Promise(function(res,rej){if(!navigator.geolocation)return rej(new Error('Location not supported on this device.'));if(!hi&&pos&&Date.now()-posAt<60000)return res(pos);navigator.geolocation.getCurrentPosition(function(p){pos={lat:p.coords.latitude,lng:p.coords.longitude,acc:p.coords.accuracy};posAt=Date.now();res(pos)},function(e){rej(new Error(e.code===1?'Location permission denied.':'Could not get location.'))},{enableHighAccuracy:!!hi,timeout:12000,maximumAge:hi?0:60000})})}
+function hideAll(){var n=host.querySelectorAll('.spare-part-card');n.forEach(function(c){c.style.display='none'})}
+function applyFilter(){
+ if(!on){return}
+ if(!matched){return}
+ var m=String(matched).trim().toLowerCase();
+ host.querySelectorAll('.spare-part-card').forEach(function(c){if(String(c.dataset.site||'').trim().toLowerCase()!==m)c.style.display='none'})
+}
+async function resolve(){
+ if(!on){stat.textContent='';matched=null;return}
+ if(!sites.length)await loadSites();
+ if(!sites.length){matched=null;stat.textContent='No site locations saved yet. Use "Set site location here" at each site.';return}
+ stat.textContent='Getting location...';
+ try{var p=await getPos(false);var best=null,bd=1e12;sites.forEach(function(s){var d=hav(p.lat,p.lng,s.lat,s.lng);if(d<bd){bd=d;best=s}});
+  if(best&&bd<=(best.radius_m||1500)){matched=best.site;stat.textContent='Showing: '+best.site+' ('+Math.round(bd)+' m away)'}
+  else{matched=null;stat.textContent='You are not near any saved site (nearest: '+(best?best.site+', '+Math.round(bd)+' m':'-')+'). Showing all.'}
+ }catch(e){matched=null;stat.textContent=e.message+' Showing all.'}
+}
+var _asp=applySparePartsSearch;
+applySparePartsSearch=function(){_asp();applyFilter()};
+async function refresh(){await resolve();try{applySparePartsSearch()}catch(e){}}
+sw.addEventListener('change',function(){on=sw.checked;try{localStorage.setItem('spLocFilter',on?'1':'0')}catch(e){}paint();refresh()});
+function canPin(){return currentUser&&currentUser.permissions&&currentUser.permissions.spareParts&&currentUser.permissions.spareParts.canAdd}
+function showPin(){pin.style.display=canPin()?'inline-block':'none'}
+pin.addEventListener('click',async function(){
+ var names=[...new Set(allSpareParts.map(function(p){return String(p.site||'').trim()}).filter(Boolean))].sort();
+ var opts={};names.forEach(function(n){opts[n]=n+(sites.some(function(s){return s.site.toLowerCase()===n.toLowerCase()})?' (saved)':'')});
+ var r=await Swal.fire({title:'Set site location',text:'Stand inside the site, choose it, and save your current location.',input:'select',inputOptions:opts,inputPlaceholder:'Select site',showCancelButton:true,confirmButtonText:'Save here',showDenyButton:true,denyButtonText:'Remove saved',inputValidator:function(v){if(!v)return 'Choose a site'}});
+ if(!r.isConfirmed&&!r.isDenied)return;
+ var u=(typeof users!=='undefined'&&users[currentUser.email])||{};
+ try{
+  var payload={username:currentUser.email,password:u.password,site:r.value};
+  if(r.isDenied)payload.remove=true;else{var p=await getPos(true);payload.lat=p.lat;payload.lng=p.lng;payload.radius=Math.max(300,Math.min(5000,Math.round((p.acc||50)*3+400)))}
+  var x=await supabaseClient.rpc('save_site_location',{payload:payload});if(x.error)throw new Error(x.error.message);
+  await loadSites();showNotification(r.isDenied?'Site location removed.':'Site location saved.','success');pos=null;refresh()
+ }catch(e){showNotification('Error: '+e.message,'error')}
+});
+var _ap2=applyPermissions;applyPermissions=function(){_ap2.apply(this,arguments);showPin()};
+paint();showPin();
+document.querySelectorAll('.tab-button[data-tab="spare-parts"]').forEach(function(b){b.addEventListener('click',function(){showPin();refresh()})});
+new MutationObserver(function(){if(on)setTimeout(function(){try{applySparePartsSearch()}catch(e){}},0)}).observe(host,{childList:true});
+if(on)loadSites().then(refresh);
 })();
 
 window.loadLaptops=refreshAllDataAndViews;resetFormForAdd()});
