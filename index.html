@@ -8845,6 +8845,11 @@ refreshAllDataAndViews=async function(){var t=targets();t.forEach(function(x){tr
 var _p=loadPrintersData;
 loadPrintersData=async function(){var tb=document.getElementById('printersTableBody');try{SK.on(tb,'rows')}catch(e){}try{return await _p.apply(this,arguments)}finally{try{SK.off(tb)}catch(e){}}};
 })();
+(function(){
+var IDS={globalSearchInput:1,sparePartsSearchInput:1,printersSearchInput:1,logsSearchInput:1,userSearchInput:1,permReportSearchInput:1};
+var timers={};
+document.addEventListener('input',function(e){var el=e.target;if(!el||!el.id||!IDS[el.id]||e.__deb)return;e.stopImmediatePropagation();clearTimeout(timers[el.id]);timers[el.id]=setTimeout(function(){var ev=new Event('input',{bubbles:true});ev.__deb=true;el.dispatchEvent(ev)},300)},true);
+})();
 window.loadLaptops=refreshAllDataAndViews;resetFormForAdd()});
       </script>
 </body>
