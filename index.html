@@ -8678,7 +8678,8 @@ function render(){
   });
   listEl.innerHTML=h+'</tbody></table></div>';
 }
-async function load(){
+async function load(){try{window.__skel.on(listEl,'list')}catch(e){}try{await load0()}finally{try{window.__skel.off(listEl)}catch(e){}}}
+async function load0(){
   try{
     var r=await supabaseClient.from('providers').select('provider_name,provider_email');
     if(r.error)throw new Error(r.error.message);
@@ -8824,6 +8825,26 @@ new MutationObserver(function(){if(on)setTimeout(function(){try{applySparePartsS
 if(on)loadSites().then(refresh);
 })();
 
+(function(){
+var CSS='.skel-bar{display:block;height:14px;border-radius:7px;background:linear-gradient(90deg,var(--sk-b) 25%,var(--sk-h) 50%,var(--sk-b) 75%);background-size:200% 100%;animation:skMove 1.4s linear infinite}body{--sk-b:#e5e7eb;--sk-h:#f5f6f8}body.dark-mode{--sk-b:#2b3345;--sk-h:#3d475e}@keyframes skMove{0%{background-position:200% 0}100%{background-position:-200% 0}}.skel-card{display:flex;flex-direction:column;gap:12px;padding:16px;border:1px solid var(--border-color);border-radius:14px;min-height:150px}.skel-card .skel-bar:first-child{height:18px;width:60%}.skel-row-list{display:flex;align-items:center;gap:14px;padding:14px 12px;border-bottom:1px solid var(--border-color)}.skel-box{flex:none;width:44px;height:44px;border-radius:10px}.skel-lines{flex:1 1 auto;display:flex;flex-direction:column;gap:9px}@media(prefers-reduced-motion:reduce){.skel-bar{animation:none}}';
+var st=document.createElement('style');st.textContent=CSS;document.head.appendChild(st);
+var W=[62,84,48,72,56,90,66,78];
+function bar(i,extra){return '<span class="skel-bar" style="width:'+W[i%W.length]+'%;'+(extra||'')+'"></span>'}
+function build(el,kind){
+  var h='',i,j;
+  if(kind==='rows'){var t=el.closest('table'),cols=t?t.querySelectorAll('thead th').length:5;if(!cols)cols=5;for(i=0;i<7;i++){h+='<tr class="skel-wrap">';for(j=0;j<cols;j++)h+='<td style="padding:14px 10px">'+bar(i+j)+'</td>';h+='</tr>'}}
+  else if(kind==='cards'){for(i=0;i<8;i++)h+='<div class="skel-wrap skel-card">'+bar(i)+bar(i+1)+bar(i+2)+'<span class="skel-bar" style="height:34px;width:100%;margin-top:auto"></span></div>'}
+  else{for(i=0;i<5;i++)h+='<div class="skel-wrap skel-row-list"><span class="skel-bar skel-box"></span><span class="skel-lines">'+bar(i)+bar(i+3,'height:11px')+'</span></div>'}
+  el.innerHTML=h;
+}
+var SK={on:function(el,kind){if(!el)return;if(el.children.length||el.textContent.trim())return;build(el,kind);el.dataset.skel='1'},off:function(el){if(!el||!el.dataset||!el.dataset.skel)return;delete el.dataset.skel;el.querySelectorAll('.skel-wrap').forEach(function(n){n.remove()})}};
+window.__skel=SK;
+function targets(){return[[tableBody,'rows'],[logsTableBody,'rows'],[document.querySelector('#usersTable tbody'),'rows'],[document.getElementById('sparePartsCardContainer'),'cards'],[document.getElementById('existingGroupsContainer'),'list']]}
+var _r=refreshAllDataAndViews;
+refreshAllDataAndViews=async function(){var t=targets();t.forEach(function(x){try{SK.on(x[0],x[1])}catch(e){}});try{return await _r.apply(this,arguments)}finally{t.forEach(function(x){try{SK.off(x[0])}catch(e){}})}};
+var _p=loadPrintersData;
+loadPrintersData=async function(){var tb=document.getElementById('printersTableBody');try{SK.on(tb,'rows')}catch(e){}try{return await _p.apply(this,arguments)}finally{try{SK.off(tb)}catch(e){}}};
+})();
 window.loadLaptops=refreshAllDataAndViews;resetFormForAdd()});
       </script>
 </body>
