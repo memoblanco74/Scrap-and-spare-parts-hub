@@ -7381,6 +7381,7 @@ function renderSparePartsCards(p) {
         c.className = (x.locked ? 'locked-card ' : '') + 'spare-part-card type-' + (x.type || '').toLowerCase().replace(/\s+/g, '-') + (isPinned ? ' pinned-card' : '') + (isOutOfStock ? ' out-of-stock' : '');
         c.dataset.cardIds = (x.ids || []).join(',');
         c.dataset.site = x.site || '';
+        c.dataset.location = x.location || '';
         
         let bh = '<div class="sp-card-footer">';
         bh += '<button class="custom-btn pin-part-btn ' + (isPinned ? 'pinned' : '') + '" data-id="' + did + '"><i class="fa-solid fa-thumbtack"></i> ' + (isPinned ? 'Unpin' : 'Pin') + '</button>';
@@ -8801,7 +8802,7 @@ function applyFilter(){
  if(!on){return}
  if(!matched){return}
  var m=String(matched).trim().toLowerCase();
- host.querySelectorAll('.spare-part-card').forEach(function(c){if(String(c.dataset.site||'').trim().toLowerCase()!==m)c.style.display='none'})
+ host.querySelectorAll('.spare-part-card').forEach(function(c){var st=String(c.dataset.site||'').trim().toLowerCase(),lc=String(c.dataset.location||'').trim().toLowerCase();if(!st&&!lc)return;if(st!==m){c.style.display='none';return}if(m==='smart village'&&lc.indexOf('smart village store')>=0)c.style.display='none'})
 }
 async function resolve(){
  if(!on){stat.textContent='';matched=null;return}
