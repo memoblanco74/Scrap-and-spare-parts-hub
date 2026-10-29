@@ -5362,6 +5362,7 @@ async function refreshAllDataAndViews() {
             
             // أخذ أول 500 سطر فقط بعد الترتيب
             const limitedLogs = logsData.slice(0, 500);
+            window.allLogsFull = logsData;
             window.latestLogsCache = limitedLogs;
             renderLogsRows(limitedLogs);
         } else {
@@ -8858,9 +8859,24 @@ var _p=loadPrintersData;
 loadPrintersData=async function(){var tb=document.getElementById('printersTableBody');try{SK.on(tb,'rows')}catch(e){}try{return await _p.apply(this,arguments)}finally{try{SK.off(tb)}catch(e){}}};
 })();
 (function(){
-var IDS={globalSearchInput:1,sparePartsSearchInput:1,printersSearchInput:1,logsSearchInput:1,userSearchInput:1,permReportSearchInput:1};
+var IDS={globalSearchInput:1,sparePartsSearchInput:1,printersSearchInput:1,userSearchInput:1,permReportSearchInput:1};
 var timers={};
 document.addEventListener('input',function(e){var el=e.target;if(!el||!el.id||!IDS[el.id]||e.__deb)return;e.stopImmediatePropagation();clearTimeout(timers[el.id]);timers[el.id]=setTimeout(function(){var ev=new Event('input',{bubbles:true});ev.__deb=true;el.dispatchEvent(ev)},300)},true);
+})();
+(function(){
+var inp=document.getElementById('logsSearchInput');if(!inp)return;
+var box=inp.closest('.search-container');if(!box)return;
+var st=document.createElement('style');st.textContent='#logsDateWrap{position:absolute;right:6px;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:6px;height:32px;padding:0 10px;border-radius:8px;background:var(--primary-accent-color,#2563eb);color:#fff;font-size:13px;font-weight:600;cursor:pointer;overflow:hidden}#logsDateWrap input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}#logsDateWrap input::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:100%;height:100%;cursor:pointer}#logsDateTxt{display:none;white-space:nowrap}#logsDateWrap.has #logsDateTxt{display:inline}';document.head.appendChild(st);
+var wrap=document.createElement('span');wrap.id='logsDateWrap';wrap.title='Filter logs by day';wrap.innerHTML='<i class="fa-regular fa-calendar-days"></i><span id="logsDateTxt"></span><input type="date" id="logsDateInput">';
+box.appendChild(wrap);inp.style.paddingRight='64px';
+var di=document.getElementById('logsDateInput'),dt=document.getElementById('logsDateTxt');
+function p2(n){return String(n).padStart(2,'0')}
+function dayKey(v){if(v===null||v===undefined||v==='')return '';var f=formatDT(v,true),m=String(f).match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);if(m)return m[1]+'-'+p2(m[2])+'-'+p2(m[3]);var n=String(v).match(/\d+/g);if(n&&n.length>=3){if(n[0].length===4)return n[0]+'-'+p2(n[1])+'-'+p2(n[2]);return n[2]+'-'+p2(n[1])+'-'+p2(n[0])}return ''}
+var _rl=renderLogsRows;
+renderLogsRows=function(rows){var d=di.value,clr=document.getElementById('logsSearchClearBtn'),stt=document.getElementById('logsSearchStatus');if(!d){return _rl(rows)}var src=(rows===window.latestLogsCache&&window.allLogsFull)?window.allLogsFull:(rows||[]);var out=src.filter(function(l){return dayKey(l.timestamp)===d});_rl(out);if(clr)clr.style.display='inline-flex';var q=String(inp.value||'').trim();if(stt)stt.textContent=out.length+' log(s) on '+d+(q?' matching "'+q+'"':'')};
+di.addEventListener('change',function(){var d=di.value;wrap.classList.toggle('has',!!d);dt.textContent=d;searchLogsInDB(inp.value)});
+wrap.addEventListener('click',function(e){if(e.target===di)try{di.showPicker&&di.showPicker()}catch(x){}});
+var cb=document.getElementById('logsSearchClearBtn');if(cb)cb.addEventListener('click',function(){di.value='';wrap.classList.remove('has');dt.textContent=''},true);
 })();
 window.loadLaptops=refreshAllDataAndViews;resetFormForAdd()});
       </script>
