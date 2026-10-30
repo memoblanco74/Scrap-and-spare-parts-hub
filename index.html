@@ -5134,6 +5134,7 @@ async function fetchAllFromSupabase(tableName) {
     }
     return allData;
 }
+function shortUserName(acc){const a=String(acc==null?'':acc).trim();if(!a)return a;const u=(typeof users!=='undefined')&&users[a];const c=u&&u.comment?String(u.comment).trim():'';if(!c)return a;return c.split(/\s+/).slice(0,2).join(' ')}
 function renderLogsRows(rows){
     logsTableBody.innerHTML='';
     if(!rows||rows.length===0){
@@ -5142,7 +5143,7 @@ function renderLogsRows(rows){
     }
     rows.forEach(l=>{
         const r=logsTableBody.insertRow();
-        r.innerHTML=`<td style="white-space:pre;">${escapeHtml(formatDT(l.timestamp))}</td><td>${escapeHtml(l.user)}</td><td>${escapeHtml(l.action)}</td><td>${escapeHtml(l.details)}</td>`;
+        r.innerHTML=`<td style="white-space:pre;">${escapeHtml(formatDT(l.timestamp))}</td><td title="${escapeHtml(l.user)}">${escapeHtml(shortUserName(l.user))}</td><td>${escapeHtml(l.action)}</td><td>${escapeHtml(l.details)}</td>`;
     });
 }
 let logsSearchDebounceTimer=null;
@@ -7883,7 +7884,7 @@ window.renderTopUsersChart = function(mode) {
         }
         counts[acc] = (counts[acc] || 0) + (Number(u.quantity) || 0);
     });
-    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 13);
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 13).map(e => [shortUserName(e[0]), e[1]]);
     if (leaderEl) {
         leaderEl.innerHTML = sorted.length ? `🏆 Top User: ${sorted[0][0]} (${sorted[0][1]} parts)` : 'No usage data' + (mode === 'month' ? ' this month' : '') + '.';
     }
