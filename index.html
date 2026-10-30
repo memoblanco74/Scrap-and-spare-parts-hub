@@ -7225,7 +7225,12 @@ async function handlePrintersImportFile(e){
 async function loadWarrantyWidget(){
     const contentEl=document.getElementById('warrantyWidgetContent');
     try{
-        const{data:records,error}=await supabaseClient.from('data').select('*');
+        const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+        const today0=new Date();today0.setHours(0,0,0,0);
+        const conds=[];
+        for(let y=1;y<=10;y++){const lo=new Date(today0);lo.setFullYear(lo.getFullYear()-y);const hi=new Date(today0);hi.setDate(hi.getDate()+31);hi.setFullYear(hi.getFullYear()-y);conds.push('and(warranty_years.eq.'+y+',dis.gte.'+iso(lo)+',dis.lte.'+iso(hi)+')')}
+        const req=supabaseClient.from('data').select('serial_number,item,asset_description,provider,dis,warranty_years').or(conds.join(',')).limit(5000);
+        const{data:records,error}=await Promise.race([req,new Promise((_,rej)=>setTimeout(()=>rej(new Error('Timed out. Try refreshing.')),25000))]);
         if(error)throw error;
         const expiring=(records||[]).map(d=>{
             const{status,remainingDays,endOfWarranty}=computeWarrantyStatus(d.dis,d.warranty_years);
