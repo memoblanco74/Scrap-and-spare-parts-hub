@@ -8914,6 +8914,19 @@ openPartHistoryModal=async function(partIds){var ids=(Array.isArray(partIds)?par
   contentEl.innerHTML=html;contentEl.querySelectorAll('.sp-hist-tabs button').forEach(function(b){b.addEventListener('click',function(){contentEl.querySelectorAll('.sp-hist-tabs button').forEach(function(x){x.classList.toggle('active',x===b)});document.getElementById('spHistT1').style.display=b.dataset.t==='t1'?'':'none';document.getElementById('spHistT2').style.display=b.dataset.t==='t2'?'':'none'})})
  }catch(err){contentEl.innerHTML='<p class="input-hint" style="color:var(--danger-color);">Failed to load history: '+escapeHtml(err.message||'Unknown error')+'</p>'}};
 })();
+(function(){
+var wrap=document.querySelector('#nested-inventory .search-and-buttons-wrapper');var sc=wrap&&wrap.querySelector('.search-container');if(!sc)return;
+var st=document.createElement('style');st.textContent='#spMismatchBtn{flex:none;display:none;align-items:center;justify-content:center;gap:6px;height:44px;min-width:44px;padding:0 14px;border:none;border-radius:12px;background:#ef4444;color:#fff;font-weight:700;cursor:pointer;animation:spMmPulse 1.2s ease-in-out infinite}#spMismatchBtn.on{animation:none;box-shadow:0 0 0 3px #fff,0 0 0 6px #ef4444}@keyframes spMmPulse{0%{box-shadow:0 0 0 0 rgba(239,68,68,.7)}70%{box-shadow:0 0 0 12px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}';document.head.appendChild(st);
+var btn=document.createElement('button');btn.type='button';btn.id='spMismatchBtn';btn.title='Cards with a quantity problem';btn.innerHTML='<i class="fa-solid fa-triangle-exclamation"></i><span id="spMismatchCount"></span>';sc.insertAdjacentElement('afterend',btn);
+var active=false,cnt=document.getElementById('spMismatchCount');
+function cards(){return Array.prototype.filter.call(document.querySelectorAll('#sparePartsCardContainer .spare-part-card'),function(c){var q=c.querySelector('.qty-current');return q&&q.classList.contains('qty-mismatch')})}
+function refreshBtn(){var n=cards().length;cnt.textContent=n;if(!n&&active){active=false;btn.classList.remove('on');try{applySparePartsSearch()}catch(e){}}btn.style.display=n?'inline-flex':'none'}
+btn.addEventListener('click',function(){active=!active;btn.classList.toggle('on',active);try{applySparePartsSearch()}catch(e){}});
+var _a=applySparePartsSearch;
+applySparePartsSearch=function(){_a.apply(this,arguments);if(!active)return;document.querySelectorAll('#sparePartsCardContainer .spare-part-card').forEach(function(c){var q=c.querySelector('.qty-current');if(!(q&&q.classList.contains('qty-mismatch')))c.style.display='none'})};
+var _v=verifySparePartsQuantitiesLive;
+verifySparePartsQuantitiesLive=async function(){var r=await _v.apply(this,arguments);try{refreshBtn();if(active)applySparePartsSearch()}catch(e){}return r};
+})();
 window.loadLaptops=refreshAllDataAndViews;resetFormForAdd()});
       </script>
 </body>
