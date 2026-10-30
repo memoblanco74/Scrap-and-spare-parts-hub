@@ -8964,14 +8964,13 @@ var rNotif=row('fa-bell','Notifications','umNotif'),swN=addSw(rNotif);
 var rLoc=row('fa-location-dot','My location','umLoc'),swL=addSw(rLoc);var locSub=document.createElement('small');locSub.style.cssText='display:none;flex-basis:100%;font-weight:400;opacity:.75;padding-left:30px;margin-top:-4px';rLoc.style.flexWrap='wrap';rLoc.appendChild(locSub);
 var rSet=row('fa-crosshairs','Set site location','umSet');var rInst=row('fa-download','Install app','umInst');
 var rOut=row('fa-right-from-bracket','Logout','umOut');rOut.style.color='#ef4444';rOut.firstChild.firstChild.style.color='#ef4444';
-var xb=document.createElement('button');xb.type='button';xb.className='um-x';xb.innerHTML='<i class="fa-solid fa-xmark"></i> Close';menu.appendChild(xb);
-[rPass,rTheme,rNotif,rLoc,rSet,rInst,rOut].forEach(function(x){menu.appendChild(x)});var dirty=false;
+[rPass,rTheme,rNotif,rLoc,rSet,rInst,rOut].forEach(function(x){menu.appendChild(x)});
 function sync(){var pb=document.getElementById('pushBtn'),lb=document.getElementById('spLocSwitch'),ib=document.getElementById('pwaInstallBtn');rNotif.style.display=(pb&&pb.style.display!=='none')?'flex':'none';swN.classList.toggle('on',!!(pb&&pb.dataset.on==='1'));rLoc.style.display=lb?'flex':'none';swL.classList.toggle('on',!!(lb&&lb.checked));var stx=document.getElementById('spLocStatus');locSub.textContent=(lb&&lb.checked&&stx)?stx.textContent:'';locSub.style.display=locSub.textContent?'block':'none';var cs=!!(currentUser&&currentUser.permissions&&currentUser.permissions.spareParts&&currentUser.permissions.spareParts.canSetLocation);rSet.style.display=(cs&&document.getElementById('spLocPin'))?'flex':'none';rInst.style.display=(ib&&ib.style.display!=='none')?'flex':'none'}
 function place(){var r=nameEl.getBoundingClientRect(),w=menu.offsetWidth;var left=Math.max(8,Math.min(r.left,innerWidth-w-8));menu.style.left=left+'px';menu.style.top=(r.bottom+8)+'px'}
 function open(){sync();menu.classList.add('show');nameEl.classList.add('open');place()}
-function close(){dirty=false;menu.classList.remove('show');nameEl.classList.remove('open')}
-nameEl.addEventListener('click',function(e){e.stopPropagation();if(!menu.classList.contains('show'))open();else if(!dirty)close()});xb.addEventListener('click',close);menu.addEventListener('click',function(e){if(e.target.closest('#umNotif,#umLoc,.um-hold'))dirty=true});
-document.addEventListener('click',function(e){if(menu.classList.contains('show')&&!dirty&&!menu.contains(e.target)&&e.target!==nameEl)close()});
+function close(){menu.classList.remove('show');nameEl.classList.remove('open')}
+nameEl.addEventListener('click',function(e){e.stopPropagation();if(!menu.classList.contains('show'))open();else close()});
+document.addEventListener('click',function(e){if(menu.classList.contains('show')&&!menu.contains(e.target)&&e.target!==nameEl)close()});
 document.addEventListener('keydown',function(e){if(e.key==='Escape')close()});
 window.addEventListener('resize',function(){if(menu.classList.contains('show'))place()});
 window.addEventListener('scroll',function(){if(menu.classList.contains('show'))place()},true);
