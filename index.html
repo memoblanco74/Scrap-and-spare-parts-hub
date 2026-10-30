@@ -8979,6 +8979,12 @@ var pb0=document.getElementById('pushBtn');if(pb0)new MutationObserver(sync).obs
 var lb0=document.getElementById('spLocSwitch');if(lb0)lb0.addEventListener('change',sync);var sst=document.getElementById('spLocStatus');if(sst)new MutationObserver(sync).observe(sst,{childList:true,characterData:true,subtree:true});
 sync();
 })();
+(function(){
+var tb=document.querySelector('.tab-button[data-tab="it-workspace"]');
+if(tb)tb.addEventListener('click',function(){try{renderDailyWorkEntries()}catch(e){}});
+var _ap=applyPermissions;
+applyPermissions=function(){var r=_ap.apply(this,arguments);try{var t=document.getElementById('it-workspace');if(currentUser&&t&&t.classList.contains('active'))renderDailyWorkEntries()}catch(e){}return r};
+})();
 window.loadLaptops=refreshAllDataAndViews;resetFormForAdd()});
       </script>
 </body>
