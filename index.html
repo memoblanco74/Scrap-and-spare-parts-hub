@@ -7457,7 +7457,8 @@ async function verifySparePartsQuantitiesLive() {
                 actualLiveRemaining += Number(livePart.quantity) || 0;
             });
 
-            if (anyMissing) return; // القطعة اتمسحت أو اتغيرت، متفحصش عشان منجيبش نتيجة غلط
+            if (anyMissing) return;
+            if (ids.some(id => String((partsMap[id] || {}).category || '').trim().toLowerCase().startsWith('used (from scrapped'))) { qtyEl.classList.remove('qty-mismatch'); qtyEl.removeAttribute('title'); return; }
 
             if (expectedRemaining !== actualLiveRemaining) {
                 qtyEl.classList.add('qty-mismatch');
