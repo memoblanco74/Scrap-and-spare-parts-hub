@@ -3118,6 +3118,20 @@
           </div>
 
           <div class="permission-section">
+            <h4>Installed Apps</h4>
+            <div class="permissions-group">
+              <div class="permission-item">
+                <input type="checkbox" name="installedApps_visible" id="edit-ia-vis">
+                <label for="edit-ia-vis">View Page</label>
+              </div>
+              <div class="permission-item">
+                <input type="checkbox" name="installedApps_canUpload" id="edit-ia-up">
+                <label for="edit-ia-up">Can Upload Report</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="permission-section">
             <h4>Printers</h4>
             <div class="permissions-group">
               <div class="permission-item">
@@ -3672,6 +3686,7 @@
         <button class="tab-button" data-tab="incidents" data-permission="incidents_visible">Create Incident</button>
         <button class="tab-button" data-tab="it-workspace" data-permission="itWorkspace_visible" style="display: none;">IT Workspace</button>
         <button class="tab-button" data-tab="warranty-check" data-permission="warrantyCheck_visible" style="display: none;">Warranty Check</button>
+        <button class="tab-button" data-tab="installed-apps" data-permission="installedApps_visible" style="display: none;">Installed Apps</button>
         <button class="tab-button" id="printersTabBtn" data-tab="printers-page" data-permission="printers_visible" style="display: none;">Printers</button>
         <button class="tab-button" data-tab="logs" data-permission="logs_visible" style="display: none;">Activity Logs</button>
         <button class="tab-button" data-tab="manage-users" data-permission="manageUsers_visible" style="display: none;">Manage Users</button>
@@ -4346,6 +4361,25 @@
         </div>
       </div>
 
+      <div id="installed-apps" class="tab-content">
+        <div class="card" style="max-width: 900px; margin: 0 auto;">
+          <h2><i class="fa-solid fa-boxes-stacked" style="color: var(--primary-accent-color);"></i> Installed Apps</h2>
+          <div id="iaInfo" style="margin-top:6px; font-size:0.85em; color:var(--secondary-color);"></div>
+          <div style="position:relative; margin-top:15px;">
+            <input type="text" id="iaSearchInput" autocomplete="off" placeholder="Computer name..." style="width:100%; box-sizing:border-box; padding:10px 14px; border-radius:6px; border:1px solid var(--input-border-color); background:var(--input-bg-color); color:var(--text-color);">
+            <div id="iaSuggestions" style="display:none; position:absolute; left:0; right:0; top:100%; margin-top:4px; z-index:50; max-height:320px; overflow:auto; border:1px solid var(--input-border-color); border-radius:8px; background:var(--input-bg-color); box-shadow:0 8px 24px rgba(0,0,0,.18);"></div>
+          </div>
+          <div id="iaUploadRow" data-permission="installedApps_canUpload" style="display:none; margin-top:12px; text-align:right;">
+            <label for="iaFileInput" class="import-button custom-btn" id="iaUploadLabel"><i class="fa-solid fa-file-arrow-up"></i> Upload Report</label>
+            <input type="file" id="iaFileInput" accept=".xlsx,.xls" style="display:none">
+          </div>
+          <div id="iaProgress" style="display:none; margin-top:12px;">
+            <div id="iaProgressText" style="font-size:0.9em; margin-bottom:6px;"></div>
+            <div style="height:8px; border-radius:6px; background:var(--input-border-color); overflow:hidden;"><div id="iaProgressBar" style="height:100%; width:0; background:var(--primary-accent-color); transition:width .2s;"></div></div>
+          </div>
+          <div id="iaResult" style="margin-top:18px;"></div>
+        </div>
+      </div>
       <div id="warranty-check" class="tab-content">
         <div class="card" style="max-width: 700px; margin: 0 auto;">
           <h2><i class="fa-solid fa-shield-halved" style="color: var(--success-color);"></i> Warranty Check</h2>
@@ -5218,7 +5252,7 @@ async function hashPassword(string){const msgBuffer=new TextEncoder().encode(str
 const appContainer=document.getElementById('appContainer'),dbStatusDiv=document.getElementById('dbStatus'),tabButtons=document.querySelectorAll('.tab-button'),tabContents=document.querySelectorAll('.tab-content'),themeToggle=document.getElementById('theme-toggle'),loginOverlay=document.getElementById('loginOverlay'),loginForm=document.getElementById('loginForm'),loginError=document.getElementById('loginError'),loginButton=document.getElementById('loginButton'),logoutButton=document.getElementById('logoutButton'),closeLoginModalBtn=document.getElementById('closeLoginModal'),userInfoDiv=document.getElementById('userInfo'),userEmailDisplay=document.getElementById('userEmailDisplay'),editUserOverlay=document.getElementById('editUserOverlay'),editUserForm=document.getElementById('editUserForm'),closeEditUserModalBtn=document.getElementById('closeEditUserModal'),usePartOverlay=document.getElementById('usePartOverlay'),usePartForm=document.getElementById('usePartForm'),usePartBrandInput=document.getElementById('usePartBrand'),usePartModelInput=document.getElementById('usePartModel'),closeUseModalBtn=document.getElementById('closeUseModal'),usePartInfo=document.getElementById('usePartInfo'),usePartIdInput=document.getElementById('usePartId'),deductPartOverlay=document.getElementById('deductPartOverlay'),deductPartForm=document.getElementById('deductPartForm'),closeDeductModalBtn=document.getElementById('closeDeductModal'),deductPartInfo=document.getElementById('deductPartInfo'),deductPartIdInput=document.getElementById('deductPartId'),componentBrandFilter=document.getElementById('componentBrandFilter'),componentModelFilter=document.getElementById('componentModelFilter'),ramManufacturerFilter=document.getElementById('ramManufacturerFilter'),ramPathFilter=document.getElementById('ramPathFilter'),modelComponentDetailsElem=document.getElementById('modelComponentDetails'),modelComponentLaptopListElem=document.getElementById('modelComponentLaptopList'),ramSummaryListElem=document.getElementById('ramSummaryList'),globalSearchInput=document.getElementById('globalSearchInput'),tableBody=document.querySelector('#laptopTable tbody'),selectAllCheckbox=document.getElementById('selectAll'),exportButton=document.getElementById('exportButton'),deleteSelectedButton=document.getElementById('deleteSelectedButton'),displayedLaptopsCount=document.getElementById('displayedLaptopsCount'),selectedLaptopsCount=document.getElementById('selectedLaptopsCount'),addDataForm=document.getElementById('addDataForm'),formTitle=document.getElementById('formTitle'),laptopIDInput=document.getElementById('laptopID'),originalLaptopIdInput=document.getElementById('originalLaptopId'),idHint=document.getElementById('idHint'),cancelEditButton=document.getElementById('cancelEditButton'),brandInput=document.getElementById('brand'),laptopModelInput=document.getElementById('laptopModel'),modelDatalist=document.getElementById('model-list'),ramEntriesContainer=document.getElementById('ramEntriesContainer'),addRamEntryBtn=document.getElementById('addRamEntryBtn'),groupForm=document.getElementById('compatibilityGroupForm'),groupModelsSelect=document.getElementById('groupModels'),existingGroupsContainer=document.getElementById('existingGroupsContainer'),logsTableBody=document.querySelector('#logsTable tbody'),clearLogsButton=document.getElementById('clearLogsButton'),incidentTypeSelector=document.getElementById('incidentTypeSelector'),incidentFormsContainer=document.getElementById('incidentFormsContainer'),incidentOutputContainer=document.getElementById('incidentOutputContainer'),incidentOutput=document.getElementById('incidentOutput'),copyIncidentBtn=document.getElementById('copyIncidentBtn'),addSparePartBtn_form3=document.getElementById('addSparePartBtn_form3'),sparePartsList_form3=document.getElementById('sparePartsList_form3'),addSparePartBtn_form4=document.getElementById('addSparePartBtn_form4'),sparePartsList_form4=document.getElementById('sparePartsList_form4'),userManagementForm=document.getElementById('userManagementForm'),usersTableBody=document.querySelector('#usersTable tbody'),addSparePartForm=document.getElementById('addSparePartForm'),sparePartsCardContainer=document.getElementById('sparePartsCardContainer'),sparePartsSearchInput=document.getElementById('sparePartsSearchInput'),sparePartsTab=document.getElementById('spare-parts'),sparePartSummaryContainer=document.getElementById('sparePartSummaryContainer'),sparePartPurchaseOrderInput=document.getElementById('sparePartPurchaseOrder'),sparePartDateInput=document.getElementById('sparePartDate'),toggleAddSparePartFormBtn=document.getElementById('toggleAddSparePartFormBtn'),sparePartTypeInput=document.getElementById('sparePartType'),sparePartModelInput=document.getElementById('sparePartModel'),sparePartModelList=document.getElementById('spare-part-model-list'),sparePartQuantityInput=document.getElementById('sparePartQuantity'),sparePartCategoryInput=document.getElementById('sparePartCategory'),sparePartLocationInput=document.getElementById('sparePartLocation'),sparePartBrandInput=document.getElementById('sparePartBrand'),sparePartSiteInput=document.getElementById('sparePartSite'),sparePartReservedForInput=document.getElementById('sparePartReservedFor'),sparePartIncidentInput=document.getElementById('sparePartIncident'),sparePartCommentInput=document.getElementById('sparePartComment'),reportTypesSelect=document.getElementById('reportTypes'),reportSitesSelect=document.getElementById('reportSites'),reportStartDateInput=document.getElementById('reportStartDate'),reportEndDateInput=document.getElementById('reportEndDate'),btnGenerateReport=document.getElementById('btnGenerateReport'),btnExportUsageReport=document.getElementById('btnExportUsageReport'),reportOutputContainer=document.getElementById('reportOutputContainer'),reportTotalCount=document.getElementById('reportTotalCount'),reportDetailsTable=document.getElementById('reportDetailsTable');
 let isEditing=false,isEditingSparePart=false,editingSparePartId=null,allLaptops=[],allGroups=[],allSpareParts=[],allAssets=[],allUsageHistory=[],allDeductHistory=[],allDowngrades=[],currentComponentModelFilteredLaptops=[],currentUser=null,users={},adminUsers={},ramEntryCounter=0,lastUsageReportRows=[],emailTemplateSettings={},emailTemplateSettingsLoaded=false;
 function toggleButtonLoading(b,l){b.disabled=l;if(l){b.dataset.tx=b.innerHTML;b.innerHTML='<i class="fas fa-circle-notch fa-spin app-spinner"></i>';}else{b.innerHTML=b.dataset.tx||'Save';}}
-function getDefaultPermissions(isAdmin=false){return {dashboard:{visible:true,manageCompatibility:isAdmin,canBackup:isAdmin},dataManagement:{visible:isAdmin,canImport:isAdmin,canExport:isAdmin,canDelete:isAdmin},addEditLaptop:{visible:isAdmin},spareParts:{visible:isAdmin,canAdd:isAdmin,canUse:isAdmin,canDeduct:isAdmin,canDelete:isAdmin,canRollback:isAdmin,canLock:isAdmin,canSetLocation:isAdmin,canEditUsage:isAdmin},incidents:{visible:isAdmin},logs:{visible:isAdmin,canClear:isAdmin},manageUsers:{visible:isAdmin},qrSystem:{access:isAdmin},itWorkspace:{visible:isAdmin},warrantyCheck:{visible:isAdmin,canAdd:isAdmin,canEdit:isAdmin,canDelete:isAdmin,canAddVendor:false,canEditVendor:false,canDeleteVendor:false},printers:{visible:isAdmin,canAdd:isAdmin,canEdit:isAdmin,canDelete:isAdmin},warrantyWidget:{visible:isAdmin},notifications:{receive:false},session:{keepAlive:false},scanner:{canSetOcrKey:isAdmin},emailRecipients:{canEdit:isAdmin}};}
+function getDefaultPermissions(isAdmin=false){return {dashboard:{visible:true,manageCompatibility:isAdmin,canBackup:isAdmin},dataManagement:{visible:isAdmin,canImport:isAdmin,canExport:isAdmin,canDelete:isAdmin},addEditLaptop:{visible:isAdmin},spareParts:{visible:isAdmin,canAdd:isAdmin,canUse:isAdmin,canDeduct:isAdmin,canDelete:isAdmin,canRollback:isAdmin,canLock:isAdmin,canSetLocation:isAdmin,canEditUsage:isAdmin},incidents:{visible:isAdmin},logs:{visible:isAdmin,canClear:isAdmin},manageUsers:{visible:isAdmin},qrSystem:{access:isAdmin},itWorkspace:{visible:isAdmin},warrantyCheck:{visible:isAdmin,canAdd:isAdmin,canEdit:isAdmin,canDelete:isAdmin,canAddVendor:false,canEditVendor:false,canDeleteVendor:false},installedApps:{visible:isAdmin,canUpload:isAdmin},printers:{visible:isAdmin,canAdd:isAdmin,canEdit:isAdmin,canDelete:isAdmin},warrantyWidget:{visible:isAdmin},notifications:{receive:false},session:{keepAlive:false},scanner:{canSetOcrKey:isAdmin},emailRecipients:{canEdit:isAdmin}};}
 function migratePermissions(oldPerms){if(oldPerms&&oldPerms.dashboard)return oldPerms;return getDefaultPermissions(false);}
 // ==================== PWA Install & Service Worker ====================
 // تسجيل الـ Service Worker (بيشتغل بس لو الملف sw.js موجود فعلاً على نفس الاستضافة)
@@ -5509,7 +5543,7 @@ async function handleLogout() {
 function setAsViewOnly(){appContainer.classList.add('view-only');userInfoDiv.style.display='none';loginButton.style.display='block';document.querySelectorAll('.tab-button').forEach(tabButton=>{tabButton.style.setProperty('display','none','important')});const dashboardTabButton=document.querySelector('.tab-button[data-tab="dashboard"]');if(dashboardTabButton){dashboardTabButton.style.setProperty('display','flex','important');dashboardTabButton.style.setProperty('pointer-events','auto','important');dashboardTabButton.style.setProperty('opacity','1','important');dashboardTabButton.style.setProperty('cursor','pointer','important')}showTab('dashboard',true);}
 function applyPermissions(){if(!currentUser){setAsViewOnly();return}appContainer.classList.remove('view-only');loginButton.style.display='none';userInfoDiv.style.display='flex';userEmailDisplay.textContent=currentUser.email;const perms=currentUser.permissions;document.querySelectorAll('[data-permission]').forEach(el=>{const permKey=el.dataset.permission;const keys=permKey.split('_');let hasPermission=false;if(keys.length===2&&perms[keys[0]]&&typeof perms[keys[0]][keys[1]]!=='undefined'){hasPermission=perms[keys[0]][keys[1]]}el.style.display='';el.style.pointerEvents='';el.style.opacity='';el.style.cursor='';if(hasPermission){if(el.parentElement.classList.contains('buttons-group')||el.classList.contains('tab-button')){el.style.display='flex'}else{el.style.display=''}}else{el.style.display='none'}});if(document.getElementById('existingGroupsContainer'))displayExistingGroups();}
 function readPermissionsFromForm(form){const formData=new FormData(form);const perms=getDefaultPermissions(false);for(const pageName in perms){for(const permName in perms[pageName]){const key=`${pageName}_${permName}`;if(formData.has(key))perms[pageName][permName]=true}}perms.dashboard.visible=true;return perms}
-const permissionLabelsMap={dashboard:{label:'Dashboard',visible:'View Page',manageCompatibility:'Manage Compatibility',canBackup:'Full DB Export'},dataManagement:{label:'Data Management',visible:'View Page',canImport:'Can Import',canExport:'Can Export',canDelete:'Can Delete'},addEditLaptop:{label:'Add/Edit Laptop',visible:'View Page'},spareParts:{label:'Spare Parts',visible:'View Page',canAdd:'Can Add/Edit',canUse:'Can Use',canDeduct:'Can Deduct',canDelete:'Can Delete',canRollback:'Can Rollback Transfer',canLock:'Can Lock/Unlock Cards',canSetLocation:'Can Edit Site Location',canEditUsage:'Can Edit Usage Records'},incidents:{label:'Incidents',visible:'View Page'},logs:{label:'Logs',visible:'View Page',canClear:'Can Clear'},manageUsers:{label:'Manage Users',visible:'View Page'},qrSystem:{label:'QR System',access:'Access QR Scanner'},notifications:{label:'Notifications',receive:'Receive Log Notifications'},session:{label:'Session',keepAlive:'Stay Logged In (no idle logout)'},scanner:{label:'Serial Scanner',canSetOcrKey:'Set OCR Key'},emailRecipients:{label:'Email Recipients',canEdit:'Edit Email Recipients / CC'},itWorkspace:{label:'IT Workspace',visible:'View Page'},warrantyCheck:{label:'Warranty Check',visible:'View Page',canAdd:'Devices: Can Add',canEdit:'Devices: Can Edit',canDelete:'Devices: Can Delete',canAddVendor:'Vendors: Can Add',canEditVendor:'Vendors: Can Edit',canDeleteVendor:'Vendors: Can Delete'},printers:{label:'Printers',visible:'View Page',canAdd:'Can Add',canEdit:'Can Edit',canDelete:'Can Delete'},warrantyWidget:{label:'Warranty Widget (Dashboard)',visible:'View Widget'}};
+const permissionLabelsMap={dashboard:{label:'Dashboard',visible:'View Page',manageCompatibility:'Manage Compatibility',canBackup:'Full DB Export'},dataManagement:{label:'Data Management',visible:'View Page',canImport:'Can Import',canExport:'Can Export',canDelete:'Can Delete'},addEditLaptop:{label:'Add/Edit Laptop',visible:'View Page'},spareParts:{label:'Spare Parts',visible:'View Page',canAdd:'Can Add/Edit',canUse:'Can Use',canDeduct:'Can Deduct',canDelete:'Can Delete',canRollback:'Can Rollback Transfer',canLock:'Can Lock/Unlock Cards',canSetLocation:'Can Edit Site Location',canEditUsage:'Can Edit Usage Records'},incidents:{label:'Incidents',visible:'View Page'},logs:{label:'Logs',visible:'View Page',canClear:'Can Clear'},manageUsers:{label:'Manage Users',visible:'View Page'},qrSystem:{label:'QR System',access:'Access QR Scanner'},notifications:{label:'Notifications',receive:'Receive Log Notifications'},session:{label:'Session',keepAlive:'Stay Logged In (no idle logout)'},scanner:{label:'Serial Scanner',canSetOcrKey:'Set OCR Key'},emailRecipients:{label:'Email Recipients',canEdit:'Edit Email Recipients / CC'},itWorkspace:{label:'IT Workspace',visible:'View Page'},installedApps:{label:'Installed Apps',visible:'View Page',canUpload:'Can Upload Report'},warrantyCheck:{label:'Warranty Check',visible:'View Page',canAdd:'Devices: Can Add',canEdit:'Devices: Can Edit',canDelete:'Devices: Can Delete',canAddVendor:'Vendors: Can Add',canEditVendor:'Vendors: Can Edit',canDeleteVendor:'Vendors: Can Delete'},printers:{label:'Printers',visible:'View Page',canAdd:'Can Add',canEdit:'Can Edit',canDelete:'Can Delete'},warrantyWidget:{label:'Warranty Widget (Dashboard)',visible:'View Widget'}};
 function renderPermissionsAccessReport(){
     const container=document.getElementById('permissionsAccessReportContainer');
     if(!container)return;
@@ -9063,6 +9097,101 @@ e.stopImmediatePropagation();e.preventDefault();
 Promise.all(need.map(window.__lib)).then(function(){t.__relib=1;t.click();t.__relib=0}).catch(function(){showNotification('Failed to load component. Check connection.','error')})
 },true);
 window.addEventListener('load',function(){setTimeout(function(){var go=function(){['xlsx','qr','h5'].forEach(function(k){window.__lib(k).catch(function(){})})};if(window.requestIdleCallback)requestIdleCallback(go,{timeout:6000});else go()},3000)});
+})();
+(function(){
+var inp=document.getElementById('iaSearchInput'),sug=document.getElementById('iaSuggestions'),res=document.getElementById('iaResult'),info=document.getElementById('iaInfo'),file=document.getElementById('iaFileInput'),prog=document.getElementById('iaProgress'),pt=document.getElementById('iaProgressText'),pb=document.getElementById('iaProgressBar'),lab=document.getElementById('iaUploadLabel');
+if(!inp)return;
+var seq=0,tm=null,uploading=false;
+function cr(){var u=currentUser&&users[currentUser.email];return u&&u.password?{username:u.email,password:u.password}:null}
+function can(k){var p=currentUser&&currentUser.permissions&&currentUser.permissions.installedApps;return !!(p&&p[k])}
+function fd(v){return v?String(v).replace('T',' ').slice(0,16):'-'}
+async function rpc(fn,extra){var c=cr();if(!c)throw new Error('Please log in again.');var r=await supabaseClient.rpc(fn,{payload:Object.assign({},c,extra||{})});if(r.error)throw new Error(r.error.message);return r.data}
+function hideSug(){sug.style.display='none';sug.innerHTML=''}
+async function loadInfo(){
+if(!can('visible')){return}
+try{var d=await rpc('installed_apps_info');
+info.textContent=d&&d.has?('Last update: '+new Date(d.uploadedAt).toLocaleString('en-GB',{timeZone:'Africa/Cairo'})+' by '+d.uploadedBy+' - '+d.computers+' computers, '+d.apps+' apps'):'No report uploaded yet.'}catch(e){info.textContent=''}
+}
+async function search(q){
+var my=++seq;
+if(!q.trim()){hideSug();return}
+try{var list=await rpc('installed_computers_search',{q:q});if(my!==seq)return;
+if(!list||!list.length){sug.innerHTML='<div style="padding:12px 14px;color:var(--secondary-color);">No computers found.</div>';sug.style.display='block';return}
+sug.innerHTML=list.map(function(c){return '<div class="ia-sug" data-id="'+c.id+'" style="padding:10px 14px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--input-border-color);"><b>'+escapeHtml(c.name)+'</b><span style="color:var(--secondary-color);font-size:.85em;white-space:nowrap;">'+c.apps+' apps - '+escapeHtml(fd(c.scanDate))+'</span></div>'}).join('');
+sug.style.display='block'}catch(e){if(my===seq){sug.innerHTML='<div style="padding:12px 14px;color:var(--danger-color,#e5484d);">'+escapeHtml(e.message)+'</div>';sug.style.display='block'}}
+}
+async function show(id){
+hideSug();res.innerHTML='<div style="text-align:center;padding:24px;"><i class="fas fa-circle-notch fa-spin app-spinner" style="font-size:1.6em;color:var(--primary-accent-color);"></i></div>';
+try{var d=await rpc('installed_apps_of',{computerId:id});
+if(!d||!d.found){res.innerHTML='<div style="color:var(--secondary-color);">Computer not found (the report may have been updated). Search again.</div>';return}
+inp.value=d.name;
+var rows=d.apps.map(function(a){return '<tr><td>'+escapeHtml(a.n)+'</td><td style="white-space:nowrap;">'+escapeHtml(a.v||'-')+'</td></tr>'}).join('');
+res.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;"><h3 style="margin:0;"><i class="fa-solid fa-desktop" style="color:var(--primary-accent-color);"></i> '+escapeHtml(d.name)+'</h3><span style="font-size:.85em;color:var(--secondary-color);">'+d.apps.length+' apps - scanned '+escapeHtml(fd(d.scanDate))+'</span></div><input type="text" id="iaFilter" placeholder="Filter apps..." style="width:100%;box-sizing:border-box;padding:8px 12px;margin-bottom:10px;border-radius:6px;border:1px solid var(--input-border-color);background:var(--input-bg-color);color:var(--text-color);"><div style="overflow-x:auto;"><table class="table" style="width:100%;"><thead><tr><th style="text-align:left;">Name</th><th style="text-align:left;">Version</th></tr></thead><tbody id="iaRows">'+rows+'</tbody></table></div>';
+var f=document.getElementById('iaFilter');f.addEventListener('input',function(){var t=f.value.toLowerCase();document.querySelectorAll('#iaRows tr').forEach(function(tr){tr.style.display=tr.textContent.toLowerCase().indexOf(t)===-1?'none':''})})
+}catch(e){res.innerHTML='<div style="color:var(--danger-color,#e5484d);">'+escapeHtml(e.message)+'</div>'}
+}
+inp.addEventListener('input',function(){clearTimeout(tm);var q=inp.value;tm=setTimeout(function(){search(q)},300)});
+inp.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();var f=sug.querySelector('.ia-sug');if(f)show(f.dataset.id)}else if(e.key==='Escape')hideSug()});
+sug.addEventListener('click',function(e){var t=e.target.closest('.ia-sug');if(t)show(t.dataset.id)});
+document.addEventListener('click',function(e){if(!e.target.closest('#iaSearchInput,#iaSuggestions'))hideSug()});
+var tb=document.querySelector('.tab-button[data-tab="installed-apps"]');
+if(tb)tb.addEventListener('click',loadInfo);
+
+function pad(n){return String(n).padStart(2,'0')}
+function ser(n){if(typeof n!=='number')return '';var d=new Date(Math.round((n-25569)*86400)*1000);return isNaN(d.getTime())?'':d.toISOString().slice(0,19)}
+function parse(rows){
+var map=new Map(),cur=null,n=rows.length;
+for(var i=0;i<n;i++){
+var r=rows[i];if(!r)continue;var a=r[0],b=r[1],c=r[2];
+if(a==null||a==='')continue;
+a=String(a).trim();if(!a)continue;
+var nx=rows[i+1];
+if((b==null||b==='')&&(c==null||c==='')&&nx&&String(nx[0]).trim()==='Name'){var k=a.toLowerCase();if(!map.has(k))map.set(k,{c:a,d:'',a:[]});cur=map.get(k);i++;continue}
+if(a==='Name'&&String(b).indexOf('Version')!==-1)continue;
+if(cur){cur.a.push([a,b==null?'':String(b).trim()]);var d=ser(c);if(d&&d>cur.d)cur.d=d}
+}
+return Array.from(map.values()).filter(function(x){return x.a.length>0})
+}
+function setProg(txt,pct){prog.style.display='block';pt.textContent=txt;pb.style.width=pct+'%'}
+async function send(fn,extra){for(var t=0;t<3;t++){try{return await rpc(fn,extra)}catch(e){if(t===2)throw e;await new Promise(function(r){setTimeout(r,800*(t+1))})}}}
+async function upload(f){
+uploading=true;lab.style.opacity='.5';lab.style.pointerEvents='none';
+try{
+setProg('Loading Excel library...',2);
+await window.__lib('xlsx');
+setProg('Reading file...',5);
+await new Promise(function(r){setTimeout(r,30)});
+var wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+var ws=wb.Sheets[wb.SheetNames[0]];
+var rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null,blankrows:true});
+setProg('Analyzing report...',12);
+await new Promise(function(r){setTimeout(r,30)});
+var comps=parse(rows);rows=null;wb=null;
+if(!comps.length)throw new Error('Unrecognized report format: no computers found.');
+var totalApps=comps.reduce(function(s,c){return s+c.a.length},0);
+var ok=await Swal.fire({title:'Replace current report?',html:'This file has <b>'+comps.length+'</b> computers and <b>'+totalApps+'</b> apps.<br>The previous report will be deleted after the upload completes.',icon:'question',showCancelButton:true,confirmButtonText:'Upload'});
+if(!ok.isConfirmed){prog.style.display='none';return}
+var b=await send('installed_apps_begin',{fileName:f.name});
+var chunks=[],cur=[],cnt=0;
+comps.forEach(function(c){if(cur.length&&(cnt+c.a.length>6000||cur.length>=400)){chunks.push(cur);cur=[];cnt=0}cur.push(c);cnt+=c.a.length});
+if(cur.length)chunks.push(cur);
+for(var i=0;i<chunks.length;i++){
+setProg('Uploading '+(i+1)+' / '+chunks.length+'...',15+Math.round(i/chunks.length*80));
+await send('installed_apps_chunk',{batchId:b.batchId,computers:chunks[i]})
+}
+setProg('Finalizing...',96);
+var fin=await send('installed_apps_finish',{batchId:b.batchId});
+setProg('Cleaning old report...',98);
+for(var k=0;k<60;k++){var cl=await send('installed_apps_cleanup');if(!cl||!cl.remaining)break}
+setProg('Done',100);
+try{logActivity('Upload Installed Apps',f.name+' - '+fin.computers+' computers, '+fin.apps+' apps')}catch(e){}
+showNotification('Report uploaded: '+fin.computers+' computers, '+fin.apps+' apps.','success');
+res.innerHTML='';inp.value='';loadInfo();
+setTimeout(function(){prog.style.display='none'},1500)
+}catch(e){showNotification(e.message||'Upload failed','error');setProg('Failed: '+(e.message||'error')+' (previous report is unchanged)',0)}
+finally{uploading=false;lab.style.opacity='';lab.style.pointerEvents='';file.value=''}
+}
+file.addEventListener('change',function(){var f=file.files&&file.files[0];if(!f||uploading)return;if(!can('canUpload')){showNotification('Permission denied.','error');file.value='';return}upload(f)});
 })();
 window.loadLaptops=refreshAllDataAndViews;resetFormForAdd()});
       </script>
