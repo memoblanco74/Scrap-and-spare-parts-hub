@@ -9006,23 +9006,24 @@ window.afterLoginData=function(){return window.ensureFreshData().then(function(r
 var hid=0;document.addEventListener('visibilitychange',function(){if(document.hidden)hid=Date.now();else if(hid&&Date.now()-hid>120000)window.__dataStale=true});
 })();
 (function(){
-var selfCh=null;
-window.stopSelfUserChannel=function(){if(selfCh){try{supabaseClient.removeChannel(selfCh)}catch(e){}selfCh=null}};
-window.startSelfUserChannel=function(){
-window.stopSelfUserChannel();if(!currentUser)return;var em=currentUser.email;
-selfCh=supabaseClient.channel('self-user-'+em).on('postgres_changes',{event:'*',schema:'public',table:'users',filter:'username=eq.'+em},function(p){
-if(!currentUser||currentUser.email!==em)return;
-if(p.eventType==='DELETE'){handleLogout();return}
-var n=p.new;if(!n)return;
-var perms=typeof n.permissions_json==='string'?JSON.parse(n.permissions_json||'{}'):n.permissions_json;
-var u=users[em]||(users[em]={email:em});
-u.password=n.password_encoded;u.permissions=perms;u.comment=n.comment;
-try{if(sessionStorage.getItem('loggedInCred'))sessionStorage.setItem('loggedInCred',n.password_encoded);if(localStorage.getItem('keptCred'))localStorage.setItem('keptCred',n.password_encoded)}catch(e){}
-currentUser.permissions=migratePermissions(perms);applyPermissions();renderSparePartsCards(allSpareParts)
-}).subscribe()
-};
-var _s=setupRealtimeSubscriptions;
-setupRealtimeSubscriptions=function(){var r=_s.apply(this,arguments);if(currentUser)window.startSelfUserChannel();return r};
+var tm=null,busy=false;
+async function check(){
+if(busy||!currentUser||document.hidden)return;
+var em=currentUser.email,u=users[em];if(!u||!u.password)return;
+busy=true;
+try{
+var r=await supabaseClient.rpc('get_my_profile',{payload:{username:em,password:u.password}});
+if(r.error||!currentUser||currentUser.email!==em)return;
+var d=r.data;
+if(!d||!d.valid){showNotification('Your account was changed or removed. Please log in again.','error');handleLogout();return}
+var perms=migratePermissions(typeof d.permissions==='string'?JSON.parse(d.permissions):d.permissions);
+u.comment=d.comment||'';
+if(JSON.stringify(perms)!==JSON.stringify(currentUser.permissions)){u.permissions=perms;currentUser.permissions=perms;applyPermissions();renderSparePartsCards(allSpareParts)}
+}catch(e){}finally{busy=false}
+}
+window.stopSelfUserChannel=function(){if(tm){clearInterval(tm);tm=null}};
+window.startSelfUserChannel=function(){window.stopSelfUserChannel();if(!currentUser)return;tm=setInterval(check,60000)};
+document.addEventListener('visibilitychange',function(){if(!document.hidden)check()});
 })();
 (function(){
 var inner=displayUsersInTable,innerRep=renderPermissionsAccessReport,busy=null;
