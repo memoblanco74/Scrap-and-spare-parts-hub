@@ -7875,7 +7875,7 @@ window.renderTopUsersChart = function(mode) {
         }
         counts[acc] = (counts[acc] || 0) + (Number(u.quantity) || 0);
     });
-    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 13).map(e => [shortUserName(e[0]), e[1]]);
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 13).map(e => [window.__topShowUser ? e[0] : shortUserName(e[0]), e[1]]);
     if (leaderEl) {
         leaderEl.innerHTML = sorted.length ? `🏆 Top User: ${sorted[0][0]} (${sorted[0][1]} parts)` : 'No usage data' + (mode === 'month' ? ' this month' : '') + '.';
     }
@@ -8997,6 +8997,8 @@ try{var r=await supabaseClient.rpc('get_display_names',{payload:{accounts:need}}
 };
 var st=document.createElement('style');st.textContent='#logsTable tbody td:nth-child(2){cursor:pointer}';document.head.appendChild(st);
 document.addEventListener('click',function(e){var td=e.target.closest&&e.target.closest('#logsTable tbody td:nth-child(2)');if(!td)return;var t=td.getAttribute('title');if(!t)return;if(td.dataset.u==='1'){td.dataset.u='';td.textContent=shortUserName(t);return}td.dataset.u='1';td.textContent=t;clearTimeout(td.__ut);td.__ut=setTimeout(function(){if(td.dataset.u==='1'){td.dataset.u='';td.textContent=shortUserName(t)}},5000)});
+document.addEventListener('click',function(e){var el=e.target.closest&&e.target.closest('#topUsersChart,#topUsersLeader');if(!el)return;window.__topShowUser=!window.__topShowUser;clearTimeout(window.__topShowT);if(window.__topShowUser)window.__topShowT=setTimeout(function(){window.__topShowUser=false;try{window.renderTopUsersChart(window.topUsersMode||'month')}catch(x){}},5000);try{window.renderTopUsersChart(window.topUsersMode||'month')}catch(x){}});
+var st2=document.createElement('style');st2.textContent='#topUsersChart,#topUsersLeader{cursor:pointer}';document.head.appendChild(st2);
 window.queueDisplayName=function(a){if(tried[a]||queue[a])return;queue[a]=1;clearTimeout(timer);timer=setTimeout(async function(){var l=Object.keys(queue);queue={};if(await window.loadDisplayNames(l))applyNames()},350)};
 })();
 (function(){
