@@ -4789,7 +4789,7 @@ function handleRealtimeUpdate(payload) {
         if (eventType === 'INSERT') {
             // إضافة السطر الجديد في أول الجدول مباشرة (الأحدث فوق)
             const r = logsTableBody.insertRow(0);
-            r.innerHTML = `<td style="white-space:pre;">${formatDT(newRow.timestamp)}</td><td>${newRow.user}</td><td>${newRow.action}</td><td>${newRow.details}</td>`;
+            r.innerHTML = `<td style="white-space:pre;">${formatDT(newRow.timestamp)}</td><td title="${escapeHtml(newRow.user)}">${escapeHtml(shortUserName(newRow.user))}</td><td>${logActionBadge(newRow.action,newRow.details)}</td><td>${escapeHtml(newRow.details)}</td>`;
             
             // لو الجدول زاد عن 500 سطر، امسح السطر الأخير (الأقدم)
             if (logsTableBody.rows.length > 500) {
@@ -5134,6 +5134,7 @@ async function fetchAllFromSupabase(tableName) {
     }
     return allData;
 }
+function logActionBadge(action,details){const a=String(action==null?'':action),l=a.toLowerCase();let c='gray';if(/^error/.test(l))c='red';else if(/delete|clear|batch/.test(l))c='red';else if(/rollback/.test(l))c='amber';else if(/login/.test(l))c=String(details||'').toLowerCase()==='failed'?'red':'blue';else if(/logout|activated/.test(l))c='blue';else if(/repair|harvest/.test(l))c='teal';else if(/deduct|downgrade/.test(l))c='orange';else if(/transfer|return to store/.test(l))c='sky';else if(/export|email|download|push/.test(l))c='sky';else if(/\buse\b|usage/.test(l))c='green';else if(/pin|lock/.test(l))c='gray';else if(/user|password|recipient|template/.test(l))c='purple';else if(/add|create|edit|update|save|bulk|printer|vendor/.test(l))c='indigo';return '<span class="log-act log-'+c+'">'+escapeHtml(a)+'</span>'}
 function shortUserName(acc){const a=String(acc==null?'':acc).trim();if(!a)return a;const u=(typeof users!=='undefined')&&users[a];if(!u&&window.queueDisplayName)window.queueDisplayName(a);const c=u&&u.comment?String(u.comment).trim():'';if(!c)return a;const P=['abdel','abdul','abdal','abd','abu','abo','abou','bin','ibn','bint','al','el','ul'];const t=c.split(/\s+/),out=[];let i=0;while(i<t.length&&out.length<2){let n=[t[i]];while(P.indexOf(t[i].toLowerCase().replace(/[^a-z]/g,''))!==-1&&i+1<t.length){i++;n.push(t[i])}out.push(n.join(' '));i++}return out.join(' ')}
 function renderLogsRows(rows){
     logsTableBody.innerHTML='';
@@ -5143,7 +5144,7 @@ function renderLogsRows(rows){
     }
     rows.forEach(l=>{
         const r=logsTableBody.insertRow();
-        r.innerHTML=`<td style="white-space:pre;">${escapeHtml(formatDT(l.timestamp))}</td><td title="${escapeHtml(l.user)}">${escapeHtml(shortUserName(l.user))}</td><td>${escapeHtml(l.action)}</td><td>${escapeHtml(l.details)}</td>`;
+        r.innerHTML=`<td style="white-space:pre;">${escapeHtml(formatDT(l.timestamp))}</td><td title="${escapeHtml(l.user)}">${escapeHtml(shortUserName(l.user))}</td><td>${logActionBadge(l.action,l.details)}</td><td>${escapeHtml(l.details)}</td>`;
     });
 }
 let logsSearchDebounceTimer=null;
@@ -8999,6 +9000,7 @@ var st=document.createElement('style');st.textContent='#logsTable tbody td:nth-c
 document.addEventListener('click',function(e){var td=e.target.closest&&e.target.closest('#logsTable tbody td:nth-child(2)');if(!td)return;var t=td.getAttribute('title');if(!t)return;if(td.dataset.u==='1'){td.dataset.u='';td.textContent=shortUserName(t);return}td.dataset.u='1';td.textContent=t;clearTimeout(td.__ut);td.__ut=setTimeout(function(){if(td.dataset.u==='1'){td.dataset.u='';td.textContent=shortUserName(t)}},5000)});
 document.addEventListener('click',function(e){var el=e.target.closest&&e.target.closest('#topUsersChart,#topUsersLeader');if(!el)return;window.__topShowUser=!window.__topShowUser;clearTimeout(window.__topShowT);if(window.__topShowUser)window.__topShowT=setTimeout(function(){window.__topShowUser=false;try{window.renderTopUsersChart(window.topUsersMode||'month')}catch(x){}},5000);try{window.renderTopUsersChart(window.topUsersMode||'month')}catch(x){}});
 var st2=document.createElement('style');st2.textContent='#topUsersChart,#topUsersLeader{cursor:pointer}';document.head.appendChild(st2);
+var st3=document.createElement('style');st3.textContent='.log-act{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.85em;font-weight:600;white-space:nowrap;border:1px solid transparent}.log-green{color:#1f9d6b;background:rgba(34,160,107,.15);border-color:rgba(34,160,107,.35)}.log-blue{color:#3b82f6;background:rgba(59,130,246,.15);border-color:rgba(59,130,246,.35)}.log-red{color:#e5484d;background:rgba(229,72,77,.15);border-color:rgba(229,72,77,.35)}.log-orange{color:#ea7a00;background:rgba(240,140,0,.15);border-color:rgba(240,140,0,.35)}.log-purple{color:#8b5cf6;background:rgba(139,92,246,.15);border-color:rgba(139,92,246,.35)}.log-teal{color:#0f9d92;background:rgba(20,184,166,.15);border-color:rgba(20,184,166,.35)}.log-sky{color:#0b8fc7;background:rgba(14,165,233,.15);border-color:rgba(14,165,233,.35)}.log-amber{color:#b88700;background:rgba(217,164,0,.16);border-color:rgba(217,164,0,.38)}.log-indigo{color:#5b6cf0;background:rgba(91,108,240,.15);border-color:rgba(91,108,240,.35)}.log-gray{color:#6b7280;background:rgba(107,114,128,.15);border-color:rgba(107,114,128,.35)}';document.head.appendChild(st3);
 window.queueDisplayName=function(a){if(tried[a]||queue[a])return;queue[a]=1;clearTimeout(timer);timer=setTimeout(async function(){var l=Object.keys(queue);queue={};if(await window.loadDisplayNames(l))applyNames()},350)};
 })();
 (function(){
