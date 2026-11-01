@@ -5134,7 +5134,7 @@ async function fetchAllFromSupabase(tableName) {
     }
     return allData;
 }
-function shortUserName(acc){const a=String(acc==null?'':acc).trim();if(!a)return a;const u=(typeof users!=='undefined')&&users[a];if(!u&&window.queueDisplayName)window.queueDisplayName(a);const c=u&&u.comment?String(u.comment).trim():'';if(!c)return a;return c.split(/\s+/).slice(0,2).join(' ')}
+function shortUserName(acc){const a=String(acc==null?'':acc).trim();if(!a)return a;const u=(typeof users!=='undefined')&&users[a];if(!u&&window.queueDisplayName)window.queueDisplayName(a);const c=u&&u.comment?String(u.comment).trim():'';if(!c)return a;const P=['abdel','abdul','abdal','abd','abu','abo','abou','bin','ibn','bint','al','el','ul'];const t=c.split(/\s+/),out=[];let i=0;while(i<t.length&&out.length<2){let n=[t[i]];while(P.indexOf(t[i].toLowerCase().replace(/[^a-z]/g,''))!==-1&&i+1<t.length){i++;n.push(t[i])}out.push(n.join(' '));i++}return out.join(' ')}
 function renderLogsRows(rows){
     logsTableBody.innerHTML='';
     if(!rows||rows.length===0){
