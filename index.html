@@ -9007,8 +9007,8 @@ var hid=0;document.addEventListener('visibilitychange',function(){if(document.hi
 })();
 (function(){
 var tm=null,busy=false;
-async function check(){
-if(busy||!currentUser||document.hidden)return;
+async function check(force){
+if(busy||!currentUser||(document.hidden&&!force))return;
 var em=currentUser.email,u=users[em];if(!u||!u.password)return;
 busy=true;
 try{
@@ -9021,8 +9021,11 @@ u.comment=d.comment||'';
 if(JSON.stringify(perms)!==JSON.stringify(currentUser.permissions)){u.permissions=perms;currentUser.permissions=perms;applyPermissions();renderSparePartsCards(allSpareParts)}
 }catch(e){}finally{busy=false}
 }
-window.stopSelfUserChannel=function(){if(tm){clearInterval(tm);tm=null}};
-window.startSelfUserChannel=function(){window.stopSelfUserChannel();if(!currentUser)return;tm=setInterval(check,60000)};
+var ch=null;
+window.stopSelfUserChannel=function(){if(tm){clearInterval(tm);tm=null}if(ch){try{supabaseClient.removeChannel(ch)}catch(e){}ch=null}};
+window.startSelfUserChannel=function(){window.stopSelfUserChannel();if(!currentUser)return;ch=supabaseClient.channel('user-changes').on('broadcast',{event:'changed'},function(m){var pl=m&&m.payload;if(pl&&currentUser&&pl.username===currentUser.email)check(true)}).subscribe();tm=setInterval(check,120000)};
+var _s=setupRealtimeSubscriptions;
+setupRealtimeSubscriptions=function(){var r=_s.apply(this,arguments);if(currentUser)window.startSelfUserChannel();return r};
 document.addEventListener('visibilitychange',function(){if(!document.hidden)check()});
 })();
 (function(){
