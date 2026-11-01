@@ -4968,7 +4968,7 @@ function setupRealtimeSubscriptions() {
         .on('postgres_changes', { event: '*', schema: 'public', table: 'groups' }, handleRealtimeUpdate)
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'app_config', filter: 'key=eq.app_version' }, () => { 
             const d = document.body.classList.contains('dark-mode');
-            const u = "https://script.google.com/macros/s/AKfycbyTPJX4c-aszDlBVkEQzv6KRcvodmP-oHQET5NubismkZoq_MsjLyweSW9foGvo_2Xupw/exec";
+            const u = "https://memoblanco74.github.io/Scrap-and-spare-parts-hub/";
             Swal.fire({
                 title: '🚀 New Update Available',
                 text: 'A new version is ready! Please click below to restart the app.',
@@ -4981,7 +4981,7 @@ function setupRealtimeSubscriptions() {
                 color: d ? '#ffffff' : '#545454'
             }).then((r) => {
                 if(r.isConfirmed){
-                    window.top.location.href = u;
+                    window.top.location.href = u + '?v=' + Date.now();
                 }
             }); 
         })
