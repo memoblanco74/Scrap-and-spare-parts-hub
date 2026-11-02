@@ -3118,15 +3118,15 @@
           </div>
 
           <div class="permission-section">
-            <h4>Installed Apps</h4>
+            <h4>Device Lookup</h4>
             <div class="permissions-group">
               <div class="permission-item">
-                <input type="checkbox" name="installedApps_visible" id="edit-ia-vis">
-                <label for="edit-ia-vis">View Page</label>
+                <input type="checkbox" name="deviceLookup_visible" id="edit-dl-vis">
+                <label for="edit-dl-vis">View Page</label>
               </div>
               <div class="permission-item">
-                <input type="checkbox" name="installedApps_canUpload" id="edit-ia-up">
-                <label for="edit-ia-up">Can Upload Report</label>
+                <input type="checkbox" name="deviceLookup_canUpload" id="edit-dl-up">
+                <label for="edit-dl-up">Can Upload Reports</label>
               </div>
             </div>
           </div>
@@ -3685,8 +3685,7 @@
         <button class="tab-button" data-tab="spare-parts" data-permission="spareParts_visible" style="display: none;">Spare Parts</button>
         <button class="tab-button" data-tab="incidents" data-permission="incidents_visible">Create Incident</button>
         <button class="tab-button" data-tab="it-workspace" data-permission="itWorkspace_visible" style="display: none;">IT Workspace</button>
-        <button class="tab-button" data-tab="warranty-check" data-permission="warrantyCheck_visible" style="display: none;">Warranty Check</button>
-        <button class="tab-button" data-tab="installed-apps" data-permission="installedApps_visible" style="display: none;">Installed Apps</button>
+        <button class="tab-button" data-tab="device-lookup" data-permission="deviceLookup_visible" style="display: none;">Device Lookup</button>
         <button class="tab-button" id="printersTabBtn" data-tab="printers-page" data-permission="printers_visible" style="display: none;">Printers</button>
         <button class="tab-button" data-tab="logs" data-permission="logs_visible" style="display: none;">Activity Logs</button>
         <button class="tab-button" data-tab="manage-users" data-permission="manageUsers_visible" style="display: none;">Manage Users</button>
@@ -4361,45 +4360,47 @@
         </div>
       </div>
 
-      <div id="installed-apps" class="tab-content">
+      <div id="device-lookup" class="tab-content">
         <div class="card" style="max-width: 900px; margin: 0 auto;">
-          <h2><i class="fa-solid fa-boxes-stacked" style="color: var(--primary-accent-color);"></i> Installed Apps</h2>
-          <div id="iaInfo" style="margin-top:6px; font-size:0.85em; color:var(--secondary-color);"></div>
+          <h2><i class="fa-solid fa-magnifying-glass-chart" style="color: var(--primary-accent-color);"></i> Device Lookup</h2>
           <div style="position:relative; margin-top:15px;">
-            <input type="text" id="iaSearchInput" autocomplete="off" placeholder="Computer name..." style="width:100%; box-sizing:border-box; padding:10px 14px; border-radius:6px; border:1px solid var(--input-border-color); background:var(--input-bg-color); color:var(--text-color);">
-            <div id="iaSuggestions" style="display:none; position:absolute; left:0; right:0; top:100%; margin-top:4px; z-index:50; max-height:320px; overflow:auto; border:1px solid var(--input-border-color); border-radius:8px; background:var(--input-bg-color); box-shadow:0 8px 24px rgba(0,0,0,.18);"></div>
+            <input type="text" id="dlSearchInput" autocomplete="off" placeholder="Computer name or serial number..." style="width:100%; box-sizing:border-box; padding:10px 14px; border-radius:6px; border:1px solid var(--input-border-color); background:var(--input-bg-color); color:var(--text-color);">
+            <div id="dlSuggestions" style="display:none; position:absolute; left:0; right:0; top:100%; margin-top:4px; z-index:50; max-height:320px; overflow:auto; border:1px solid var(--input-border-color); border-radius:8px; background:var(--input-bg-color); box-shadow:0 8px 24px rgba(0,0,0,.18);"></div>
           </div>
-          <div id="iaUploadRow" data-permission="installedApps_canUpload" style="display:none; margin-top:12px; text-align:right;">
-            <label for="iaFileInput" class="import-button custom-btn" id="iaUploadLabel"><i class="fa-solid fa-file-arrow-up"></i> Upload Report</label>
-            <input type="file" id="iaFileInput" accept=".xlsx,.xls" style="display:none">
+          <div id="dlUploadBox" data-permission="deviceLookup_canUpload" style="display:none; margin-top:14px;">
+            <details>
+              <summary style="cursor:pointer; font-weight:600;"><i class="fa-solid fa-database" style="color:var(--primary-accent-color);"></i> Data Reports</summary>
+              <div id="dlUploadList" style="margin-top:8px;"></div>
+            </details>
           </div>
-          <div id="iaProgress" style="display:none; margin-top:12px;">
-            <div id="iaProgressText" style="font-size:0.9em; margin-bottom:6px;"></div>
-            <div style="height:8px; border-radius:6px; background:var(--input-border-color); overflow:hidden;"><div id="iaProgressBar" style="height:100%; width:0; background:var(--primary-accent-color); transition:width .2s;"></div></div>
+          <div id="dlProgress" style="display:none; margin-top:12px;">
+            <div id="dlProgressText" style="font-size:0.9em; margin-bottom:6px;"></div>
+            <div style="height:8px; border-radius:6px; background:var(--input-border-color); overflow:hidden;"><div id="dlProgressBar" style="height:100%; width:0; background:var(--primary-accent-color); transition:width .2s;"></div></div>
           </div>
-          <div id="iaResult" style="margin-top:18px;"></div>
+          <div id="dlResult" style="margin-top:18px;"></div>
         </div>
-      </div>
-      <div id="warranty-check" class="tab-content">
-        <div class="card" style="max-width: 700px; margin: 0 auto;">
-          <h2><i class="fa-solid fa-shield-halved" style="color: var(--success-color);"></i> Warranty Check</h2>
-          <div style="display: flex; gap: 10px; margin-top: 15px;">
-            <input type="text" id="warrantySerialInput" placeholder="Enter Serial Number..." style="flex:1; padding:10px 14px; border-radius:6px; border:1px solid var(--input-border-color); background:var(--input-bg-color); color:var(--text-color);">
-            <button class="custom-btn" id="warrantySearchBtn"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+        <div class="card" id="warrantyCard" style="max-width: 900px; margin: 20px auto 0;">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+            <h3 style="margin:0;"><i class="fa-solid fa-shield-halved" style="color: var(--success-color);"></i> Warranty</h3>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <label for="warrantyImportFile" class="import-button custom-btn" data-permission="warrantyCheck_canAdd" style="display:none;">
+                <i class="fa-solid fa-file-import"></i> Bulk Import
+              </label>
+              <input type="file" id="warrantyImportFile" accept=".xlsx, .xls, .csv" style="display:none">
+              <button class="custom-btn" id="warrantyAddBtn" data-permission="warrantyCheck_canAdd" style="display:none; background-color:var(--success-color); color:white;"><i class="fa-solid fa-plus"></i> Add New Record</button>
+            </div>
           </div>
-          <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px;">
-            <label for="warrantyImportFile" class="import-button custom-btn" data-permission="warrantyCheck_canAdd" style="display:none;">
-              <i class="fa-solid fa-file-import"></i> Bulk Import
-            </label>
-            <input type="file" id="warrantyImportFile" accept=".xlsx, .xls, .csv" style="display:none">
-            <button class="custom-btn" id="warrantyAddBtn" data-permission="warrantyCheck_canAdd" style="display:none; background-color:var(--success-color); color:white;"><i class="fa-solid fa-plus"></i> Add New Record</button>
-          </div>
+          <input type="hidden" id="warrantySerialInput">
           <div id="warrantyLoading" style="text-align:center; padding:30px; display:none;">
             <i class="fas fa-circle-notch fa-spin app-spinner" style="font-size:2em; color:var(--primary-accent-color);"></i>
           </div>
-          <div id="warrantyResult" style="display:none; margin-top:20px;"></div>
+          <div id="warrantyResult" style="display:none; margin-top:14px;"></div>
         </div>
-        <div class="card" id="vendorsCard" style="display:none; max-width: 700px; margin: 20px auto 0;">
+        <div class="card" id="dlAppsCard" style="display:none; max-width: 900px; margin: 20px auto 0;">
+          <h3 style="margin:0 0 10px;"><i class="fa-solid fa-boxes-stacked" style="color: var(--primary-accent-color);"></i> Installed Apps</h3>
+          <div id="dlAppsBody"></div>
+        </div>
+        <div class="card" id="vendorsCard" style="display:none; max-width: 900px; margin: 20px auto 0;">
           <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
             <h3 style="margin:0;"><i class="fa-solid fa-building" style="color: var(--primary-accent-color);"></i> Vendors</h3>
             <button class="custom-btn" id="vendorAddBtn" style="display:none; background-color:var(--success-color); color:white;"><i class="fa-solid fa-plus"></i> Add Vendor</button>
@@ -4435,7 +4436,6 @@
           </form>
         </div>
       </div>
-
       <div id="printers-page" class="tab-content">
         <h2><i class="fa-solid fa-print" style="color: var(--primary-accent-color);"></i> Printers</h2>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0;">
@@ -5252,7 +5252,7 @@ async function hashPassword(string){const msgBuffer=new TextEncoder().encode(str
 const appContainer=document.getElementById('appContainer'),dbStatusDiv=document.getElementById('dbStatus'),tabButtons=document.querySelectorAll('.tab-button'),tabContents=document.querySelectorAll('.tab-content'),themeToggle=document.getElementById('theme-toggle'),loginOverlay=document.getElementById('loginOverlay'),loginForm=document.getElementById('loginForm'),loginError=document.getElementById('loginError'),loginButton=document.getElementById('loginButton'),logoutButton=document.getElementById('logoutButton'),closeLoginModalBtn=document.getElementById('closeLoginModal'),userInfoDiv=document.getElementById('userInfo'),userEmailDisplay=document.getElementById('userEmailDisplay'),editUserOverlay=document.getElementById('editUserOverlay'),editUserForm=document.getElementById('editUserForm'),closeEditUserModalBtn=document.getElementById('closeEditUserModal'),usePartOverlay=document.getElementById('usePartOverlay'),usePartForm=document.getElementById('usePartForm'),usePartBrandInput=document.getElementById('usePartBrand'),usePartModelInput=document.getElementById('usePartModel'),closeUseModalBtn=document.getElementById('closeUseModal'),usePartInfo=document.getElementById('usePartInfo'),usePartIdInput=document.getElementById('usePartId'),deductPartOverlay=document.getElementById('deductPartOverlay'),deductPartForm=document.getElementById('deductPartForm'),closeDeductModalBtn=document.getElementById('closeDeductModal'),deductPartInfo=document.getElementById('deductPartInfo'),deductPartIdInput=document.getElementById('deductPartId'),componentBrandFilter=document.getElementById('componentBrandFilter'),componentModelFilter=document.getElementById('componentModelFilter'),ramManufacturerFilter=document.getElementById('ramManufacturerFilter'),ramPathFilter=document.getElementById('ramPathFilter'),modelComponentDetailsElem=document.getElementById('modelComponentDetails'),modelComponentLaptopListElem=document.getElementById('modelComponentLaptopList'),ramSummaryListElem=document.getElementById('ramSummaryList'),globalSearchInput=document.getElementById('globalSearchInput'),tableBody=document.querySelector('#laptopTable tbody'),selectAllCheckbox=document.getElementById('selectAll'),exportButton=document.getElementById('exportButton'),deleteSelectedButton=document.getElementById('deleteSelectedButton'),displayedLaptopsCount=document.getElementById('displayedLaptopsCount'),selectedLaptopsCount=document.getElementById('selectedLaptopsCount'),addDataForm=document.getElementById('addDataForm'),formTitle=document.getElementById('formTitle'),laptopIDInput=document.getElementById('laptopID'),originalLaptopIdInput=document.getElementById('originalLaptopId'),idHint=document.getElementById('idHint'),cancelEditButton=document.getElementById('cancelEditButton'),brandInput=document.getElementById('brand'),laptopModelInput=document.getElementById('laptopModel'),modelDatalist=document.getElementById('model-list'),ramEntriesContainer=document.getElementById('ramEntriesContainer'),addRamEntryBtn=document.getElementById('addRamEntryBtn'),groupForm=document.getElementById('compatibilityGroupForm'),groupModelsSelect=document.getElementById('groupModels'),existingGroupsContainer=document.getElementById('existingGroupsContainer'),logsTableBody=document.querySelector('#logsTable tbody'),clearLogsButton=document.getElementById('clearLogsButton'),incidentTypeSelector=document.getElementById('incidentTypeSelector'),incidentFormsContainer=document.getElementById('incidentFormsContainer'),incidentOutputContainer=document.getElementById('incidentOutputContainer'),incidentOutput=document.getElementById('incidentOutput'),copyIncidentBtn=document.getElementById('copyIncidentBtn'),addSparePartBtn_form3=document.getElementById('addSparePartBtn_form3'),sparePartsList_form3=document.getElementById('sparePartsList_form3'),addSparePartBtn_form4=document.getElementById('addSparePartBtn_form4'),sparePartsList_form4=document.getElementById('sparePartsList_form4'),userManagementForm=document.getElementById('userManagementForm'),usersTableBody=document.querySelector('#usersTable tbody'),addSparePartForm=document.getElementById('addSparePartForm'),sparePartsCardContainer=document.getElementById('sparePartsCardContainer'),sparePartsSearchInput=document.getElementById('sparePartsSearchInput'),sparePartsTab=document.getElementById('spare-parts'),sparePartSummaryContainer=document.getElementById('sparePartSummaryContainer'),sparePartPurchaseOrderInput=document.getElementById('sparePartPurchaseOrder'),sparePartDateInput=document.getElementById('sparePartDate'),toggleAddSparePartFormBtn=document.getElementById('toggleAddSparePartFormBtn'),sparePartTypeInput=document.getElementById('sparePartType'),sparePartModelInput=document.getElementById('sparePartModel'),sparePartModelList=document.getElementById('spare-part-model-list'),sparePartQuantityInput=document.getElementById('sparePartQuantity'),sparePartCategoryInput=document.getElementById('sparePartCategory'),sparePartLocationInput=document.getElementById('sparePartLocation'),sparePartBrandInput=document.getElementById('sparePartBrand'),sparePartSiteInput=document.getElementById('sparePartSite'),sparePartReservedForInput=document.getElementById('sparePartReservedFor'),sparePartIncidentInput=document.getElementById('sparePartIncident'),sparePartCommentInput=document.getElementById('sparePartComment'),reportTypesSelect=document.getElementById('reportTypes'),reportSitesSelect=document.getElementById('reportSites'),reportStartDateInput=document.getElementById('reportStartDate'),reportEndDateInput=document.getElementById('reportEndDate'),btnGenerateReport=document.getElementById('btnGenerateReport'),btnExportUsageReport=document.getElementById('btnExportUsageReport'),reportOutputContainer=document.getElementById('reportOutputContainer'),reportTotalCount=document.getElementById('reportTotalCount'),reportDetailsTable=document.getElementById('reportDetailsTable');
 let isEditing=false,isEditingSparePart=false,editingSparePartId=null,allLaptops=[],allGroups=[],allSpareParts=[],allAssets=[],allUsageHistory=[],allDeductHistory=[],allDowngrades=[],currentComponentModelFilteredLaptops=[],currentUser=null,users={},adminUsers={},ramEntryCounter=0,lastUsageReportRows=[],emailTemplateSettings={},emailTemplateSettingsLoaded=false;
 function toggleButtonLoading(b,l){b.disabled=l;if(l){b.dataset.tx=b.innerHTML;b.innerHTML='<i class="fas fa-circle-notch fa-spin app-spinner"></i>';}else{b.innerHTML=b.dataset.tx||'Save';}}
-function getDefaultPermissions(isAdmin=false){return {dashboard:{visible:true,manageCompatibility:isAdmin,canBackup:isAdmin},dataManagement:{visible:isAdmin,canImport:isAdmin,canExport:isAdmin,canDelete:isAdmin},addEditLaptop:{visible:isAdmin},spareParts:{visible:isAdmin,canAdd:isAdmin,canUse:isAdmin,canDeduct:isAdmin,canDelete:isAdmin,canRollback:isAdmin,canLock:isAdmin,canSetLocation:isAdmin,canEditUsage:isAdmin},incidents:{visible:isAdmin},logs:{visible:isAdmin,canClear:isAdmin},manageUsers:{visible:isAdmin},qrSystem:{access:isAdmin},itWorkspace:{visible:isAdmin},warrantyCheck:{visible:isAdmin,canAdd:isAdmin,canEdit:isAdmin,canDelete:isAdmin,canAddVendor:false,canEditVendor:false,canDeleteVendor:false},installedApps:{visible:isAdmin,canUpload:isAdmin},printers:{visible:isAdmin,canAdd:isAdmin,canEdit:isAdmin,canDelete:isAdmin},warrantyWidget:{visible:isAdmin},notifications:{receive:false},session:{keepAlive:false},scanner:{canSetOcrKey:isAdmin},emailRecipients:{canEdit:isAdmin}};}
+function getDefaultPermissions(isAdmin=false){return {dashboard:{visible:true,manageCompatibility:isAdmin,canBackup:isAdmin},dataManagement:{visible:isAdmin,canImport:isAdmin,canExport:isAdmin,canDelete:isAdmin},addEditLaptop:{visible:isAdmin},spareParts:{visible:isAdmin,canAdd:isAdmin,canUse:isAdmin,canDeduct:isAdmin,canDelete:isAdmin,canRollback:isAdmin,canLock:isAdmin,canSetLocation:isAdmin,canEditUsage:isAdmin},incidents:{visible:isAdmin},logs:{visible:isAdmin,canClear:isAdmin},manageUsers:{visible:isAdmin},qrSystem:{access:isAdmin},itWorkspace:{visible:isAdmin},warrantyCheck:{visible:isAdmin,canAdd:isAdmin,canEdit:isAdmin,canDelete:isAdmin,canAddVendor:false,canEditVendor:false,canDeleteVendor:false},deviceLookup:{visible:isAdmin,canUpload:isAdmin},printers:{visible:isAdmin,canAdd:isAdmin,canEdit:isAdmin,canDelete:isAdmin},warrantyWidget:{visible:isAdmin},notifications:{receive:false},session:{keepAlive:false},scanner:{canSetOcrKey:isAdmin},emailRecipients:{canEdit:isAdmin}};}
 function migratePermissions(oldPerms){if(oldPerms&&oldPerms.dashboard)return oldPerms;return getDefaultPermissions(false);}
 // ==================== PWA Install & Service Worker ====================
 // تسجيل الـ Service Worker (بيشتغل بس لو الملف sw.js موجود فعلاً على نفس الاستضافة)
@@ -5543,7 +5543,7 @@ async function handleLogout() {
 function setAsViewOnly(){appContainer.classList.add('view-only');userInfoDiv.style.display='none';loginButton.style.display='block';document.querySelectorAll('.tab-button').forEach(tabButton=>{tabButton.style.setProperty('display','none','important')});const dashboardTabButton=document.querySelector('.tab-button[data-tab="dashboard"]');if(dashboardTabButton){dashboardTabButton.style.setProperty('display','flex','important');dashboardTabButton.style.setProperty('pointer-events','auto','important');dashboardTabButton.style.setProperty('opacity','1','important');dashboardTabButton.style.setProperty('cursor','pointer','important')}showTab('dashboard',true);}
 function applyPermissions(){if(!currentUser){setAsViewOnly();return}appContainer.classList.remove('view-only');loginButton.style.display='none';userInfoDiv.style.display='flex';userEmailDisplay.textContent=currentUser.email;const perms=currentUser.permissions;document.querySelectorAll('[data-permission]').forEach(el=>{const permKey=el.dataset.permission;const keys=permKey.split('_');let hasPermission=false;if(keys.length===2&&perms[keys[0]]&&typeof perms[keys[0]][keys[1]]!=='undefined'){hasPermission=perms[keys[0]][keys[1]]}el.style.display='';el.style.pointerEvents='';el.style.opacity='';el.style.cursor='';if(hasPermission){if(el.parentElement.classList.contains('buttons-group')||el.classList.contains('tab-button')){el.style.display='flex'}else{el.style.display=''}}else{el.style.display='none'}});if(document.getElementById('existingGroupsContainer'))displayExistingGroups();}
 function readPermissionsFromForm(form){const formData=new FormData(form);const perms=getDefaultPermissions(false);for(const pageName in perms){for(const permName in perms[pageName]){const key=`${pageName}_${permName}`;if(formData.has(key))perms[pageName][permName]=true}}perms.dashboard.visible=true;return perms}
-const permissionLabelsMap={dashboard:{label:'Dashboard',visible:'View Page',manageCompatibility:'Manage Compatibility',canBackup:'Full DB Export'},dataManagement:{label:'Data Management',visible:'View Page',canImport:'Can Import',canExport:'Can Export',canDelete:'Can Delete'},addEditLaptop:{label:'Add/Edit Laptop',visible:'View Page'},spareParts:{label:'Spare Parts',visible:'View Page',canAdd:'Can Add/Edit',canUse:'Can Use',canDeduct:'Can Deduct',canDelete:'Can Delete',canRollback:'Can Rollback Transfer',canLock:'Can Lock/Unlock Cards',canSetLocation:'Can Edit Site Location',canEditUsage:'Can Edit Usage Records'},incidents:{label:'Incidents',visible:'View Page'},logs:{label:'Logs',visible:'View Page',canClear:'Can Clear'},manageUsers:{label:'Manage Users',visible:'View Page'},qrSystem:{label:'QR System',access:'Access QR Scanner'},notifications:{label:'Notifications',receive:'Receive Log Notifications'},session:{label:'Session',keepAlive:'Stay Logged In (no idle logout)'},scanner:{label:'Serial Scanner',canSetOcrKey:'Set OCR Key'},emailRecipients:{label:'Email Recipients',canEdit:'Edit Email Recipients / CC'},itWorkspace:{label:'IT Workspace',visible:'View Page'},installedApps:{label:'Installed Apps',visible:'View Page',canUpload:'Can Upload Report'},warrantyCheck:{label:'Warranty Check',visible:'View Page',canAdd:'Devices: Can Add',canEdit:'Devices: Can Edit',canDelete:'Devices: Can Delete',canAddVendor:'Vendors: Can Add',canEditVendor:'Vendors: Can Edit',canDeleteVendor:'Vendors: Can Delete'},printers:{label:'Printers',visible:'View Page',canAdd:'Can Add',canEdit:'Can Edit',canDelete:'Can Delete'},warrantyWidget:{label:'Warranty Widget (Dashboard)',visible:'View Widget'}};
+const permissionLabelsMap={dashboard:{label:'Dashboard',visible:'View Page',manageCompatibility:'Manage Compatibility',canBackup:'Full DB Export'},dataManagement:{label:'Data Management',visible:'View Page',canImport:'Can Import',canExport:'Can Export',canDelete:'Can Delete'},addEditLaptop:{label:'Add/Edit Laptop',visible:'View Page'},spareParts:{label:'Spare Parts',visible:'View Page',canAdd:'Can Add/Edit',canUse:'Can Use',canDeduct:'Can Deduct',canDelete:'Can Delete',canRollback:'Can Rollback Transfer',canLock:'Can Lock/Unlock Cards',canSetLocation:'Can Edit Site Location',canEditUsage:'Can Edit Usage Records'},incidents:{label:'Incidents',visible:'View Page'},logs:{label:'Logs',visible:'View Page',canClear:'Can Clear'},manageUsers:{label:'Manage Users',visible:'View Page'},qrSystem:{label:'QR System',access:'Access QR Scanner'},notifications:{label:'Notifications',receive:'Receive Log Notifications'},session:{label:'Session',keepAlive:'Stay Logged In (no idle logout)'},scanner:{label:'Serial Scanner',canSetOcrKey:'Set OCR Key'},emailRecipients:{label:'Email Recipients',canEdit:'Edit Email Recipients / CC'},itWorkspace:{label:'IT Workspace',visible:'View Page'},deviceLookup:{label:'Device Lookup',visible:'View Page',canUpload:'Can Upload Reports'},warrantyCheck:{label:'Warranty Check',visible:'View Page',canAdd:'Devices: Can Add',canEdit:'Devices: Can Edit',canDelete:'Devices: Can Delete',canAddVendor:'Vendors: Can Add',canEditVendor:'Vendors: Can Edit',canDeleteVendor:'Vendors: Can Delete'},printers:{label:'Printers',visible:'View Page',canAdd:'Can Add',canEdit:'Can Edit',canDelete:'Can Delete'},warrantyWidget:{label:'Warranty Widget (Dashboard)',visible:'View Widget'}};
 function renderPermissionsAccessReport(){
     const container=document.getElementById('permissionsAccessReportContainer');
     if(!container)return;
@@ -8771,7 +8771,7 @@ listEl.addEventListener('click',function(e){
     try{var c=creds();var r=await supabaseClient.rpc('delete_provider',{payload:{username:c.username,password:c.password,name:v.provider_name}});if(r.error)throw new Error(r.error.message);logActivity('Delete Vendor','Deleted vendor: '+v.provider_name);showNotification('Vendor deleted.','success');load()}catch(err){showNotification(err.message||'Failed','error')}
   })}
 });
-var tb=document.querySelector('.tab-button[data-tab="warranty-check"]');
+var tb=document.querySelector('.tab-button[data-tab="device-lookup"]');
 if(tb)tb.addEventListener('click',load);
 var _ap2=applyPermissions;
 applyPermissions=function(){var r=_ap2.apply(this,arguments);try{render()}catch(e){}return r};
@@ -9099,99 +9099,161 @@ Promise.all(need.map(window.__lib)).then(function(){t.__relib=1;t.click();t.__re
 window.addEventListener('load',function(){setTimeout(function(){var go=function(){['xlsx','qr','h5'].forEach(function(k){window.__lib(k).catch(function(){})})};if(window.requestIdleCallback)requestIdleCallback(go,{timeout:6000});else go()},3000)});
 })();
 (function(){
-var inp=document.getElementById('iaSearchInput'),sug=document.getElementById('iaSuggestions'),res=document.getElementById('iaResult'),info=document.getElementById('iaInfo'),file=document.getElementById('iaFileInput'),prog=document.getElementById('iaProgress'),pt=document.getElementById('iaProgressText'),pb=document.getElementById('iaProgressBar'),lab=document.getElementById('iaUploadLabel');
+var $=function(i){return document.getElementById(i)};
+var inp=$('dlSearchInput'),sug=$('dlSuggestions'),res=$('dlResult'),appsCard=$('dlAppsCard'),prog=$('dlProgress'),pt=$('dlProgressText'),pb=$('dlProgressBar'),upList=$('dlUploadList');
 if(!inp)return;
-var seq=0,tm=null,uploading=false;
+var seq=0,tm=null,uploading=false,info={};
+var DS=[{k:'main',t:'All Xceed Computers main report',i:'fa-desktop'},{k:'keys',t:'Windows 10 installed key',i:'fa-key'},{k:'disks',t:'Hard Disk serial number reports',i:'fa-hard-drive'},{k:'apps',t:'All Installed Applications',i:'fa-boxes-stacked'}];
 function cr(){var u=currentUser&&users[currentUser.email];return u&&u.password?{username:u.email,password:u.password}:null}
-function can(k){var p=currentUser&&currentUser.permissions&&currentUser.permissions.installedApps;return !!(p&&p[k])}
+function can(k){var p=currentUser&&currentUser.permissions&&currentUser.permissions.deviceLookup;return !!(p&&p[k])}
 function fd(v){return v?String(v).replace('T',' ').slice(0,16):'-'}
+function dash(v){return v==null||String(v).trim()===''?'-':String(v)}
 async function rpc(fn,extra){var c=cr();if(!c)throw new Error('Please log in again.');var r=await supabaseClient.rpc(fn,{payload:Object.assign({},c,extra||{})});if(r.error)throw new Error(r.error.message);return r.data}
 function hideSug(){sug.style.display='none';sug.innerHTML=''}
+function stText(k){var d=info[k];if(!d)return 'No report uploaded yet.';var n=k==='apps'?(d.rows+' computers, '+d.apps+' apps'):(d.rows+' rows');return n+' - '+new Date(d.at).toLocaleString('en-GB',{timeZone:'Africa/Cairo'})+' by '+d.by}
+function renderUploads(){
+if(!upList)return;
+upList.innerHTML=DS.map(function(x){return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--input-border-color);"><div style="min-width:0;flex:1 1 220px;"><div style="font-weight:600;"><i class="fa-solid '+x.i+'" style="color:var(--primary-accent-color);margin-right:6px;"></i>'+escapeHtml(x.t)+'</div><div id="dlSt_'+x.k+'" style="font-size:.82em;color:var(--secondary-color);margin-top:2px;">'+escapeHtml(stText(x.k))+'</div></div><label class="import-button custom-btn dl-up-btn" for="dlFile_'+x.k+'"><i class="fa-solid fa-file-arrow-up"></i> Upload</label><input type="file" id="dlFile_'+x.k+'" data-ds="'+x.k+'" accept=".xlsx,.xls" style="display:none"></div>'}).join('')
+}
 async function loadInfo(){
-if(!can('visible')){return}
-try{var d=await rpc('installed_apps_info');
-info.textContent=d&&d.has?('Last update: '+new Date(d.uploadedAt).toLocaleString('en-GB',{timeZone:'Africa/Cairo'})+' by '+d.uploadedBy+' - '+d.computers+' computers, '+d.apps+' apps'):'No report uploaded yet.'}catch(e){info.textContent=''}
+if(!can('visible'))return;
+try{info=(await rpc('dl_info'))||{};renderUploads()}catch(e){}
 }
 async function search(q){
 var my=++seq;
 if(!q.trim()){hideSug();return}
-try{var list=await rpc('installed_computers_search',{q:q});if(my!==seq)return;
-if(!list||!list.length){sug.innerHTML='<div style="padding:12px 14px;color:var(--secondary-color);">No computers found.</div>';sug.style.display='block';return}
-sug.innerHTML=list.map(function(c){return '<div class="ia-sug" data-id="'+c.id+'" style="padding:10px 14px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--input-border-color);"><b>'+escapeHtml(c.name)+'</b><span style="color:var(--secondary-color);font-size:.85em;white-space:nowrap;">'+c.apps+' apps - '+escapeHtml(fd(c.scanDate))+'</span></div>'}).join('');
+try{var list=await rpc('dl_search',{q:q});if(my!==seq)return;
+if(!list||!list.length){sug.innerHTML='<div style="padding:12px 14px;color:var(--secondary-color);">No devices found.</div>';sug.style.display='block';return}
+sug.innerHTML=list.map(function(c){return '<div class="dl-sug" data-name="'+escapeHtml(c.name)+'" style="padding:10px 14px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--input-border-color);"><b>'+escapeHtml(c.name)+'</b><span style="color:var(--secondary-color);font-size:.85em;">'+escapeHtml(dash(c.serial))+' - '+escapeHtml(dash(c.user))+'</span></div>'}).join('');
 sug.style.display='block'}catch(e){if(my===seq){sug.innerHTML='<div style="padding:12px 14px;color:var(--danger-color,#e5484d);">'+escapeHtml(e.message)+'</div>';sug.style.display='block'}}
 }
-async function show(id){
-hideSug();res.innerHTML='<div style="text-align:center;padding:24px;"><i class="fas fa-circle-notch fa-spin app-spinner" style="font-size:1.6em;color:var(--primary-accent-color);"></i></div>';
-try{var d=await rpc('installed_apps_of',{computerId:id});
-if(!d||!d.found){res.innerHTML='<div style="color:var(--secondary-color);">Computer not found (the report may have been updated). Search again.</div>';return}
-inp.value=d.name;
-var rows=d.apps.map(function(a){return '<tr><td>'+escapeHtml(a.n)+'</td><td style="white-space:nowrap;">'+escapeHtml(a.v||'-')+'</td></tr>'}).join('');
-res.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;"><h3 style="margin:0;"><i class="fa-solid fa-desktop" style="color:var(--primary-accent-color);"></i> '+escapeHtml(d.name)+'</h3><span style="font-size:.85em;color:var(--secondary-color);">'+d.apps.length+' apps - scanned '+escapeHtml(fd(d.scanDate))+'</span></div><input type="text" id="iaFilter" placeholder="Filter apps..." style="width:100%;box-sizing:border-box;padding:8px 12px;margin-bottom:10px;border-radius:6px;border:1px solid var(--input-border-color);background:var(--input-bg-color);color:var(--text-color);"><div style="overflow-x:auto;"><table class="table" style="width:100%;"><thead><tr><th style="text-align:left;">Name</th><th style="text-align:left;">Version</th></tr></thead><tbody id="iaRows">'+rows+'</tbody></table></div>';
-var f=document.getElementById('iaFilter');f.addEventListener('input',function(){var t=f.value.toLowerCase();document.querySelectorAll('#iaRows tr').forEach(function(tr){tr.style.display=tr.textContent.toLowerCase().indexOf(t)===-1?'none':''})})
+function cell(l,v,full,extra){return '<div style="'+(full?'grid-column:1/-1;':'')+'min-width:0;"><div style="font-size:.78em;color:var(--secondary-color);">'+escapeHtml(l)+'</div><div style="font-weight:600;word-break:break-word;'+(extra||'')+'">'+v+'</div></div>'}
+function filterable(id,rows){return '<input type="text" id="'+id+'" placeholder="Filter apps..." style="width:100%;box-sizing:border-box;padding:8px 12px;margin-bottom:10px;border-radius:6px;border:1px solid var(--input-border-color);background:var(--input-bg-color);color:var(--text-color);"><div style="overflow-x:auto;"><table class="table" style="width:100%;"><thead><tr><th style="text-align:left;">Name</th><th style="text-align:left;">Version</th></tr></thead><tbody id="'+id+'Rows">'+rows+'</tbody></table></div>'}
+async function show(name){
+hideSug();
+res.innerHTML='<div style="text-align:center;padding:24px;"><i class="fas fa-circle-notch fa-spin app-spinner" style="font-size:1.6em;color:var(--primary-accent-color);"></i></div>';
+appsCard.style.display='none';
+try{
+var d=await rpc('dl_device',{name:name});
+if(!d||!d.found){res.innerHTML='<div style="color:var(--secondary-color);">Device not found. The report may have been updated. Search again.</div>';return}
+var m=d.main,k=d.key||{};
+inp.value=m.name;
+var h='<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;"><h3 style="margin:0;"><i class="fa-solid fa-desktop" style="color:var(--primary-accent-color);"></i> '+escapeHtml(m.name)+'</h3></div>';
+h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;background:var(--secondary-bg-color);padding:16px;border-radius:12px;border:1px solid var(--border-color);">';
+h+=cell('Computer Name',escapeHtml(dash(m.name)));
+h+=cell('Serial Number',escapeHtml(dash(m.serial)));
+h+=cell('OU',escapeHtml(dash(m.ou)),true);
+h+=cell('User',escapeHtml(dash(m.user)));
+h+=cell('Windows',escapeHtml(dash(m.os)));
+h+=cell('SP / Release',escapeHtml(dash(m.release)));
+h+=cell('O/S Architecture',escapeHtml(dash(k.arch)));
+h+=cell('Activation Key',k.key?'<span style="font-family:monospace;user-select:all;">'+escapeHtml(k.key)+'</span> <button type="button" class="custom-btn dl-copy" data-v="'+escapeHtml(k.key)+'" title="Copy" style="padding:2px 8px;"><i class="fa-regular fa-copy"></i></button>':'-',true);
+h+=cell('MAC',escapeHtml(dash(m.mac)));
+h+=cell('IP Address',escapeHtml(dash(m.ip)));
+h+=cell('RAM',escapeHtml(dash(m.memory)));
+h+=cell('Last Scanned',escapeHtml(fd(m.scan)));
+h+='</div>';
+h+='<h4 style="margin:18px 0 8px;"><i class="fa-solid fa-hard-drive" style="color:var(--primary-accent-color);"></i> Disks</h4>';
+if(d.disks&&d.disks.length){
+h+='<div style="overflow-x:auto;"><table class="table" style="width:100%;"><thead><tr><th style="text-align:left;">Type</th><th style="text-align:left;">Model</th><th style="text-align:left;">Serial Number</th><th style="text-align:left;">Capacity</th><th style="text-align:left;">Health</th></tr></thead><tbody>'+d.disks.map(function(x){var ok=String(x.smart||'').toUpperCase()==='OK';return '<tr><td>'+escapeHtml(dash(x.type))+'</td><td>'+escapeHtml(dash(x.model))+'</td><td>'+escapeHtml(dash(x.serial))+'</td><td style="white-space:nowrap;">'+(x.size!=null?escapeHtml(String(x.size))+' GB':'-')+'</td><td style="font-weight:600;color:'+(x.smart?(ok?'var(--success-color)':'var(--danger-color,#e5484d)'):'inherit')+';">'+escapeHtml(dash(x.smart))+'</td></tr>'}).join('')+'</tbody></table></div>'
+}else h+='<div style="color:var(--secondary-color);">-</div>';
+res.innerHTML=h;
+var wi=$('warrantySerialInput'),wr=$('warrantyResult'),wl=$('warrantyLoading');
+if(wi){wi.value=m.serial||'';if(m.serial){checkWarrantyStatus()}else{if(wl)wl.style.display='none';if(wr){wr.innerHTML='<div style="color:var(--secondary-color);">-</div>';wr.style.display='block'}}}
+appsCard.style.display='';
+var ap=d.apps;
+$('dlAppsBody').innerHTML=ap?('<div style="font-size:.85em;color:var(--secondary-color);margin-bottom:8px;">'+ap.list.length+' apps - scanned '+escapeHtml(fd(ap.scan))+'</div>'+filterable('dlAppsFilter',ap.list.map(function(a){return '<tr><td>'+escapeHtml(a.n)+'</td><td style="white-space:nowrap;">'+escapeHtml(a.v||'-')+'</td></tr>'}).join(''))):'<div style="color:var(--secondary-color);">-</div>';
+var f=$('dlAppsFilter');if(f)f.addEventListener('input',function(){var t=f.value.toLowerCase();document.querySelectorAll('#dlAppsFilterRows tr').forEach(function(tr){tr.style.display=tr.textContent.toLowerCase().indexOf(t)===-1?'none':''})})
 }catch(e){res.innerHTML='<div style="color:var(--danger-color,#e5484d);">'+escapeHtml(e.message)+'</div>'}
 }
+res.addEventListener('click',function(e){var b=e.target.closest('.dl-copy');if(!b)return;var v=b.dataset.v;var done=function(){showNotification('Copied.','success')};if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(v).then(done,function(){});else{var t=document.createElement('textarea');t.value=v;document.body.appendChild(t);t.select();try{document.execCommand('copy');done()}catch(x){}t.remove()}});
 inp.addEventListener('input',function(){clearTimeout(tm);var q=inp.value;tm=setTimeout(function(){search(q)},300)});
-inp.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();var f=sug.querySelector('.ia-sug');if(f)show(f.dataset.id)}else if(e.key==='Escape')hideSug()});
-sug.addEventListener('click',function(e){var t=e.target.closest('.ia-sug');if(t)show(t.dataset.id)});
-document.addEventListener('click',function(e){if(!e.target.closest('#iaSearchInput,#iaSuggestions'))hideSug()});
-var tb=document.querySelector('.tab-button[data-tab="installed-apps"]');
+inp.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();var f=sug.querySelector('.dl-sug');if(f)show(f.dataset.name)}else if(e.key==='Escape')hideSug()});
+sug.addEventListener('click',function(e){var t=e.target.closest('.dl-sug');if(t)show(t.dataset.name)});
+document.addEventListener('click',function(e){if(!e.target.closest('#dlSearchInput,#dlSuggestions,.sn-scan-btn'))hideSug()});
+var tb=document.querySelector('.tab-button[data-tab="device-lookup"]');
 if(tb)tb.addEventListener('click',loadInfo);
 
-function pad(n){return String(n).padStart(2,'0')}
+function s(v){return v==null?'':String(v).trim()}
 function ser(n){if(typeof n!=='number')return '';var d=new Date(Math.round((n-25569)*86400)*1000);return isNaN(d.getTime())?'':d.toISOString().slice(0,19)}
-function parse(rows){
-var map=new Map(),cur=null,n=rows.length;
-for(var i=0;i<n;i++){
-var r=rows[i];if(!r)continue;var a=r[0],b=r[1],c=r[2];
-if(a==null||a==='')continue;
-a=String(a).trim();if(!a)continue;
+function hdrIdx(rows,need){for(var i=0;i<Math.min(rows.length,10);i++){var r=rows[i]||[],m={};r.forEach(function(v,j){if(v!=null)m[String(v).trim()]=j});if(need.every(function(n){return n in m}))return{i:i,m:m}}return null}
+function parseMain(rows){
+var h=hdrIdx(rows,['Computer Name','Computer Serial Number','Computer AD Path','Computer MAC Address','Computer Current User Name','Computer Successful Scan Date','Computer IP Address','Computer O/S Name','Computer SP / Release','Computer Memory']);
+if(!h)throw new Error('This is not the "All Xceed Computers main report" file.');
+var m=h.m,out=[];
+for(var j=h.i+1;j<rows.length;j++){var r=rows[j];if(!r)continue;var n=s(r[m['Computer Name']]);if(!n)continue;
+out.push([n,s(r[m['Computer Serial Number']]),s(r[m['Computer AD Path']]),s(r[m['Computer Current User Name']]),s(r[m['Computer O/S Name']]),s(r[m['Computer SP / Release']]),s(r[m['Computer MAC Address']]),s(r[m['Computer IP Address']]),ser(r[m['Computer Successful Scan Date']]),s(r[m['Computer Memory']])])}
+return out}
+function parseKeys(rows){
+var h=hdrIdx(rows,['Computer Name','Computer O/S Architecture','PowerShell (Get insatlled windows key) String']);
+if(!h)throw new Error('This is not the "Windows 10 installed key" file.');
+var m=h.m,out=[],re=/Installed Key:\s*([A-Z0-9]{5}(?:-[A-Z0-9]{5}){4})/i;
+for(var j=h.i+1;j<rows.length;j++){var r=rows[j];if(!r)continue;var n=s(r[m['Computer Name']]);if(!n)continue;
+var mk=re.exec(s(r[m['PowerShell (Get insatlled windows key) String']])),key=mk?mk[1].toUpperCase():'',arch=s(r[m['Computer O/S Architecture']]);
+if(key||arch)out.push([n,arch,key])}
+return out}
+function parseDisks(rows){
+var found=false,cur=null,out=[];
+for(var i=0;i<rows.length;i++){var r=rows[i];if(!r)continue;var a=r[0];
+if(a==='Computer Model'){if(String(r[6]).indexOf('SMART')!==-1)found=true;continue}
+if(a!=null&&String(a).trim()!==''&&r[1]==null&&r[2]==null&&rows[i+1]&&rows[i+1][0]==='Computer Model'){cur=String(a).trim();continue}
+if(cur&&(r[2]!=null||r[3]!=null)){out.push([cur,s(r[2]),s(r[3]),s(r[4]),r[5]==null?'':String(r[5]),s(r[6])])}}
+if(!found)throw new Error('This is not the "Hard Disk serial number reports" file.');
+return out}
+function parseApps(rows){
+var map=new Map(),cur=null,n=rows.length,seen=false;
+for(var i=0;i<n;i++){var r=rows[i];if(!r)continue;var a=r[0],b=r[1],c=r[2];if(a==null||a==='')continue;a=String(a).trim();if(!a)continue;
 var nx=rows[i+1];
-if((b==null||b==='')&&(c==null||c==='')&&nx&&String(nx[0]).trim()==='Name'){var k=a.toLowerCase();if(!map.has(k))map.set(k,{c:a,d:'',a:[]});cur=map.get(k);i++;continue}
+if((b==null||b==='')&&(c==null||c==='')&&nx&&String(nx[0]).trim()==='Name'){var k=a.toLowerCase();if(!map.has(k))map.set(k,{c:a,d:'',a:[]});cur=map.get(k);seen=true;i++;continue}
 if(a==='Name'&&String(b).indexOf('Version')!==-1)continue;
-if(cur){cur.a.push([a,b==null?'':String(b).trim()]);var d=ser(c);if(d&&d>cur.d)cur.d=d}
-}
-return Array.from(map.values()).filter(function(x){return x.a.length>0})
-}
-function setProg(txt,pct){prog.style.display='block';pt.textContent=txt;pb.style.width=pct+'%'}
+if(cur){cur.a.push([a,b==null?'':String(b).trim()]);var d=ser(c);if(d&&d>cur.d)cur.d=d}}
+if(!seen)throw new Error('This is not the "All Installed Applications" file.');
+return Array.from(map.values()).filter(function(x){return x.a.length>0})}
+var PARSE={main:parseMain,keys:parseKeys,disks:parseDisks,apps:parseApps};
+var SIZE={main:1500,keys:2000,disks:2000};
+function setProg(t,p){prog.style.display='block';pt.textContent=t;pb.style.width=p+'%'}
 async function send(fn,extra){for(var t=0;t<3;t++){try{return await rpc(fn,extra)}catch(e){if(t===2)throw e;await new Promise(function(r){setTimeout(r,800*(t+1))})}}}
-async function upload(f){
-uploading=true;lab.style.opacity='.5';lab.style.pointerEvents='none';
+async function upload(k,f){
+var def=DS.filter(function(x){return x.k===k})[0];
+uploading=true;document.querySelectorAll('.dl-up-btn').forEach(function(b){b.style.opacity='.5';b.style.pointerEvents='none'});
 try{
 setProg('Loading Excel library...',2);
 await window.__lib('xlsx');
 setProg('Reading file...',5);
 await new Promise(function(r){setTimeout(r,30)});
 var wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
-var ws=wb.Sheets[wb.SheetNames[0]];
-var rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null,blankrows:true});
+var rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:true,defval:null,blankrows:true});
 setProg('Analyzing report...',12);
 await new Promise(function(r){setTimeout(r,30)});
-var comps=parse(rows);rows=null;wb=null;
-if(!comps.length)throw new Error('Unrecognized report format: no computers found.');
-var totalApps=comps.reduce(function(s,c){return s+c.a.length},0);
-var ok=await Swal.fire({title:'Replace current report?',html:'This file has <b>'+comps.length+'</b> computers and <b>'+totalApps+'</b> apps.<br>The previous report will be deleted after the upload completes.',icon:'question',showCancelButton:true,confirmButtonText:'Upload'});
+var data=PARSE[k](rows);rows=null;wb=null;
+if(!data.length)throw new Error('No data found in this file.');
+var total=k==='apps'?data.reduce(function(x,c){return x+c.a.length},0):data.length;
+var ok=await Swal.fire({title:'Replace "'+def.t+'"?',html:'This file has <b>'+data.length+'</b> '+(k==='apps'?'computers and <b>'+total+'</b> apps':'rows')+'.<br>The previous data will be deleted after the upload completes.',icon:'question',showCancelButton:true,confirmButtonText:'Upload'});
 if(!ok.isConfirmed){prog.style.display='none';return}
-var b=await send('installed_apps_begin',{fileName:f.name});
+var isApps=k==='apps';
+var b=await send(isApps?'installed_apps_begin':'dl_begin',isApps?{fileName:f.name}:{dataset:k,fileName:f.name});
 var chunks=[],cur=[],cnt=0;
-comps.forEach(function(c){if(cur.length&&(cnt+c.a.length>6000||cur.length>=400)){chunks.push(cur);cur=[];cnt=0}cur.push(c);cnt+=c.a.length});
-if(cur.length)chunks.push(cur);
-for(var i=0;i<chunks.length;i++){
-setProg('Uploading '+(i+1)+' / '+chunks.length+'...',15+Math.round(i/chunks.length*80));
-await send('installed_apps_chunk',{batchId:b.batchId,computers:chunks[i]})
+if(isApps){data.forEach(function(c){if(cur.length&&(cnt+c.a.length>6000||cur.length>=400)){chunks.push(cur);cur=[];cnt=0}cur.push(c);cnt+=c.a.length});if(cur.length)chunks.push(cur)}
+else{for(var i=0;i<data.length;i+=SIZE[k])chunks.push(data.slice(i,i+SIZE[k]))}
+for(var i2=0;i2<chunks.length;i2++){
+setProg('Uploading '+(i2+1)+' / '+chunks.length+'...',15+Math.round(i2/chunks.length*80));
+await send(isApps?'installed_apps_chunk':'dl_chunk',isApps?{batchId:b.batchId,computers:chunks[i2]}:{batchId:b.batchId,rows:chunks[i2]})
 }
 setProg('Finalizing...',96);
-var fin=await send('installed_apps_finish',{batchId:b.batchId});
-setProg('Cleaning old report...',98);
-for(var k=0;k<60;k++){var cl=await send('installed_apps_cleanup');if(!cl||!cl.remaining)break}
+var fin=await send(isApps?'installed_apps_finish':'dl_finish',{batchId:b.batchId});
+setProg('Cleaning old data...',98);
+for(var q=0;q<80;q++){var cl=await send(isApps?'installed_apps_cleanup':'dl_cleanup');if(!cl||!cl.remaining)break}
 setProg('Done',100);
-try{logActivity('Upload Installed Apps',f.name+' - '+fin.computers+' computers, '+fin.apps+' apps')}catch(e){}
-showNotification('Report uploaded: '+fin.computers+' computers, '+fin.apps+' apps.','success');
-res.innerHTML='';inp.value='';loadInfo();
+var cnt2=isApps?(fin.computers+' computers, '+fin.apps+' apps'):(fin.rows+' rows');
+try{logActivity('Upload Device Data',def.t+' ('+f.name+') - '+cnt2)}catch(e){}
+showNotification(def.t+' uploaded: '+cnt2+'.','success');
+res.innerHTML='';appsCard.style.display='none';inp.value='';loadInfo();
 setTimeout(function(){prog.style.display='none'},1500)
-}catch(e){showNotification(e.message||'Upload failed','error');setProg('Failed: '+(e.message||'error')+' (previous report is unchanged)',0)}
-finally{uploading=false;lab.style.opacity='';lab.style.pointerEvents='';file.value=''}
+}catch(e){showNotification(e.message||'Upload failed','error');setProg('Failed: '+(e.message||'error')+' (previous data is unchanged)',0)}
+finally{uploading=false;document.querySelectorAll('.dl-up-btn').forEach(function(b){b.style.opacity='';b.style.pointerEvents=''});document.querySelectorAll('#dlUploadList input[type=file]').forEach(function(i){i.value=''})}
 }
-file.addEventListener('change',function(){var f=file.files&&file.files[0];if(!f||uploading)return;if(!can('canUpload')){showNotification('Permission denied.','error');file.value='';return}upload(f)});
+upList.addEventListener('change',function(e){var t=e.target;if(!t||t.type!=='file')return;var f=t.files&&t.files[0];if(!f||uploading)return;if(!can('canUpload')){showNotification('Permission denied.','error');t.value='';return}upload(t.dataset.ds,f)});
+renderUploads();
 })();
 window.loadLaptops=refreshAllDataAndViews;resetFormForAdd()});
       </script>
