@@ -9212,7 +9212,7 @@ if(!h)throw new Error('This is not the "Windows 10 installed key" file.');
 var m=h.m,out=[],re=/Installed Key:\s*([A-Z0-9]{5}(?:-[A-Z0-9]{5}){4})/i;
 for(var j=h.i+1;j<rows.length;j++){var r=rows[j];if(!r)continue;var n=s(r[m['Computer Name']]);if(!n)continue;
 var mk=re.exec(s(r[m['PowerShell (Get insatlled windows key) String']])),key=mk?mk[1].toUpperCase():'',arch=s(r[m['Computer O/S Architecture']]);
-if(key||arch)out.push([n,arch,key])}
+if(key||arch)out.push([n,arch,key,s(r[m['Computer Serial Number']])])}
 return out}
 function parseDisks(rows){
 var found=false,cur=null,out=[];
@@ -9237,7 +9237,7 @@ if(!h)throw new Error('This is not the "BitLocker Recovery Password" report file
 var m=h.m,out=[];
 for(var j=h.i+1;j<rows.length;j++){var r=rows[j];if(!r)continue;var n=s(r[m['Computer Name']]);if(!n)continue;
 var id=s(r[m['PowerShell (Bitlocker Recovery Password) KeyProtectorId']]),pw=s(r[m['PowerShell (Bitlocker Recovery Password) RecoveryPassword']]);
-if(id||pw)out.push([n,id,pw])}
+if(id||pw)out.push([n,id,pw,s(r[m['Computer Current User Name']]),s(r[m['Computer Serial Number']])])}
 return out}
 var PARSE={main:parseMain,keys:parseKeys,disks:parseDisks,bitlocker:parseBitlocker,apps:parseApps};
 var SIZE={main:1500,keys:2000,disks:2000,bitlocker:2000};
