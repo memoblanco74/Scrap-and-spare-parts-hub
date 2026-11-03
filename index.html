@@ -4379,7 +4379,7 @@
           </div>
           <div id="dlResult" style="margin-top:18px;"></div>
         </div>
-        <div class="card" id="warrantyCard" style="max-width: 900px; margin: 20px auto 0;">
+        <div class="card" id="warrantyCard" style="display:none; max-width: 900px; margin: 20px auto 0;">
           <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
             <h3 style="margin:0;"><i class="fa-solid fa-shield-halved" style="color: var(--success-color);"></i> Warranty</h3>
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
@@ -9172,6 +9172,7 @@ h+=d.bitlocker.map(function(x,i){return '<div style="background:var(--secondary-
 }
 res.innerHTML=h;
 var wi=$('warrantySerialInput'),wr=$('warrantyResult'),wl=$('warrantyLoading');
+var wc=$('warrantyCard');if(wc)wc.style.display='';
 if(wi){wi.value=m.serial||'';if(m.serial){checkWarrantyStatus()}else{if(wl)wl.style.display='none';if(wr){wr.innerHTML='<div style="color:var(--secondary-color);">-</div>';wr.style.display='block'}}}
 appsCard.style.display='';
 var ap=d.apps;
