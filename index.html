@@ -9125,11 +9125,16 @@ async function loadInfo(){
 if(!can('visible'))return;
 try{info=(await rpc('dl_info'))||{};renderUploads()}catch(e){}
 }
+function warrantyOnly(serial){
+res.innerHTML='';appsCard.style.display='none';
+var wi=$('warrantySerialInput'),wc=$('warrantyCard');
+if(!wi)return;wi.value=serial;if(wc)wc.style.display='';
+checkWarrantyStatus()}
 async function search(q){
 var my=++seq;
-if(!q.trim()){hideSug();return}
+if(!q.trim()){hideSug();if(!res.innerHTML.trim()){var wc0=$('warrantyCard'),wr0=$('warrantyResult');if(wc0)wc0.style.display='none';if(wr0)wr0.style.display='none'}return}
 try{var list=await rpc('dl_search',{q:q});if(my!==seq)return;
-if(!list||!list.length){sug.innerHTML='<div style="padding:12px 14px;color:var(--secondary-color);">No devices found.</div>';sug.style.display='block';return}
+if(!list||!list.length){var qq=q.trim();sug.innerHTML='<div style="padding:12px 14px;color:var(--secondary-color);">No devices found'+(qq.length>=4?' - checking warranty for this serial.':'.')+'</div>';sug.style.display='block';if(qq.length>=4)warrantyOnly(qq);return}
 sug.innerHTML=list.map(function(c){return '<div class="dl-sug" data-name="'+escapeHtml(c.name)+'" style="padding:10px 14px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--input-border-color);"><b>'+escapeHtml(c.name)+'</b><span style="color:var(--secondary-color);font-size:.85em;">'+escapeHtml(dash(c.serial))+' - '+escapeHtml(dash(String(c.user||'').replace(/\s*\(locked\)\s*$/i,'')))+'</span></div>'}).join('');
 sug.style.display='block'}catch(e){if(my===seq){sug.innerHTML='<div style="padding:12px 14px;color:var(--danger-color,#e5484d);">'+escapeHtml(e.message)+'</div>';sug.style.display='block'}}
 }
