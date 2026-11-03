@@ -9135,7 +9135,8 @@ var my=++seq;
 if(!q.trim()){hideSug();if(!res.innerHTML.trim()){var wc0=$('warrantyCard'),wr0=$('warrantyResult');if(wc0)wc0.style.display='none';if(wr0)wr0.style.display='none'}return}
 try{var list=await rpc('dl_search',{q:q});if(my!==seq)return;
 if(!list||!list.length){var qq=q.trim();sug.innerHTML='<div style="padding:12px 14px;color:var(--secondary-color);">No devices found'+(qq.length>=4?' - checking warranty for this serial.':'.')+'</div>';sug.style.display='block';if(qq.length>=4)warrantyOnly(qq);return}
-sug.innerHTML=list.map(function(c){return '<div class="dl-sug" data-name="'+escapeHtml(c.name)+'" style="padding:10px 14px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--input-border-color);"><b>'+escapeHtml(c.name)+'</b><span style="color:var(--secondary-color);font-size:.85em;">'+escapeHtml(dash(c.serial))+' - '+escapeHtml(dash(String(c.user||'').replace(/\s*\(locked\)\s*$/i,'')))+'</span></div>'}).join('');
+sug.innerHTML=list.map(function(c){return '<div class="dl-sug" data-name="'+escapeHtml(c.name)+'" style="padding:10px 14px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--input-border-color);"><b>'+escapeHtml(c.name)+'</b><span style="color:var(--secondary-color);font-size:.85em;">'+escapeHtml(dash(c.serial))+' - '+escapeHtml(dash(String(c.user||'').replace(/\s*\(locked\)\s*$/i,'')))+(c.note?' - '+escapeHtml(c.note):(c.in_main===false?' - not in main report':''))+'</span></div>'}).join('');
+if(list.every(function(x){return x.via==='disk'})&&q.trim().length>=4)warrantyOnly(q.trim());
 sug.style.display='block'}catch(e){if(my===seq){sug.innerHTML='<div style="padding:12px 14px;color:var(--danger-color,#e5484d);">'+escapeHtml(e.message)+'</div>';sug.style.display='block'}}
 }
 function cell(l,v,full,extra){return '<div style="'+(full?'grid-column:1/-1;':'')+'min-width:0;"><div style="font-size:.78em;color:var(--secondary-color);">'+escapeHtml(l)+'</div><div style="font-weight:600;word-break:break-word;'+(extra||'')+'">'+v+'</div></div>'}
@@ -9148,8 +9149,10 @@ try{
 var d=await rpc('dl_device',{name:name});
 if(!d||!d.found){res.innerHTML='<div style="color:var(--secondary-color);">Device not found. The report may have been updated. Search again.</div>';return}
 var m=d.main,k=d.key||{};
+var nm=d.in_main===false?'<div style="color:var(--warning-color);font-size:.85em;margin:-6px 0 10px;"><i class="fa-solid fa-triangle-exclamation"></i> This device is not in the main report. Showing data from the other reports.</div>':'';
 inp.value=m.name;
 var h='<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;"><h3 style="margin:0;"><i class="fa-solid fa-desktop" style="color:var(--primary-accent-color);"></i> '+escapeHtml(m.name)+'</h3></div>';
+h+=nm;
 h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;background:var(--secondary-bg-color);padding:16px;border-radius:12px;border:1px solid var(--border-color);">';
 h+=cell('Computer Name',escapeHtml(dash(m.name)));
 h+=cell('Serial Number',escapeHtml(dash(m.serial)));
