@@ -9192,7 +9192,7 @@ var f=$('dlAppsFilter');if(f)f.addEventListener('input',function(){var t=f.value
 }catch(e){res.innerHTML='<div style="color:var(--danger-color,#e5484d);">'+escapeHtml(e.message)+'</div>'}
 }
 res.addEventListener('click',function(e){var b=e.target.closest('.dl-copy');if(!b)return;var v=b.dataset.v;var done=function(){showNotification('Copied.','success')};if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(v).then(done,function(){});else{var t=document.createElement('textarea');t.value=v;document.body.appendChild(t);t.select();try{document.execCommand('copy');done()}catch(x){}t.remove()}});
-inp.addEventListener('input',function(){clearTimeout(tm);var q=inp.value;tm=setTimeout(function(){search(q)},300)});
+inp.addEventListener('input',function(){clearTimeout(tm);var q=inp.value;seq++;tm=setTimeout(function(){search(q)},700)});
 inp.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();var f=sug.querySelector('.dl-sug');if(f)show(f.dataset.name)}else if(e.key==='Escape')hideSug()});
 sug.addEventListener('click',function(e){var t=e.target.closest('.dl-sug');if(t)show(t.dataset.name)});
 document.addEventListener('click',function(e){if(!e.target.closest('#dlSearchInput,#dlSuggestions,.sn-scan-btn'))hideSug()});
