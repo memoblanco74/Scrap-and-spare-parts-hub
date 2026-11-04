@@ -8355,7 +8355,7 @@ window.resetITWorkspace = function() {
     generatedDevices = [];
     updateITCounts();
 };
-const userSearchInput = document.getElementById("userSearchInput"); if (userSearchInput) { userSearchInput.addEventListener('input', function() { const filter = this.value.toLowerCase(); const rows = document.querySelectorAll("#usersTable tbody tr"); rows.forEach(row => { const userInfo = row.getElementsByTagName("td")[1]?.textContent.toLowerCase() || ""; row.style.display = userInfo.includes(filter) ? "" : "none"; }); }); }
+const userSearchInput = document.getElementById("userSearchInput"); if (userSearchInput) { userSearchInput.addEventListener('input', function() { const filter = this.value.toLowerCase(); const rows = document.querySelectorAll("#usersTable tbody tr"); rows.forEach(row => { const userInfo = row.getElementsByTagName("td")[2]?.textContent.toLowerCase() || ""; row.style.display = userInfo.includes(filter) ? "" : "none"; }); }); }
 const permReportSearchInput = document.getElementById("permReportSearchInput"); if (permReportSearchInput) { permReportSearchInput.addEventListener('input', filterPermissionsReport); }
 const permissionsAccessReportContainer = document.getElementById("permissionsAccessReportContainer"); if (permissionsAccessReportContainer) { permissionsAccessReportContainer.addEventListener('click', handlePermissionsReportClick); }
 if(reportDetailsTable){reportDetailsTable.addEventListener('change',function(e){if(e.target.id==='reportSelectAllCheckbox'){const checked=e.target.checked;reportDetailsTable.querySelectorAll('.usage-row-checkbox').forEach(cb=>{const tr=cb.closest('tr');if(!tr||tr.style.display!=='none')cb.checked=checked;});}updateUsageEmailSelectedCount();});}
