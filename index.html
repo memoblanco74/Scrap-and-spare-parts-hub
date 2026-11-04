@@ -9122,7 +9122,7 @@ function hideSug(){sug.style.display='none';sug.innerHTML=''}
 function stText(k){var d=info[k];if(!d)return 'No report uploaded yet.';var n=k==='apps'?(d.rows+' computers, '+d.apps+' apps'):(k==='disks'||k==='bitlocker')?(d.computers!=null?(d.computers+' computers, '+d.rows+(k==='disks'?' disks':' keys')):(d.rows+' rows')):(d.rows+' computers');return n+' - '+new Date(d.at).toLocaleString('en-GB',{timeZone:'Africa/Cairo'})+' by '+d.by}
 function renderUploads(){
 if(!upList)return;
-upList.innerHTML=DS.map(function(x){return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--input-border-color);"><div style="min-width:0;flex:1 1 220px;"><div style="font-weight:600;"><i class="fa-solid '+x.i+'" style="color:var(--primary-accent-color);margin-right:6px;"></i>'+escapeHtml(x.t)+'</div><div id="dlSt_'+x.k+'" style="font-size:.82em;color:var(--secondary-color);margin-top:2px;">'+escapeHtml(stText(x.k))+'</div></div><label class="import-button custom-btn dl-up-btn" for="dlFile_'+x.k+'"><i class="fa-solid fa-file-arrow-up"></i> Upload</label><input type="file" id="dlFile_'+x.k+'" data-ds="'+x.k+'" accept=".xlsx,.xls" style="display:none"></div>'}).join('')
+upList.innerHTML=DS.map(function(x){return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--input-border-color);"><div style="min-width:0;flex:1 1 220px;"><div style="font-weight:600;"><i class="fa-solid '+x.i+'" style="color:var(--primary-accent-color);margin-right:6px;"></i>'+escapeHtml(x.t)+'</div><div id="dlSt_'+x.k+'" style="font-size:.82em;color:var(--secondary-color);margin-top:2px;">'+escapeHtml(stText(x.k))+'</div></div><div style="display:flex;gap:8px;flex-wrap:wrap;"><label class="import-button custom-btn dl-up-btn" for="dlFile_'+x.k+'"><i class="fa-solid fa-file-arrow-up"></i> Upload</label><label class="import-button custom-btn dl-up-btn" for="dlUpd_'+x.k+'" title="Update existing data without deleting anything"><i class="fa-solid fa-arrows-rotate"></i> Update</label></div><input type="file" id="dlFile_'+x.k+'" data-ds="'+x.k+'" accept=".xlsx,.xls" style="display:none"><input type="file" id="dlUpd_'+x.k+'" data-ds="'+x.k+'" data-mode="update" accept=".xlsx,.xls" style="display:none"></div>'}).join('')
 }
 async function loadInfo(){
 if(!can('visible'))return;
@@ -9246,7 +9246,7 @@ var PARSE={main:parseMain,keys:parseKeys,disks:parseDisks,bitlocker:parseBitlock
 var SIZE={main:1500,keys:2000,disks:2000,bitlocker:2000};
 function setProg(t,p){prog.style.display='block';pt.textContent=t;pb.style.width=p+'%'}
 async function send(fn,extra){for(var t=0;t<3;t++){try{return await rpc(fn,extra)}catch(e){if(t===2)throw e;await new Promise(function(r){setTimeout(r,800*(t+1))})}}}
-async function upload(k,f){
+async function upload(k,f,upd){
 var def=DS.filter(function(x){return x.k===k})[0];
 uploading=true;document.querySelectorAll('.dl-up-btn').forEach(function(b){b.style.opacity='.5';b.style.pointerEvents='none'});
 try{
@@ -9261,9 +9261,28 @@ await new Promise(function(r){setTimeout(r,30)});
 var data=PARSE[k](rows);rows=null;wb=null;
 if(!data.length)throw new Error('No data found in this file.');
 var total=k==='apps'?data.reduce(function(x,c){return x+c.a.length},0):data.length;
-var ok=await Swal.fire({title:'Replace "'+def.t+'"?',html:'This file has <b>'+data.length+'</b> '+(k==='apps'?'computers and <b>'+total+'</b> apps':'rows')+'.<br>The previous data will be deleted after the upload completes.',icon:'question',showCancelButton:true,confirmButtonText:'Upload'});
+var ok=await Swal.fire({title:(upd?'Update "':'Replace "')+def.t+'"?',html:'This file has <b>'+data.length+'</b> '+(k==='apps'?'computers and <b>'+total+'</b> apps':'rows')+'.<br>'+(upd?'Existing computers will be updated, new ones added, and nothing will be deleted.':'The previous data will be deleted after the upload completes.'),icon:'question',showCancelButton:true,confirmButtonText:upd?'Update':'Upload'});
 if(!ok.isConfirmed){prog.style.display='none';return}
 var isApps=k==='apps';
+if(upd){
+var uc=[],ucur=[],ucnt=0;
+if(isApps){data.forEach(function(c){if(ucur.length&&(ucnt+c.a.length>6000||ucur.length>=400)){uc.push(ucur);ucur=[];ucnt=0}ucur.push(c);ucnt+=c.a.length});if(ucur.length)uc.push(ucur)}
+else if(k==='main'){var mm=new Map();data.forEach(function(r){mm.set(String(r[0]).toLowerCase(),r)});var ma=Array.from(mm.values());for(var mi=0;mi<ma.length;mi+=SIZE[k])uc.push(ma.slice(mi,mi+SIZE[k]))}
+else{var gm=new Map();data.forEach(function(r){var g=String(r[0]).toLowerCase();if(!gm.has(g))gm.set(g,[]);gm.get(g).push(r)});gm.forEach(function(g){if(ucur.length&&ucur.length+g.length>SIZE[k]){uc.push(ucur);ucur=[]}ucur=ucur.concat(g)});if(ucur.length)uc.push(ucur)}
+var ad=0,up=0,sk=0;
+for(var ui=0;ui<uc.length;ui++){
+setProg('Updating '+(ui+1)+' / '+uc.length+'...',10+Math.round(ui/uc.length*85));
+var ur=await send(isApps?'installed_apps_merge_chunk':'dl_merge_chunk',isApps?{computers:uc[ui]}:{dataset:k,rows:uc[ui]});
+if(isApps){ad+=ur.added;up+=ur.updated;sk+=ur.skipped}}
+setProg('Finalizing...',97);
+var uf=await send(isApps?'installed_apps_merge_finish':'dl_merge_finish',isApps?{fileName:f.name}:{dataset:k,fileName:f.name});
+setProg('Done',100);
+var ut=isApps?(uf.computers+' computers, '+uf.apps+' apps ('+ad+' added, '+up+' updated'+(sk?', '+sk+' skipped as older':'')+')'):(k==='disks'?uf.rows+' disks':k==='bitlocker'?uf.rows+' keys':uf.rows+' computers')+' in total';
+try{logActivity('Update Device Data',def.t+' ('+f.name+') - '+ut)}catch(e){}
+showNotification(def.t+' updated: '+ut+'.','success');
+res.innerHTML='';appsCard.style.display='none';inp.value='';loadInfo();
+setTimeout(function(){prog.style.display='none'},1500);
+return}
 var b=await send(isApps?'installed_apps_begin':'dl_begin',isApps?{fileName:f.name}:{dataset:k,fileName:f.name});
 var chunks=[],cur=[],cnt=0;
 if(isApps){data.forEach(function(c){if(cur.length&&(cnt+c.a.length>6000||cur.length>=400)){chunks.push(cur);cur=[];cnt=0}cur.push(c);cnt+=c.a.length});if(cur.length)chunks.push(cur)}
@@ -9282,10 +9301,10 @@ try{logActivity('Upload Device Data',def.t+' ('+f.name+') - '+cnt2)}catch(e){}
 showNotification(def.t+' uploaded: '+cnt2+'.','success');
 res.innerHTML='';appsCard.style.display='none';inp.value='';loadInfo();
 setTimeout(function(){prog.style.display='none'},1500)
-}catch(e){showNotification(e.message||'Upload failed','error');setProg('Failed: '+(e.message||'error')+' (previous data is unchanged)',0)}
+}catch(e){showNotification(e.message||'Upload failed','error');setProg('Failed: '+(e.message||'error')+(upd?' (some rows may already be updated - run Update again to complete)':' (previous data is unchanged)'),0)}
 finally{uploading=false;document.querySelectorAll('.dl-up-btn').forEach(function(b){b.style.opacity='';b.style.pointerEvents=''});document.querySelectorAll('#dlUploadList input[type=file]').forEach(function(i){i.value=''})}
 }
-upList.addEventListener('change',function(e){var t=e.target;if(!t||t.type!=='file')return;var f=t.files&&t.files[0];if(!f||uploading)return;if(!can('canUpload')){showNotification('Permission denied.','error');t.value='';return}upload(t.dataset.ds,f)});
+upList.addEventListener('change',function(e){var t=e.target;if(!t||t.type!=='file')return;var f=t.files&&t.files[0];if(!f||uploading)return;if(!can('canUpload')){showNotification('Permission denied.','error');t.value='';return}upload(t.dataset.ds,f,t.dataset.mode==='update')});
 renderUploads();
 })();
 (function(){
