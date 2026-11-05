@@ -55,6 +55,25 @@
       --dimmed-input-opacity: 0.7;
     }
 
+    .ss-card{margin-bottom:20px}
+    .ss-head{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+    .ss-ico{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:0 0 42px;background:rgba(59,130,246,.15);color:var(--primary-accent-color);font-size:1.1em}
+    .ss-title{font-weight:700;font-size:1.05em}
+    .ss-sub{font-size:.85em;color:var(--secondary-color);margin-top:2px}
+    .ss-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+    .ss-stepper{display:inline-flex;align-items:center;gap:4px;padding:4px;border:1px solid var(--border-color);border-radius:14px;background:var(--secondary-bg-color)}
+    .ss-stepper input{width:64px;border:none!important;background:transparent!important;box-shadow:none!important;text-align:center;font-size:1.25em;font-weight:700;padding:6px 0;-moz-appearance:textfield}
+    .ss-stepper input::-webkit-outer-spin-button,.ss-stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+    .ss-unit{color:var(--secondary-color);font-size:.85em;margin-right:6px}
+    .ss-step{width:38px;height:38px;border-radius:10px;border:none;cursor:pointer;background:var(--tertiary-bg-color);color:var(--text-color);font-size:.9em;transition:transform .1s,background .15s}
+    .ss-step:hover{background:var(--primary-accent-color);color:#fff}
+    .ss-step:active{transform:scale(.92)}
+    .ss-chips{display:flex;gap:6px;flex-wrap:wrap}
+    .ss-chip{padding:7px 14px;border-radius:999px;border:1px solid var(--border-color);background:transparent;color:var(--text-color);cursor:pointer;font-size:.9em;transition:all .15s}
+    .ss-chip:hover{border-color:var(--primary-accent-color)}
+    .ss-chip.active{background:var(--primary-accent-color);border-color:var(--primary-accent-color);color:#fff;font-weight:600}
+    .ss-save{margin-left:auto}
+    .ss-note{font-size:.8em;color:var(--secondary-color);margin-top:12px}
     #dlSuggestions{background:#ffffff}
     body.dark-mode #dlSuggestions{background:#1e293b}
     #dlSuggestions .dl-sug:hover{background:rgba(59,130,246,.12)}
@@ -4721,14 +4740,31 @@
           </div>
         </div>
 
-        <div class="card" style="margin-bottom:20px;">
-          <h3 style="margin-top:0;"><i class="fa-solid fa-clock"></i> Session Settings</h3>
-          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-            <label for="idleMinutesInput" style="margin:0;">Logout after inactivity (minutes)</label>
-            <input type="number" id="idleMinutesInput" min="1" max="1440" value="15" style="width:110px;">
-            <button type="button" class="custom-btn" id="idleMinutesSaveBtn"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+        <div class="card ss-card">
+          <div class="ss-head">
+            <span class="ss-ico"><i class="fa-solid fa-hourglass-half"></i></span>
+            <div>
+              <div class="ss-title">Logout after inactivity</div>
+              <div class="ss-sub">Users who are not set to "Stay Logged In" are signed out after this time without activity.</div>
+            </div>
           </div>
-          <div style="font-size:.85em;color:var(--secondary-color);margin-top:8px;">Applies to everyone who is not set to "Stay Logged In". Takes effect for open sessions within a few minutes or on their next login.</div>
+          <div class="ss-row">
+            <div class="ss-stepper">
+              <button type="button" class="ss-step" id="idleMinus" aria-label="Decrease"><i class="fa-solid fa-minus"></i></button>
+              <input type="number" id="idleMinutesInput" min="1" max="1440" value="15" inputmode="numeric">
+              <span class="ss-unit">min</span>
+              <button type="button" class="ss-step" id="idlePlus" aria-label="Increase"><i class="fa-solid fa-plus"></i></button>
+            </div>
+            <div class="ss-chips" id="idleChips">
+              <button type="button" class="ss-chip" data-m="5">5</button>
+              <button type="button" class="ss-chip" data-m="15">15</button>
+              <button type="button" class="ss-chip" data-m="30">30</button>
+              <button type="button" class="ss-chip" data-m="60">1 h</button>
+              <button type="button" class="ss-chip" data-m="120">2 h</button>
+            </div>
+            <button type="button" class="custom-btn ss-save" id="idleMinutesSaveBtn"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+          </div>
+          <div class="ss-note">Open sessions pick up the new value within a few minutes, or on next login.</div>
         </div>
 
         <div class="pa-report-card">
@@ -5061,7 +5097,7 @@ function setupRealtimeSubscriptions() {
 (function setupIdleDisconnect() {
     let IDLE_LIMIT_MS = 15 * 60 * 1000; // 15 دقيقة (قابلة للتعديل من صفحة الادمن)
     window.setIdleMinutes = function(m){ m = parseInt(m); if (m >= 1 && m <= 1440) { IDLE_LIMIT_MS = m * 60 * 1000; window.__idleMinutes = m; } };
-    window.loadIdleSetting = async function(){ try { const r = await supabaseClient.rpc('get_app_settings'); if (!r.error && r.data && r.data.idleMinutes) { window.setIdleMinutes(r.data.idleMinutes); const i = document.getElementById('idleMinutesInput'); if (i && document.activeElement !== i) i.value = r.data.idleMinutes; } } catch (e) {} };
+    window.loadIdleSetting = async function(){ try { const r = await supabaseClient.rpc('get_app_settings'); if (!r.error && r.data && r.data.idleMinutes) { window.setIdleMinutes(r.data.idleMinutes); const i = document.getElementById('idleMinutesInput'); if (i && document.activeElement !== i) { i.value = r.data.idleMinutes; i.dispatchEvent(new Event('input')); } } } catch (e) {} };
     setTimeout(window.loadIdleSetting, 2500);
     document.addEventListener('visibilitychange', function(){ if (!document.hidden) window.loadIdleSetting(); });
     const WARNING_BEFORE_MS = 60 * 1000;   // نحذر قبل الخروج بدقيقة
@@ -9429,6 +9465,14 @@ sync()}
 (function(){
 var b=document.getElementById('idleMinutesSaveBtn'),i=document.getElementById('idleMinutesInput');
 if(!b||!i)return;
+var chips=document.getElementById('idleChips');
+function clamp(v){v=parseInt(v);if(isNaN(v))v=15;return Math.min(1440,Math.max(1,v))}
+function mark(){var v=parseInt(i.value);Array.prototype.forEach.call(chips.querySelectorAll('.ss-chip'),function(c){c.classList.toggle('active',parseInt(c.dataset.m)===v)})}
+document.getElementById('idleMinus').addEventListener('click',function(){var v=clamp(i.value);i.value=clamp(v>60?v-10:v>10?v-5:v-1);mark()});
+document.getElementById('idlePlus').addEventListener('click',function(){var v=clamp(i.value);i.value=clamp(v>=60?v+10:v>=10?v+5:v+1);mark()});
+chips.addEventListener('click',function(e){var c=e.target.closest('.ss-chip');if(!c)return;i.value=c.dataset.m;mark()});
+i.addEventListener('input',mark);i.addEventListener('blur',function(){i.value=clamp(i.value);mark()});
+mark();
 b.addEventListener('click',async function(){
 try{
 if(!currentUser||!currentUser.permissions.manageUsers||!currentUser.permissions.manageUsers.visible)return showNotification('Permission denied.','error');
