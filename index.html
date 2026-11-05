@@ -105,9 +105,12 @@
     .cs-chev{font-size:.7em;color:var(--secondary-color);transition:transform .2s}
     .cs-wrap.open .cs-chev{transform:rotate(180deg);color:var(--primary-accent-color)}
     .cs-native{position:absolute!important;left:0;bottom:0;width:100%!important;height:1px!important;opacity:0!important;pointer-events:none!important;padding:0!important;border:0!important;margin:0!important;background-image:none!important;min-height:0!important}
-    .cs-panel{position:fixed;z-index:2147483000;max-height:290px;overflow:auto;padding:6px;background:#ffffff;border:1px solid var(--border-color);border-radius:14px;box-shadow:0 14px 36px rgba(0,0,0,.25);animation:csPop .14s ease-out;box-sizing:border-box}
+    .cs-panel{position:fixed;z-index:2147483000;max-height:290px;overflow:auto;padding:6px;background:#ffffff;border:1px solid var(--border-color);border-radius:14px;box-shadow:0 14px 36px rgba(0,0,0,.25);transform-origin:top center;animation:csPop .22s cubic-bezier(.2,.8,.2,1);box-sizing:border-box}
+    .cs-panel.up{transform-origin:bottom center}
+    .cs-panel.closing{animation:csOut .16s ease-in forwards;pointer-events:none}
+    @keyframes csOut{to{opacity:0;transform:translateY(-6px) scale(.97)}}
     body.dark-mode .cs-panel{background:#1e293b}
-    @keyframes csPop{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+    @keyframes csPop{from{opacity:0;transform:translateY(-8px) scale(.96)}to{opacity:1;transform:none}}
     .cs-opt{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;border-radius:9px;cursor:pointer;color:var(--text-color);font-size:.95em}
     .cs-opt:hover,.cs-opt.act{background:rgba(59,130,246,.14)}
     .cs-opt.sel{color:var(--primary-accent-color);font-weight:600}
@@ -130,6 +133,9 @@
     #userMenu .um-row{transition:background .15s,transform .1s}
     #userMenu .um-row:active{transform:scale(.98)}
     #userMenu .um-row:last-child{margin-top:6px;border-top:1px solid var(--border-color);border-radius:0 0 10px 10px}
+    #userMenu{display:flex!important;visibility:hidden;opacity:0;transform:translateY(-8px) scale(.96);transform-origin:top left;pointer-events:none;animation:none!important;transition:opacity .2s ease,transform .22s cubic-bezier(.2,.8,.2,1),visibility 0s linear .22s}
+    #userMenu.show{visibility:visible;opacity:1;transform:none;pointer-events:auto;transition:opacity .2s ease,transform .22s cubic-bezier(.2,.8,.2,1),visibility 0s}
+    #dlSuggestions{animation:csPop .2s cubic-bezier(.2,.8,.2,1);transform-origin:top center}
     #dlSuggestions{background:#ffffff}
     body.dark-mode #dlSuggestions{background:#1e293b}
     #dlSuggestions .dl-sug:hover{background:rgba(59,130,246,.12)}
@@ -9553,7 +9559,7 @@ showNotification('Idle logout is now '+r.data.idleMinutes+' minutes.','success')
 if(window.__csInit)return;window.__csInit=1;
 var cur=null;
 function lbl(sel){var o=sel.options[sel.selectedIndex];return o?o.text:''}
-function closePanel(){if(!cur)return;try{cur.panel.remove()}catch(e){}cur.wrap.classList.remove('open');document.removeEventListener('pointerdown',cur.onDown,true);document.removeEventListener('keydown',cur.onKey,true);window.removeEventListener('resize',closePanel);window.removeEventListener('scroll',cur.onScroll,true);cur=null}
+function closePanel(){if(!cur)return;var pn=cur.panel;pn.classList.add('closing');setTimeout(function(){try{pn.remove()}catch(e){}},170);cur.wrap.classList.remove('open');document.removeEventListener('pointerdown',cur.onDown,true);document.removeEventListener('keydown',cur.onKey,true);window.removeEventListener('resize',closePanel);window.removeEventListener('scroll',cur.onScroll,true);cur=null}
 function enhance(sel){
 try{
 if(sel.dataset.cs||sel.multiple||sel.size>1||sel.hasAttribute('data-native')||sel.closest('.swal2-container'))return;
@@ -9591,7 +9597,7 @@ document.body.appendChild(panel);
 var r=btn.getBoundingClientRect(),w=Math.max(r.width,180),left=Math.min(r.left,innerWidth-w-8);if(left<8)left=8;
 panel.style.minWidth=w+'px';panel.style.left=left+'px';
 var below=innerHeight-r.bottom-12,above=r.top-12;
-if(below<180&&above>below){panel.style.bottom=(innerHeight-r.top+6)+'px';panel.style.maxHeight=Math.min(290,above)+'px'}
+if(below<180&&above>below){panel.classList.add('up');panel.style.bottom=(innerHeight-r.top+6)+'px';panel.style.maxHeight=Math.min(290,above)+'px'}
 else{panel.style.top=(r.bottom+6)+'px';panel.style.maxHeight=Math.min(290,below)+'px'}
 wrap.classList.add('open');
 var act=-1;
