@@ -8679,12 +8679,21 @@ async function refreshBtn(){
   if(!btn)return;
   if(!isAdmin()){btn.style.display='none';return}
   btn.style.display='inline-flex';
-  var on=false;
-  if(supported){var reg=await getReg();if(reg){var sub=await reg.pushManager.getSubscription();on=!!sub&&Notification.permission==='granted'}}
-  txt.textContent=on?'Notifications: ON':'Notifications: OFF';btn.title=txt.textContent;
+  var on=false,why='';
+  if(supported){var reg=await getReg();var perm=Notification.permission;
+    if(reg){var sub=await reg.pushManager.getSubscription();
+      if(!sub&&perm==='granted'&&wanted()){try{sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64(PUSH_PUB)})}catch(e){}}
+      on=!!sub&&perm==='granted';
+      if(on)setWanted(true);
+      if(on&&!window.__pushSaved){window.__pushSaved=1;try{var c0=creds();await supabaseClient.rpc('save_push_subscription',{payload:{username:c0.username,password:c0.password,subscription:sub.toJSON(),userAgent:navigator.userAgent}})}catch(e){}}}
+    if(!on){if(perm==='denied')why='blocked';else if(wanted())why='reset'}}
+  txt.textContent=on?'Notifications: ON':(why==='blocked'?'Notifications: BLOCKED':(why==='reset'?'Notifications: OFF (tap to re-enable)':'Notifications: OFF'));btn.title=why==='blocked'?'Notifications are blocked for this site in the browser settings':(why==='reset'?'The browser reset the notification permission. Tap to re-enable.':txt.textContent);
   btn.style.backgroundColor=on?'#22c55e':'#f59e0b';
   btn.dataset.on=on?'1':'0';
 }
+function wkey(){return 'pushWanted_'+(currentUser&&currentUser.email||'')}
+function wanted(){try{return localStorage.getItem(wkey())==='1'}catch(e){return false}}
+function setWanted(v){try{if(v)localStorage.setItem(wkey(),'1');else localStorage.removeItem(wkey())}catch(e){}}
 function creds(){var u=(typeof users!=='undefined'&&users[currentUser.email])||{};return{username:currentUser.email,password:u.password}}
 async function enable(){
   var reg=await getReg();
@@ -8697,11 +8706,13 @@ async function enable(){
   var c=creds();
   var r=await supabaseClient.rpc('save_push_subscription',{payload:{username:c.username,password:c.password,subscription:sub.toJSON(),userAgent:navigator.userAgent}});
   if(r.error)throw new Error(r.error.message);
+  setWanted(true);window.__pushSaved=1;
   showNotification('Notifications enabled on this device.','success');
 }
 async function disable(){
   var reg=await getReg();var sub=reg&&await reg.pushManager.getSubscription();
   if(sub){var c=creds();try{await supabaseClient.rpc('remove_push_subscription',{payload:{username:c.username,password:c.password,endpoint:sub.endpoint}})}catch(e){}await sub.unsubscribe()}
+  setWanted(false);
   showNotification('Notifications disabled on this device.','info');
 }
 if(btn)btn.addEventListener('click',async function(){
