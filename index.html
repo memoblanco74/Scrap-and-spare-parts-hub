@@ -8686,7 +8686,7 @@ async function refreshBtn(){
       on=!!sub&&perm==='granted';
       if(on)setWanted(true);
       if(on&&!window.__pushSaved){window.__pushSaved=1;try{var c0=creds();await supabaseClient.rpc('save_push_subscription',{payload:{username:c0.username,password:c0.password,subscription:sub.toJSON(),userAgent:navigator.userAgent}})}catch(e){}}}
-    if(!on){if(perm==='denied')why='blocked';else if(wanted())why='reset';if(wanted()&&!window.__pushLogged){window.__pushLogged=1;try{logActivity('Notifications Dropped','permission='+perm+', serviceWorker='+(reg?'yes':'no')+', subscription='+(reg&&sub?'yes':'no'))}catch(e){}}}}
+    if(!on){if(perm==='denied')why='blocked';else if(wanted())why='reset';if(why==='reset'&&!window.__pushToast){window.__pushToast=1;try{showNotification('Your browser reset the notification permission. Tap the Notifications button to turn it back on.','info')}catch(e){}}if(wanted()&&!window.__pushLogged){window.__pushLogged=1;try{logActivity('Notifications Dropped','permission='+perm+', serviceWorker='+(reg?'yes':'no')+', subscription='+(reg&&sub?'yes':'no'))}catch(e){}}}}
   txt.textContent=on?'Notifications: ON':(why==='blocked'?'Notifications: BLOCKED':(why==='reset'?'Notifications: OFF (tap to re-enable)':'Notifications: OFF'));btn.title=why==='blocked'?'Notifications are blocked for this site in the browser settings':(why==='reset'?'The browser reset the notification permission. Tap to re-enable.':txt.textContent);
   btn.style.backgroundColor=on?'#22c55e':'#f59e0b';
   btn.dataset.on=on?'1':'0';
