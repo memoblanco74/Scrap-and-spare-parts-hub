@@ -4721,6 +4721,16 @@
           </div>
         </div>
 
+        <div class="card" style="margin-bottom:20px;">
+          <h3 style="margin-top:0;"><i class="fa-solid fa-clock"></i> Session Settings</h3>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <label for="idleMinutesInput" style="margin:0;">Logout after inactivity (minutes)</label>
+            <input type="number" id="idleMinutesInput" min="1" max="1440" value="15" style="width:110px;">
+            <button type="button" class="custom-btn" id="idleMinutesSaveBtn"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+          </div>
+          <div style="font-size:.85em;color:var(--secondary-color);margin-top:8px;">Applies to everyone who is not set to "Stay Logged In". Takes effect for open sessions within a few minutes or on their next login.</div>
+        </div>
+
         <div class="pa-report-card">
           <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:15px;">
             <div>
@@ -5049,7 +5059,11 @@ function setupRealtimeSubscriptions() {
 // لحد ما المستخدم يعمل Refresh للصفحة تاني، الاتصال مش هيرجع لوحده
 // ==========================================================================
 (function setupIdleDisconnect() {
-    const IDLE_LIMIT_MS = 15 * 60 * 1000; // 15 دقيقة
+    let IDLE_LIMIT_MS = 15 * 60 * 1000; // 15 دقيقة (قابلة للتعديل من صفحة الادمن)
+    window.setIdleMinutes = function(m){ m = parseInt(m); if (m >= 1 && m <= 1440) { IDLE_LIMIT_MS = m * 60 * 1000; window.__idleMinutes = m; } };
+    window.loadIdleSetting = async function(){ try { const r = await supabaseClient.rpc('get_app_settings'); if (!r.error && r.data && r.data.idleMinutes) { window.setIdleMinutes(r.data.idleMinutes); const i = document.getElementById('idleMinutesInput'); if (i && document.activeElement !== i) i.value = r.data.idleMinutes; } } catch (e) {} };
+    setTimeout(window.loadIdleSetting, 2500);
+    document.addEventListener('visibilitychange', function(){ if (!document.hidden) window.loadIdleSetting(); });
     const WARNING_BEFORE_MS = 60 * 1000;   // نحذر قبل الخروج بدقيقة
     const CHECK_INTERVAL_MS = 15 * 1000;   // يتفحص كل 15 ثانية
     let lastActivityTime = Date.now();
@@ -5141,6 +5155,7 @@ function setupRealtimeSubscriptions() {
     // بتترجع تُنادى بعد أي تسجيل دخول جديد عشان نبدأ نراقب الخمول من الأول تاني
     window.resetIdleActivity = function() {
         lastActivityTime = Date.now();
+        setTimeout(window.loadIdleSetting, 500);
         window.isIdleDisconnected = false;
         warningShown = false;
     };
@@ -9410,6 +9425,24 @@ else showNotification(ok+' user(s) updated'+(skipped?', '+skipped+' already had 
 sel.clear();
 try{await loadAdminUsers()}catch(x){}
 sync()}
+})();
+(function(){
+var b=document.getElementById('idleMinutesSaveBtn'),i=document.getElementById('idleMinutesInput');
+if(!b||!i)return;
+b.addEventListener('click',async function(){
+try{
+if(!currentUser||!currentUser.permissions.manageUsers||!currentUser.permissions.manageUsers.visible)return showNotification('Permission denied.','error');
+var m=parseInt(i.value);
+if(!(m>=1&&m<=1440))return showNotification('Enter minutes between 1 and 1440.','error');
+var u=(typeof users!=='undefined'&&users[currentUser.email])||{};
+toggleButtonLoading(b,true);
+var r=await supabaseClient.rpc('set_app_setting',{payload:{username:currentUser.email,password:u.password,key:'idleMinutes',value:m}});
+toggleButtonLoading(b,false);
+if(r.error)throw new Error(r.error.message);
+window.setIdleMinutes(r.data.idleMinutes);
+try{logActivity('Change Setting','Idle logout set to '+r.data.idleMinutes+' minutes')}catch(e){}
+showNotification('Idle logout is now '+r.data.idleMinutes+' minutes.','success')
+}catch(e){toggleButtonLoading(b,false);showNotification(e.message||'Failed','error')}})
 })();
 window.loadLaptops=refreshAllDataAndViews;resetFormForAdd()});
       </script>
