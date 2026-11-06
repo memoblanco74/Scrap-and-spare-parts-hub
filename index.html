@@ -144,8 +144,8 @@
     .modal-overlay .modal-content{animation:mcIn .32s cubic-bezier(.2,.8,.2,1)}
     .modal-overlay.closing{animation:ovOut .18s ease-in forwards;pointer-events:none}
     .modal-overlay.closing .modal-content{animation:mcOut .18s ease-in forwards}
-    @keyframes tabIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-    .tab-content.active{animation:tabIn .35s cubic-bezier(.2,.8,.2,1)}
+    @keyframes tabIn{from{opacity:0}to{opacity:1}}
+    .tab-content.active{animation:tabIn .2s ease-out}
     .tab-button{position:relative;border-bottom-color:transparent!important}
     .tab-button::after{content:"";position:absolute;left:10%;right:10%;bottom:-3px;height:3px;border-radius:3px;background:var(--primary-accent-color);transform:scaleX(0);transition:transform .32s cubic-bezier(.2,.8,.2,1)}
     .tab-button.active::after{transform:scaleX(1)}
@@ -153,48 +153,20 @@
     @keyframes toastOut{to{opacity:0;transform:translateX(70px) scale(.95)}}
     .toast-in{animation:toastIn .38s cubic-bezier(.2,.8,.2,1)!important}
     .toast-out{animation:toastOut .25s ease-in forwards!important}
-    @keyframes rowIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-    .tab-content.stagger .spare-part-card,.tab-content.stagger tbody tr:nth-child(-n+25){animation:rowIn .45s cubic-bezier(.2,.8,.2,1) both}
-    .tab-content.stagger .spare-part-card:nth-child(1){animation-delay:0.00s}
-    .tab-content.stagger .spare-part-card:nth-child(2){animation-delay:0.04s}
-    .tab-content.stagger .spare-part-card:nth-child(3){animation-delay:0.08s}
-    .tab-content.stagger .spare-part-card:nth-child(4){animation-delay:0.12s}
-    .tab-content.stagger .spare-part-card:nth-child(5){animation-delay:0.16s}
-    .tab-content.stagger .spare-part-card:nth-child(6){animation-delay:0.20s}
-    .tab-content.stagger .spare-part-card:nth-child(7){animation-delay:0.24s}
-    .tab-content.stagger .spare-part-card:nth-child(8){animation-delay:0.28s}
-    .tab-content.stagger .spare-part-card:nth-child(9){animation-delay:0.32s}
-    .tab-content.stagger .spare-part-card:nth-child(10){animation-delay:0.36s}
-    .tab-content.stagger .spare-part-card:nth-child(11){animation-delay:0.40s}
-    .tab-content.stagger .spare-part-card:nth-child(12){animation-delay:0.44s}
-    .tab-content.stagger .spare-part-card:nth-child(13){animation-delay:0.48s}
-    .tab-content.stagger .spare-part-card:nth-child(14){animation-delay:0.52s}
-    .tab-content.stagger .spare-part-card:nth-child(n+15){animation-delay:.55s}
-    .tab-content.stagger tbody tr:nth-child(1){animation-delay:0.000s}
-    .tab-content.stagger tbody tr:nth-child(2){animation-delay:0.025s}
-    .tab-content.stagger tbody tr:nth-child(3){animation-delay:0.050s}
-    .tab-content.stagger tbody tr:nth-child(4){animation-delay:0.075s}
-    .tab-content.stagger tbody tr:nth-child(5){animation-delay:0.100s}
-    .tab-content.stagger tbody tr:nth-child(6){animation-delay:0.125s}
-    .tab-content.stagger tbody tr:nth-child(7){animation-delay:0.150s}
-    .tab-content.stagger tbody tr:nth-child(8){animation-delay:0.175s}
-    .tab-content.stagger tbody tr:nth-child(9){animation-delay:0.200s}
-    .tab-content.stagger tbody tr:nth-child(10){animation-delay:0.225s}
-    .tab-content.stagger tbody tr:nth-child(11){animation-delay:0.250s}
-    .tab-content.stagger tbody tr:nth-child(12){animation-delay:0.275s}
-    .tab-content.stagger tbody tr:nth-child(13){animation-delay:0.300s}
-    .tab-content.stagger tbody tr:nth-child(14){animation-delay:0.325s}
-    .tab-content.stagger tbody tr:nth-child(15){animation-delay:0.350s}
-    .tab-content.stagger tbody tr:nth-child(16){animation-delay:0.375s}
-    .tab-content.stagger tbody tr:nth-child(17){animation-delay:0.400s}
-    .tab-content.stagger tbody tr:nth-child(18){animation-delay:0.425s}
-    .tab-content.stagger tbody tr:nth-child(19){animation-delay:0.450s}
-    .tab-content.stagger tbody tr:nth-child(20){animation-delay:0.475s}
-    .tab-content.stagger tbody tr:nth-child(21){animation-delay:0.500s}
-    .tab-content.stagger tbody tr:nth-child(22){animation-delay:0.525s}
-    .tab-content.stagger tbody tr:nth-child(23){animation-delay:0.550s}
-    .tab-content.stagger tbody tr:nth-child(24){animation-delay:0.575s}
-    .tab-content.stagger tbody tr:nth-child(25){animation-delay:0.600s}
+    @keyframes rowIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .tab-content.stagger .spare-part-card:nth-child(-n+12),.tab-content.stagger tbody tr:nth-child(-n+12){animation:rowIn .28s cubic-bezier(.2,.8,.2,1) both}
+    .tab-content.stagger .spare-part-card:nth-child(1),.tab-content.stagger tbody tr:nth-child(1){animation-delay:0.00s}
+    .tab-content.stagger .spare-part-card:nth-child(2),.tab-content.stagger tbody tr:nth-child(2){animation-delay:0.03s}
+    .tab-content.stagger .spare-part-card:nth-child(3),.tab-content.stagger tbody tr:nth-child(3){animation-delay:0.05s}
+    .tab-content.stagger .spare-part-card:nth-child(4),.tab-content.stagger tbody tr:nth-child(4){animation-delay:0.08s}
+    .tab-content.stagger .spare-part-card:nth-child(5),.tab-content.stagger tbody tr:nth-child(5){animation-delay:0.10s}
+    .tab-content.stagger .spare-part-card:nth-child(6),.tab-content.stagger tbody tr:nth-child(6){animation-delay:0.12s}
+    .tab-content.stagger .spare-part-card:nth-child(7),.tab-content.stagger tbody tr:nth-child(7){animation-delay:0.15s}
+    .tab-content.stagger .spare-part-card:nth-child(8),.tab-content.stagger tbody tr:nth-child(8){animation-delay:0.18s}
+    .tab-content.stagger .spare-part-card:nth-child(9),.tab-content.stagger tbody tr:nth-child(9){animation-delay:0.20s}
+    .tab-content.stagger .spare-part-card:nth-child(10),.tab-content.stagger tbody tr:nth-child(10){animation-delay:0.23s}
+    .tab-content.stagger .spare-part-card:nth-child(11),.tab-content.stagger tbody tr:nth-child(11){animation-delay:0.25s}
+    .tab-content.stagger .spare-part-card:nth-child(12),.tab-content.stagger tbody tr:nth-child(12){animation-delay:0.28s}
     @keyframes skl{to{background-position:-200% 0}}
     .sk{background:linear-gradient(90deg,rgba(148,163,184,.14),rgba(148,163,184,.32),rgba(148,163,184,.14));background-size:200% 100%;animation:skl 1.3s ease-in-out infinite;border-radius:10px}
     .sk-card{min-height:150px;border:1px solid var(--border-color);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:12px}
@@ -9755,7 +9727,7 @@ function done(){d.style.overflow='';d.__da=null}
 if(!d.open){d.open=true;var openH=d.offsetHeight;d.style.overflow='hidden';d.__da=d.animate([{height:closedH+'px'},{height:openH+'px'}],{duration:260,easing:'cubic-bezier(.2,.8,.2,1)'});d.__da.onfinish=d.__da.oncancel=done}
 else{var h0=d.offsetHeight;d.style.overflow='hidden';d.__da=d.animate([{height:h0+'px'},{height:closedH+'px'}],{duration:220,easing:'ease-in'});d.__da.onfinish=function(){d.open=false;done()};d.__da.oncancel=done}
 });
-function stagger(a){if(!a)return;a.classList.add('stagger');clearTimeout(a.__sg);a.__sg=setTimeout(function(){a.classList.remove('stagger')},1500)}
+function stagger(a){if(!a)return;a.classList.add('stagger');clearTimeout(a.__sg);a.__sg=setTimeout(function(){a.classList.remove('stagger')},650)}
 document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('.tab-button'))setTimeout(function(){stagger(document.querySelector('.tab-content.active'))},0)});
 try{var _st=showTab;showTab=function(){var r=_st.apply(this,arguments);stagger(document.querySelector('.tab-content.active'));return r}}catch(e){}
 setTimeout(function(){stagger(document.querySelector('.tab-content.active'))},300);
@@ -9773,7 +9745,7 @@ var suf=m[2],t0=performance.now(),dur=Math.min(900,300+Math.abs(to-from)*8),comm
 el.__busy=true;
 (function step(now){var k=Math.min(1,(now-t0)/dur),v=Math.round(from+(to-from)*(1-Math.pow(1-k,3)));el.textContent=(comma?v.toLocaleString('en-US'):String(v))+suf;if(k<1)requestAnimationFrame(step);else{el.__busy=false;el.dataset.cv=to}})(t0)}
 var pend=new Set(),pt=null;
-new MutationObserver(function(ms){ms.forEach(function(m){var n=m.target.nodeType===3?m.target.parentElement:m.target;var el=n&&n.closest&&n.closest('.summary-card-count');if(el&&!el.__busy)pend.add(el)});if(pend.size&&!pt)pt=setTimeout(function(){pt=null;var a=Array.from(pend);pend.clear();a.forEach(countTo)},30)}).observe(document.body,{childList:true,characterData:true,subtree:true});
+new MutationObserver(function(ms){if(ms.length>60){if(!pt)pt=setTimeout(function(){pt=null;Array.prototype.forEach.call(document.querySelectorAll('.summary-card-count'),countTo)},60);return}ms.forEach(function(m){var n=m.target.nodeType===3?m.target.parentElement:m.target;if(!n||n.tagName==='TR'||n.tagName==='TD'||n.tagName==='TBODY')return;var el=n.closest&&n.closest('.summary-card-count');if(el&&!el.__busy)pend.add(el)});if(pend.size&&!pt)pt=setTimeout(function(){pt=null;var a=Array.from(pend);pend.clear();a.forEach(countTo)},30)}).observe(document.body,{childList:true,characterData:true,subtree:true});
 function skel(){
 var c=document.getElementById('sparePartsCardContainer');
 if(c&&!c.children.length){var h='';for(var i=0;i<6;i++)h+='<div class="sk-card"><div class="sk" style="height:18px;width:60%"></div><div class="sk" style="height:14px;width:40%"></div><div class="sk" style="height:14px;width:80%"></div><div class="sk" style="height:36px;margin-top:auto"></div></div>';c.innerHTML=h;setTimeout(function(){c.querySelectorAll('.sk-card').forEach(function(x){x.remove()})},20000)}
