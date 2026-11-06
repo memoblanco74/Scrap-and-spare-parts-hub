@@ -226,6 +226,21 @@
     .ws-dot.has{background:#22c55e;border-color:#22c55e;opacity:1;box-shadow:0 0 0 3px rgba(34,197,94,.28)}
     .ws-btn.active .ws-dot.has{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.28)}
     .ws-fade{animation:tabIn .32s cubic-bezier(.2,.8,.2,1)}
+    .tab-buttons{flex-wrap:nowrap!important;overflow-x:auto;overflow-y:hidden;gap:6px;padding:8px 10px!important;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;overscroll-behavior-x:contain;border-bottom:1px solid var(--border-color)}
+    .tab-buttons::-webkit-scrollbar{display:none}
+    .tab-pill{position:absolute;left:0;top:0;height:0;width:0;border-radius:12px;background:linear-gradient(135deg,var(--primary-accent-color),#8b5cf6);box-shadow:0 6px 18px -4px color-mix(in srgb,var(--primary-accent-color) 65%,transparent),inset 0 1px 0 rgba(255,255,255,.28);transition:transform .5s cubic-bezier(.34,1.3,.64,1),width .5s cubic-bezier(.34,1.3,.64,1),height .3s ease,opacity .3s;pointer-events:none;z-index:0;opacity:0}
+    .tab-pill.on{opacity:1}
+    .tab-pill.noanim{transition:none}
+    .tab-button{position:relative;z-index:1;flex:1 0 auto;min-width:0!important;gap:8px;padding:11px 16px!important;border-radius:12px!important;border:none!important;font-size:.95em!important;white-space:nowrap;scroll-snap-align:center;opacity:.75;transition:color .3s,background-color .3s,opacity .3s,transform .25s cubic-bezier(.34,1.4,.64,1)!important}
+    .tab-button::after{display:none!important}
+    .tab-button .tb-ico{font-size:1em;transition:transform .45s cubic-bezier(.34,1.8,.64,1)}
+    .tab-button:hover:not(.active){opacity:1;background-color:color-mix(in srgb,var(--primary-accent-color) 11%,transparent);transform:translateY(-1px)}
+    .tab-button:hover:not(.active) .tb-ico{transform:scale(1.18) rotate(-6deg)}
+    .tab-button:active{transform:scale(.96)}
+    .tab-button.active{background-color:transparent!important;color:#fff!important;opacity:1;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+    .tab-button.active .tb-ico{transform:scale(1.15);animation:tbPop .5s cubic-bezier(.34,1.8,.64,1)}
+    @keyframes tbPop{0%{transform:scale(.6) rotate(-20deg)}100%{transform:scale(1.15) rotate(0)}}
+    @media(max-width:600px){.tab-button{padding:10px 14px!important;font-size:.9em!important}}
     #dlSuggestions{background:#ffffff}
     body.dark-mode #dlSuggestions{background:#1e293b}
     #dlSuggestions .dl-sug:hover{background:rgba(59,130,246,.12)}
@@ -3852,17 +3867,17 @@
     </div>
     <div id="dbStatus" class="db-status"></div>
     <div class="tab-container">
-      <div class="tab-buttons">
-        <button class="tab-button active" data-tab="dashboard">Dashboard</button>
-        <button class="tab-button" data-tab="data-management" data-permission="dataManagement_visible" style="display: none;">Data Management</button>
-        <button class="tab-button" data-tab="add-edit-laptop" data-permission="addEditLaptop_visible" style="display: none;">Add/Edit Laptop</button>
-        <button class="tab-button" data-tab="spare-parts" data-permission="spareParts_visible" style="display: none;">Spare Parts</button>
-        <button class="tab-button" data-tab="incidents" data-permission="incidents_visible">Create Incident</button>
-        <button class="tab-button" data-tab="it-workspace" data-permission="itWorkspace_visible" style="display: none;">IT Workspace</button>
-        <button class="tab-button" data-tab="device-lookup" data-permission="deviceLookup_visible" style="display: none;">Device Lookup</button>
-        <button class="tab-button" id="printersTabBtn" data-tab="printers-page" data-permission="printers_visible" style="display: none;">Printers</button>
-        <button class="tab-button" data-tab="logs" data-permission="logs_visible" style="display: none;">Activity Logs</button>
-        <button class="tab-button" data-tab="manage-users" data-permission="manageUsers_visible" style="display: none;">Manage Users</button>
+      <div class="tab-buttons"><span class="tab-pill"></span>
+        <button class="tab-button active" data-tab="dashboard"><i class="fa-solid fa-chart-pie tb-ico"></i><span class="tb-txt">Dashboard</span></button>
+        <button class="tab-button" data-tab="data-management" data-permission="dataManagement_visible" style="display: none;"><i class="fa-solid fa-database tb-ico"></i><span class="tb-txt">Data Management</span></button>
+        <button class="tab-button" data-tab="add-edit-laptop" data-permission="addEditLaptop_visible" style="display: none;"><i class="fa-solid fa-laptop-medical tb-ico"></i><span class="tb-txt">Add/Edit Laptop</span></button>
+        <button class="tab-button" data-tab="spare-parts" data-permission="spareParts_visible" style="display: none;"><i class="fa-solid fa-microchip tb-ico"></i><span class="tb-txt">Spare Parts</span></button>
+        <button class="tab-button" data-tab="incidents" data-permission="incidents_visible"><i class="fa-solid fa-triangle-exclamation tb-ico"></i><span class="tb-txt">Create Incident</span></button>
+        <button class="tab-button" data-tab="it-workspace" data-permission="itWorkspace_visible" style="display: none;"><i class="fa-solid fa-briefcase tb-ico"></i><span class="tb-txt">IT Workspace</span></button>
+        <button class="tab-button" data-tab="device-lookup" data-permission="deviceLookup_visible" style="display: none;"><i class="fa-solid fa-magnifying-glass-chart tb-ico"></i><span class="tb-txt">Device Lookup</span></button>
+        <button class="tab-button" id="printersTabBtn" data-tab="printers-page" data-permission="printers_visible" style="display: none;"><i class="fa-solid fa-print tb-ico"></i><span class="tb-txt">Printers</span></button>
+        <button class="tab-button" data-tab="logs" data-permission="logs_visible" style="display: none;"><i class="fa-solid fa-clock-rotate-left tb-ico"></i><span class="tb-txt">Activity Logs</span></button>
+        <button class="tab-button" data-tab="manage-users" data-permission="manageUsers_visible" style="display: none;"><i class="fa-solid fa-users-gear tb-ico"></i><span class="tb-txt">Manage Users</span></button>
       </div>
       <div id="dashboard" class="tab-content active">
         <div class="dashboard-grid">
@@ -9771,6 +9786,7 @@ var r=_rs.apply(this,arguments);
 try{if(c&&Object.keys(prev).length)c.querySelectorAll('.spare-part-card').forEach(function(card){var q=card.querySelector('.qty-current'),k=card.dataset.cardIds;if(q&&k&&prev[k]!==undefined&&prev[k]!==q.textContent.trim()){q.classList.add('qty-pulse');setTimeout(function(){q.classList.remove('qty-pulse')},900)}})}catch(e){}
 return r}}catch(e){}
 })();
+(function(){var bar=document.querySelector('.tab-buttons'),pill=bar&&bar.querySelector('.tab-pill');if(!bar||!pill)return;var first=true;function move(scroll){var a=bar.querySelector('.tab-button.active');if(!a||!a.offsetWidth){pill.classList.remove('on');return}pill.style.height=a.offsetHeight+'px';pill.style.width=a.offsetWidth+'px';pill.style.transform='translate('+a.offsetLeft+'px,'+a.offsetTop+'px)';pill.classList.add('on');if(scroll){var l=a.offsetLeft-(bar.clientWidth-a.offsetWidth)/2;if(bar.scrollWidth>bar.clientWidth)bar.scrollTo({left:Math.max(0,l),behavior:first?'auto':'smooth'})}first=false}var q=0;function sched(sc){cancelAnimationFrame(q);q=requestAnimationFrame(function(){move(sc)})}pill.classList.add('noanim');move(true);setTimeout(function(){pill.classList.remove('noanim')},80);new MutationObserver(function(m){m=m.filter(function(x){return x.target!==pill});if(!m.length)return;var sc=m.some(function(x){return x.attributeName==='class'});sched(sc)}).observe(bar,{subtree:true,attributes:true,attributeFilter:['class','style']});if(window.ResizeObserver)new ResizeObserver(function(){sched(false)}).observe(bar);window.addEventListener('resize',function(){sched(false)});if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){sched(true)})})();
 window.loadLaptops=refreshAllDataAndViews;resetFormForAdd()});
       </script>
 </body>
