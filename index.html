@@ -213,6 +213,19 @@
     .tab-button.active .tb-ico{transform:scale(1.15);animation:tbPop .5s cubic-bezier(.34,1.8,.64,1)}
     @keyframes tbPop{0%{transform:scale(.6) rotate(-20deg)}100%{transform:scale(1.15) rotate(0)}}
     @media(max-width:600px){.tab-button{padding:10px 14px!important;font-size:.9em!important}}
+    .nested-tab-buttons{flex-wrap:nowrap!important;width:fit-content;max-width:100%;border:1px solid var(--border-color)!important;border-radius:16px!important;background-color:var(--tertiary-bg-color)!important;top:128px!important;margin-bottom:20px!important;overflow-x:auto;overflow-y:hidden;gap:6px;padding:6px 8px!important;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;overscroll-behavior-x:contain;}
+    .nested-tab-buttons::-webkit-scrollbar{display:none}
+    .nested-tab-button{position:relative;z-index:1;flex:0 0 auto;min-width:0!important;gap:8px;padding:9px 20px!important;border-radius:12px!important;border:none!important;font-size:.95em!important;white-space:nowrap;scroll-snap-align:center;opacity:.75;transition:color .3s,background-color .3s,opacity .3s,transform .25s cubic-bezier(.34,1.4,.64,1)!important}
+    .nested-tab-button::after{display:none!important}
+    .nested-tab-button .tb-ico{font-size:1em;transition:transform .45s cubic-bezier(.34,1.8,.64,1)}
+    .nested-tab-button:hover:not(.active){opacity:1;background-color:color-mix(in srgb,var(--primary-accent-color) 11%,transparent);transform:translateY(-1px)}
+    .nested-tab-button:hover:not(.active) .tb-ico{transform:scale(1.18) rotate(-6deg)}
+    .nested-tab-button:active{transform:scale(.96)}
+    .nested-tab-button.active{background-color:transparent!important;color:#fff!important;opacity:1;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+    .nested-tab-button.active .tb-ico{transform:scale(1.15);animation:tbPop .5s cubic-bezier(.34,1.8,.64,1)}
+
+    .nested-tab-button{margin-bottom:0!important;color:var(--text-color)}
+    #nested-inventory .search-export-section{top:190px!important}
     #dlSuggestions{background:#ffffff}
     body.dark-mode #dlSuggestions{background:#1e293b}
     #dlSuggestions .dl-sug:hover{background:rgba(59,130,246,.12)}
@@ -4156,9 +4169,9 @@
         <div class="tab-header-flex">
           <h2>Spare Parts Inventory</h2>
         </div>
-        <div class="nested-tab-buttons">
-          <button class="nested-tab-button active" data-nested-tab="inventory">Inventory</button>
-          <button class="nested-tab-button" data-nested-tab="summary">Summary</button>
+        <div class="nested-tab-buttons"><span class="tab-pill"></span>
+          <button class="nested-tab-button active" data-nested-tab="inventory"><i class="fa-solid fa-boxes-stacked tb-ico"></i><span class="tb-txt">Inventory</span></button>
+          <button class="nested-tab-button" data-nested-tab="summary"><i class="fa-solid fa-chart-simple tb-ico"></i><span class="tb-txt">Summary</span></button>
         </div>
         <div id="nested-inventory" class="nested-tab-content active">
           <div class="search-export-section sp-search-section">
@@ -9758,7 +9771,7 @@ var r=_rs.apply(this,arguments);
 try{if(c&&Object.keys(prev).length)c.querySelectorAll('.spare-part-card').forEach(function(card){var q=card.querySelector('.qty-current'),k=card.dataset.cardIds;if(q&&k&&prev[k]!==undefined&&prev[k]!==q.textContent.trim()){q.classList.add('qty-pulse');setTimeout(function(){q.classList.remove('qty-pulse')},900)}})}catch(e){}
 return r}}catch(e){}
 })();
-(function(){var bar=document.querySelector('.tab-buttons'),pill=bar&&bar.querySelector('.tab-pill');if(!bar||!pill)return;var first=true;function move(scroll){var a=bar.querySelector('.tab-button.active');if(!a||!a.offsetWidth){pill.classList.remove('on');return}pill.style.height=a.offsetHeight+'px';pill.style.width=a.offsetWidth+'px';pill.style.transform='translate('+a.offsetLeft+'px,'+a.offsetTop+'px)';pill.classList.add('on');if(scroll){var l=a.offsetLeft-(bar.clientWidth-a.offsetWidth)/2;if(bar.scrollWidth>bar.clientWidth)bar.scrollTo({left:Math.max(0,l),behavior:first?'auto':'smooth'})}first=false}var q=0;function sched(sc){cancelAnimationFrame(q);q=requestAnimationFrame(function(){move(sc)})}pill.classList.add('noanim');move(true);setTimeout(function(){pill.classList.remove('noanim')},80);new MutationObserver(function(m){m=m.filter(function(x){return x.target!==pill});if(!m.length)return;var sc=m.some(function(x){return x.attributeName==='class'});sched(sc)}).observe(bar,{subtree:true,attributes:true,attributeFilter:['class','style']});if(window.ResizeObserver)new ResizeObserver(function(){sched(false)}).observe(bar);window.addEventListener('resize',function(){sched(false)});if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){sched(true)})})();
+(function(){[['.tab-buttons','.tab-button'],['.nested-tab-buttons','.nested-tab-button']].forEach(function(c){var bar=document.querySelector(c[0]),pill=bar&&bar.querySelector('.tab-pill');if(!bar||!pill)return;var first=true;function move(scroll){var a=bar.querySelector(c[1]+'.active');if(!a||!a.offsetWidth){pill.classList.remove('on');return}pill.style.height=a.offsetHeight+'px';pill.style.width=a.offsetWidth+'px';pill.style.transform='translate('+a.offsetLeft+'px,'+a.offsetTop+'px)';pill.classList.add('on');if(scroll){var l=a.offsetLeft-(bar.clientWidth-a.offsetWidth)/2;if(bar.scrollWidth>bar.clientWidth)bar.scrollTo({left:Math.max(0,l),behavior:first?'auto':'smooth'})}first=false}var q=0;function sched(sc){cancelAnimationFrame(q);q=requestAnimationFrame(function(){move(sc)})}pill.classList.add('noanim');move(true);setTimeout(function(){pill.classList.remove('noanim')},80);new MutationObserver(function(m){m=m.filter(function(x){return x.target!==pill});if(!m.length)return;var sc=m.some(function(x){return x.attributeName==='class'});sched(sc)}).observe(bar,{subtree:true,attributes:true,attributeFilter:['class','style']});if(window.ResizeObserver)new ResizeObserver(function(){sched(false)}).observe(bar);window.addEventListener('resize',function(){sched(false)});if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){sched(true)})})})();
 window.loadLaptops=refreshAllDataAndViews;resetFormForAdd()});
       </script>
 </body>
