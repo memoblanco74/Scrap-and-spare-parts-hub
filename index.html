@@ -324,6 +324,43 @@
     #sparePartSummaryContainer .summary-details-row .summary-card-title::before{width:32px;height:32px;border-radius:10px;font-size:13px}
     #sparePartSummaryContainer .summary-details-row .summary-card-count{font-size:1.8em;margin:0 0 8px}
     #sparePartSummaryContainer .location-breakdown-grid.show{grid-column:1/-1}
+    #usageReportCard{position:relative;overflow:hidden;border-radius:22px;padding:22px 18px 20px}
+    #usageReportCard::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,var(--primary-accent-color),#8b5cf6,#ec4899)}
+    #usageReportCard>h3{display:flex;align-items:center;gap:12px;font-size:1.25em;margin:2px 0 18px}
+    #usageReportCard>h3::before{content:"\f201";font-family:"Font Awesome 6 Free";font-weight:900;flex:none;width:42px;height:42px;border-radius:14px;display:grid;place-items:center;font-size:17px;color:#fff;background:linear-gradient(135deg,var(--primary-accent-color),#8b5cf6);box-shadow:0 8px 18px -6px color-mix(in srgb,var(--primary-accent-color) 65%,transparent)}
+    #usageReportCard .form-row:has(>.full-span-group){display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+    #usageReportCard .full-span-group{--gc:#3b82f6;margin:0;padding:14px;border-radius:18px;background:var(--tertiary-bg-color);border:1px solid var(--border-color);position:relative}
+    #usageReportCard>.full-span-group{margin-top:14px}
+    #usageReportCard .full-span-group:has(#reportReserved){--gc:#8b5cf6}
+    #usageReportCard .full-span-group:has(#reportCondition){--gc:#22c55e}
+    #usageReportCard .full-span-group:has(#reportSites){--gc:#f59e0b}
+    #usageReportCard .full-span-group:has(#reportAccounts){--gc:#ec4899}
+    #usageReportCard .full-span-group>label{display:flex!important;align-items:center;gap:10px;margin-bottom:12px!important;font-size:1em!important;font-weight:700!important;color:var(--header-color)!important}
+    #usageReportCard .full-span-group>label>i{flex:none;width:32px;height:32px;display:grid;place-items:center;border-radius:10px;font-size:14px;color:#fff;background:linear-gradient(135deg,var(--gc),color-mix(in srgb,var(--gc) 55%,#8b5cf6));box-shadow:0 6px 14px -5px color-mix(in srgb,var(--gc) 60%,transparent)}
+    #usageReportCard .ur-tools{margin-left:auto;display:inline-flex;align-items:center;gap:8px;font-weight:600}
+    #usageReportCard .ur-count{font-style:normal;font-size:.75em;padding:4px 10px;border-radius:99px;color:var(--gc);background:color-mix(in srgb,var(--gc) 15%,transparent);border:1px solid color-mix(in srgb,var(--gc) 30%,transparent);white-space:nowrap}
+    #usageReportCard .ur-clear{border:0;background:transparent;color:var(--secondary-color);font-size:.75em;font-weight:700;cursor:pointer;padding:4px 6px;border-radius:8px}
+    #usageReportCard .ur-clear:hover{color:var(--danger-color);background:color-mix(in srgb,var(--danger-color) 12%,transparent)}
+    #usageReportCard .ur-clear[hidden]{display:none}
+    #usageReportCard .elegant-checkboxes{padding:2px!important;border:0!important;background:transparent!important;max-height:168px!important;gap:8px;scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--gc) 55%,transparent) transparent}
+    #usageReportCard .elegant-checkboxes label{padding:8px 14px;border-width:1px;border-radius:99px;background:var(--secondary-bg-color);font-size:.88em;transition:background .25s,border-color .25s,color .25s,transform .25s cubic-bezier(.34,1.5,.64,1),box-shadow .25s}
+    #usageReportCard .elegant-checkboxes label i{color:var(--gc);margin-right:6px}
+    #usageReportCard .elegant-checkboxes label{margin:0!important}
+    #usageReportCard .form-row:has(#reportStartDate)>.form-group{min-width:0;width:100%;margin:0;flex:none}
+    #usageReportCard .form-row:has(#reportStartDate) input{width:100%;min-width:0;max-width:100%;box-sizing:border-box}
+    #usageReportCard>.form-buttons .form-btn{white-space:nowrap;font-size:.88em;padding:0 8px;gap:6px;min-width:0}
+    #usageReportCard .elegant-checkboxes label:hover{border-color:var(--gc);transform:translateY(-1px)}
+    #usageReportCard .elegant-checkboxes input:checked+label{background:linear-gradient(135deg,var(--gc),color-mix(in srgb,var(--gc) 60%,#8b5cf6));border-color:transparent;color:#fff;box-shadow:0 6px 14px -5px color-mix(in srgb,var(--gc) 65%,transparent);transform:none}
+    #usageReportCard .elegant-checkboxes input:checked+label i{display:none}
+    #usageReportCard .elegant-checkboxes input:checked+label::before{content:"\f00c";font-family:"Font Awesome 6 Free";font-weight:900;font-size:.8em;margin-right:7px}
+    #usageReportCard .form-row:has(#reportStartDate){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+    #usageReportCard .form-row:has(#reportStartDate) label::before{content:"\f073";font-family:"Font Awesome 6 Free";font-weight:900;margin-right:7px;color:var(--primary-accent-color)}
+    #usageReportCard .form-row:has(#reportStartDate) input{border-radius:14px}
+    #usageReportCard>.form-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}
+    #usageReportCard>.form-buttons .search-container{grid-column:1/-1;max-width:none!important;margin:0!important}
+    #usageReportCard>.form-buttons .form-btn{height:48px;border-radius:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;margin:0}
+    #usageReportCard #btnGenerateReport{background:linear-gradient(135deg,var(--primary-accent-color),#8b5cf6);color:#fff;border:0;box-shadow:0 10px 20px -8px color-mix(in srgb,var(--primary-accent-color) 65%,transparent)}
+    #usageReportCard #btnGenerateReport::before{content:"\f200";font-family:"Font Awesome 6 Free";font-weight:900}
     #dlSuggestions{background:#ffffff}
     body.dark-mode #dlSuggestions{background:#1e293b}
     #dlSuggestions .dl-sug:hover{background:rgba(59,130,246,.12)}
@@ -4372,7 +4409,7 @@
           <div id="sparePartsCardContainer" class="spare-parts-card-grid"></div>
         </div>
         <div id="nested-summary" class="nested-tab-content">
-          <div class="card" style="margin-bottom: 20px;">
+          <div class="card" id="usageReportCard" style="margin-bottom: 20px;">
             <h3>Usage Report Generator</h3>
             <div class="form-row">
               <div class="form-group full-span-group">
@@ -9898,6 +9935,13 @@ c.style.setProperty('--ico','"'+(lv===0&&pal?pal[2]:LV[lv]||LV[0])+'"');
 var n=parseInt(((c.querySelector('.summary-card-count')||{}).textContent||'0').replace(/,/g,''),10)||0;c.__n=n;var k=c.parentElement;mx.set(k,Math.max(mx.get(k)||0,n))});
 Array.prototype.forEach.call(cards,function(c){var m=mx.get(c.parentElement)||1;c.style.setProperty('--pct',Math.max(0,Math.min(100,c.__n/m*100)).toFixed(1))})}
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(enh)}).observe(box,{childList:true,subtree:true});enh();box.addEventListener('click',function(e){var c=e.target.closest&&e.target.closest('.summary-card');if(!c)return;setTimeout(function(){var n=c.nextElementSibling,t=null;if(n&&n.classList.contains('summary-details-row')&&n.style.display!=='none')t=n;else{var l=document.getElementById('sparePartLocationDetails');if(l&&l.classList.contains('show'))t=l}if(!t)return;var r=t.getBoundingClientRect();if(r.top<0||r.bottom>innerHeight)t.scrollIntoView({behavior:'smooth',block:'nearest'})},160)});
+})();
+(function(){
+var card=document.getElementById('usageReportCard');if(!card)return;
+function upd(){Array.prototype.forEach.call(card.querySelectorAll('.full-span-group'),function(g){var l=g.querySelector(':scope>label'),box=g.querySelector('.elegant-checkboxes');if(!l||!box)return;var t=l.querySelector('.ur-tools');if(!t){t=document.createElement('span');t.className='ur-tools';t.innerHTML='<em class="ur-count"></em><button type="button" class="ur-clear" hidden>Clear</button>';l.appendChild(t)}var n=box.querySelectorAll('input:checked').length,tot=box.querySelectorAll('input').length;var ce=t.querySelector('.ur-count'),tx=n?n+' selected':'All';if(ce.textContent!==tx)ce.textContent=tx;t.querySelector('.ur-clear').hidden=!n})}
+card.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.ur-clear');if(!b)return;e.preventDefault();var box=b.closest('.full-span-group').querySelector('.elegant-checkboxes');Array.prototype.forEach.call(box.querySelectorAll('input:checked'),function(i){i.checked=false;i.dispatchEvent(new Event('change',{bubbles:true}))});upd()});
+card.addEventListener('change',upd);
+var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 window.loadLaptops=refreshAllDataAndViews;resetFormForAdd()});
       </script>
