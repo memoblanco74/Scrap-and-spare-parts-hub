@@ -362,6 +362,35 @@
     #usageReportCard>.form-buttons .form-btn{height:48px;border-radius:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;margin:0}
     #usageReportCard #btnGenerateReport{background:linear-gradient(135deg,var(--primary-accent-color),#8b5cf6);color:#fff;border:0;box-shadow:0 10px 20px -8px color-mix(in srgb,var(--primary-accent-color) 65%,transparent)}
     #usageReportCard #btnGenerateReport::before{content:"\f200";font-family:"Font Awesome 6 Free";font-weight:900}
+    .table-container{border-radius:16px;border:1px solid var(--border-color);box-shadow:0 12px 28px -20px rgba(0,0,0,.6);scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--primary-accent-color) 55%,transparent) transparent;background:linear-gradient(90deg,var(--secondary-bg-color) 30%,transparent) left center/42px 100% no-repeat local,linear-gradient(270deg,var(--secondary-bg-color) 30%,transparent) right center/42px 100% no-repeat local,radial-gradient(farthest-side at 0 50%,rgba(0,0,0,.4),transparent) left center/14px 100% no-repeat scroll,radial-gradient(farthest-side at 100% 50%,rgba(0,0,0,.4),transparent) right center/14px 100% no-repeat scroll,var(--secondary-bg-color)}
+    table{border-collapse:separate;border-spacing:0;width:100%}
+    table thead th{padding:13px 16px;font-size:.76em;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--secondary-color);background-image:linear-gradient(180deg,color-mix(in srgb,var(--primary-accent-color) 17%,var(--secondary-bg-color)),color-mix(in srgb,var(--primary-accent-color) 8%,var(--secondary-bg-color)));border-bottom:2px solid color-mix(in srgb,var(--primary-accent-color) 45%,transparent)}
+    table tbody td{padding:12px 16px;border-bottom:1px solid color-mix(in srgb,var(--border-color) 65%,transparent);font-size:.92em}
+    table tbody tr:last-child td{border-bottom:0}
+    table tbody tr{transition:background-color .15s}
+    :where(table tbody tr:nth-child(even)){background:color-mix(in srgb,var(--text-color) 3.5%,transparent)}
+    table tbody tr:hover{background:color-mix(in srgb,var(--primary-accent-color) 11%,transparent)}
+    table tbody tr:hover td:first-child{box-shadow:inset 3px 0 0 var(--primary-accent-color)}
+    #laptopTable th,#laptopTable td,#reportTable th,#reportTable td,#logsTable th,#logsTable td,#printersTable th,#printersTable td,#modelComponentLaptopListElem table th,#modelComponentLaptopListElem table td{border:0;border-bottom:1px solid color-mix(in srgb,var(--border-color) 65%,transparent);padding:11px 14px}
+    #laptopTable th,#laptopTable td{padding:9px 12px;font-size:.8em}
+    #laptopTable thead th,#reportTable th,#logsTable th,#printersTable th,#modelComponentLaptopListElem table th{font-size:.74em;border-bottom:2px solid color-mix(in srgb,var(--primary-accent-color) 45%,transparent)}
+    #reportTable td,#logsTable td{font-size:.88em}
+    #modelComponentLaptopListElem table td:first-child{width:1%;font-weight:700;color:var(--primary-accent-color)}
+    #modelComponentLaptopListElem table td:nth-child(5){min-width:170px}
+    #modelComponentLaptopListElem table td:nth-child(2){font-weight:600}
+    #modelComponentLaptopListElem h5{display:flex;align-items:center;gap:10px;font-size:1em;margin:6px 0 12px}
+    #modelComponentLaptopListElem h5::before{content:"\f109";font-family:"Font Awesome 6 Free";font-weight:900;width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-size:14px;color:#fff;background:linear-gradient(135deg,var(--primary-accent-color),#8b5cf6)}
+    @media (max-width:640px){
+      #modelComponentLaptopListElem .comp-laptops-table thead{display:none}
+      #modelComponentLaptopListElem .comp-laptops-table,#modelComponentLaptopListElem .comp-laptops-table tbody,#modelComponentLaptopListElem .comp-laptops-table tr{display:block;width:100%}
+      #modelComponentLaptopListElem .comp-laptops-table tr{padding:12px 16px;border-bottom:1px solid var(--border-color)}
+      #modelComponentLaptopListElem .comp-laptops-table tr:last-child{border-bottom:0}
+      #modelComponentLaptopListElem .comp-laptops-table td{display:flex!important;justify-content:space-between;align-items:baseline;gap:14px;width:auto!important;min-width:0!important;padding:5px 0!important;border:0!important;text-align:right!important;white-space:normal!important;word-break:break-word;box-shadow:none!important}
+      #modelComponentLaptopListElem .comp-laptops-table td::before{content:attr(data-label);flex:none;color:var(--secondary-color);font-size:.78em;font-weight:700;text-transform:uppercase;letter-spacing:.07em;text-align:left}
+      #modelComponentLaptopListElem .comp-laptops-table td:first-child{justify-content:flex-start}
+      #modelComponentLaptopListElem .comp-laptops-table td:first-child::before{content:"#";color:var(--primary-accent-color);font-size:1.05em}
+      #modelComponentLaptopListElem .comp-laptops-table td:first-child{color:var(--primary-accent-color);font-size:1.05em}
+    }
     #dlSuggestions{background:#ffffff}
     body.dark-mode #dlSuggestions{background:#1e293b}
     #dlSuggestions .dl-sug:hover{background:rgba(59,130,246,.12)}
@@ -6046,7 +6075,7 @@ function displayLaptopsForComponent(componentName){
     
     if(relevantLaptops.length>0){
         const heading=`<h5>Laptops with working ${componentName} (${relevantLaptops.length}):</h5>`;
-        const list=`<div class="table-container" style="max-height:400px"><table class="comp-laptops-table"><thead><tr><th>#</th><th>Model</th><th>SN</th><th>Location</th><th>Comment</th></tr></thead><tbody>${relevantLaptops.map((l,i)=>`<tr><td>${i+1}</td><td>${l.brand||''} ${l.laptop_model||''}</td><td>${l.serial_number||'N/A'}</td><td>${l.current_location||'N/A'}</td><td>${l.comment||'N/A'}</td></tr>`).join('')}</tbody></table></div>`;
+        const list=`<div class="table-container" style="max-height:400px"><table class="comp-laptops-table"><thead><tr><th>#</th><th>Model</th><th>SN</th><th>Location</th><th>Comment</th></tr></thead><tbody>${relevantLaptops.map((l,i)=>`<tr><td data-label="#">${i+1}</td><td data-label="Model">${(l.brand&&!String(l.laptop_model||'').toLowerCase().startsWith(String(l.brand).toLowerCase())?l.brand+' ':'')+(l.laptop_model||'')}</td><td data-label="SN">${l.serial_number||'N/A'}</td><td data-label="Location">${l.current_location||'N/A'}</td><td data-label="Comment">${l.comment||'N/A'}</td></tr>`).join('')}</tbody></table></div>`;
         modelComponentLaptopListElem.innerHTML=heading+list;
     }else{
         modelComponentLaptopListElem.innerHTML=`<p>No laptops with working ${componentName} for this selection.</p>`;
