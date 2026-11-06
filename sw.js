@@ -21,8 +21,10 @@ self.addEventListener('activate', (event) => {
 // Network-first: يحاول ياخد أحدث نسخة من النت، ولو النت مقطوع يرجع للكاش (لو موجود)
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  const sameOrigin = new URL(event.request.url).origin === self.location.origin;
+  const req = sameOrigin ? new Request(event.request.url, { cache: 'no-cache', credentials: 'same-origin' }) : event.request;
   event.respondWith(
-    fetch(event.request)
+    fetch(req)
       .then((response) => {
         const clone = response.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone).catch(() => {}));
