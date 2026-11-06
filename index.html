@@ -391,6 +391,14 @@
       #modelComponentLaptopListElem .comp-laptops-table td:first-child::before{content:"#";color:var(--primary-accent-color);font-size:1.05em}
       #modelComponentLaptopListElem .comp-laptops-table td:first-child{color:var(--primary-accent-color);font-size:1.05em}
     }
+    #updateBanner{position:fixed;left:50%;bottom:18px;transform:translate(-50%,30px);opacity:0;z-index:100000;display:flex;align-items:center;gap:12px;width:min(520px,calc(100vw - 24px));padding:12px 14px;border-radius:18px;color:#fff;background:linear-gradient(135deg,var(--primary-accent-color),#8b5cf6);box-shadow:0 18px 40px -12px rgba(59,130,246,.65),0 0 0 1px rgba(255,255,255,.18) inset;transition:transform .45s cubic-bezier(.34,1.4,.64,1),opacity .3s;pointer-events:none}
+    #updateBanner.show{transform:translate(-50%,0);opacity:1;pointer-events:auto}
+    #updateBanner .ub-ico{flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.2);font-size:16px}
+    #updateBanner .ub-txt{flex:1;min-width:0;font-size:.88em;line-height:1.4}
+    #updateBanner .ub-txt b{display:block;font-size:1.05em}
+    #updateBanner .ub-txt span{opacity:.92;display:block}
+    #updateBanner button{flex:none;border:0;cursor:pointer;font:inherit;font-weight:700;font-size:.85em;padding:9px 14px;border-radius:12px;background:#fff;color:#4f46e5}
+    #updateBanner .ub-x{background:transparent;color:#fff;padding:6px 8px;opacity:.85;font-size:1em}
     #dlSuggestions{background:#ffffff}
     body.dark-mode #dlSuggestions{background:#1e293b}
     #dlSuggestions .dl-sug:hover{background:rgba(59,130,246,.12)}
@@ -9972,6 +9980,16 @@ function upd(){Array.prototype.forEach.call(card.querySelectorAll('.full-span-gr
 card.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.ur-clear');if(!b)return;e.preventDefault();var box=b.closest('.full-span-group').querySelector('.elegant-checkboxes');Array.prototype.forEach.call(box.querySelectorAll('input:checked'),function(i){i.checked=false;i.dispatchEvent(new Event('change',{bubbles:true}))});upd()});
 card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
+})();
+(function(){
+var APP_VERSION='20261106225031';
+var ban=null,shown='',busy=false;
+function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span><span dir="rtl">في تحديث جديد للتطبيق — اقفل البرنامج وافتحه تاني علشان تستفيد بيه.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){try{location.reload()}catch(e){location.href=location.href}});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show')})}
+function show(v){build(v);if(shown===v)return;shown=v;requestAnimationFrame(function(){ban.classList.add('show')})}
+function check(){if(busy||document.hidden||!navigator.onLine)return;busy=true;fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(j&&j.v&&/^[0-9]{14}$/.test(j.v)&&j.v!==APP_VERSION)show(j.v)}).catch(function(){}).then(function(){busy=false})}
+setTimeout(check,4000);setInterval(check,300000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden)check()});window.addEventListener('focus',check);window.addEventListener('online',check);
+window.__appVersion=APP_VERSION;
 })();
 window.loadLaptops=refreshAllDataAndViews;resetFormForAdd()});
       </script>
