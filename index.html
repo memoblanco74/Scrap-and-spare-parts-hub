@@ -210,7 +210,8 @@
     .nested-tab-button.active{background-color:transparent!important;color:#fff!important;opacity:1;text-shadow:0 1px 2px rgba(0,0,0,.25)}
     .nested-tab-button.active .tb-ico{transform:scale(1.15);animation:tbPop .5s cubic-bezier(.34,1.8,.64,1)}
 
-    .nested-tab-button{margin-bottom:0!important;color:var(--text-color)}
+    .nested-tab-button{margin-bottom:0!important;color:var(--text-color);display:inline-flex!important;align-items:center;justify-content:center;gap:9px!important}
+    .nested-tab-button .tb-ico{margin:0}
     #nested-inventory .search-export-section{top:190px!important}
     .spare-part-card{--tc:var(--primary-accent-color)}
     .spare-part-card.type-charger,.spare-part-card.type-adapter,.spare-part-card.type-fan{--tc:#f59e0b}
@@ -229,7 +230,7 @@
     #sparePartsCardContainer:not([data-spstyle="classic"]) .sp-detail-item{min-width:0}
     #sparePartsCardContainer:not([data-spstyle="classic"]) .sp-value:empty::after{content:"\2014";opacity:.5}
     #sparePartsCardContainer:not([data-spstyle="classic"]) .sp-label::before{font-family:"Font Awesome 6 Free";font-weight:900;display:inline-block;width:14px;margin-right:7px;text-align:center;color:var(--primary-accent-color)}
-    #sparePartsCardContainer [data-k="ref-id"] .sp-label::before{content:"\f292"}
+    #sparePartsCardContainer [data-k="ref-id"] .sp-label::before{content:"\f2c2"}
     #sparePartsCardContainer [data-k="category"] .sp-label::before{content:"\f02b"}
     #sparePartsCardContainer [data-k="site"] .sp-label::before{content:"\f1ad"}
     #sparePartsCardContainer [data-k="location"] .sp-label::before{content:"\f3c5"}
@@ -3994,7 +3995,7 @@
         <button class="tab-button" data-tab="spare-parts" data-permission="spareParts_visible" style="display: none;"><i class="fa-solid fa-microchip tb-ico"></i><span class="tb-txt">Spare Parts</span></button>
         <button class="tab-button" data-tab="incidents" data-permission="incidents_visible"><i class="fa-solid fa-triangle-exclamation tb-ico"></i><span class="tb-txt">Create Incident</span></button>
         <button class="tab-button" data-tab="it-workspace" data-permission="itWorkspace_visible" style="display: none;"><i class="fa-solid fa-briefcase tb-ico"></i><span class="tb-txt">IT Workspace</span></button>
-        <button class="tab-button" data-tab="device-lookup" data-permission="deviceLookup_visible" style="display: none;"><i class="fa-solid fa-magnifying-glass-chart tb-ico"></i><span class="tb-txt">Device Lookup</span></button>
+        <button class="tab-button" data-tab="device-lookup" data-permission="deviceLookup_visible" style="display: none;"><i class="fa-solid fa-magnifying-glass tb-ico"></i><span class="tb-txt">Device Lookup</span></button>
         <button class="tab-button" id="printersTabBtn" data-tab="printers-page" data-permission="printers_visible" style="display: none;"><i class="fa-solid fa-print tb-ico"></i><span class="tb-txt">Printers</span></button>
         <button class="tab-button" data-tab="logs" data-permission="logs_visible" style="display: none;"><i class="fa-solid fa-clock-rotate-left tb-ico"></i><span class="tb-txt">Activity Logs</span></button>
         <button class="tab-button" data-tab="manage-users" data-permission="manageUsers_visible" style="display: none;"><i class="fa-solid fa-users-gear tb-ico"></i><span class="tb-txt">Manage Users</span></button>
@@ -4002,7 +4003,7 @@
       <div id="dashboard" class="tab-content active">
         <div class="dashboard-grid">
           <div class="card full-width-card" id="warrantyWidgetCard" data-permission="warrantyWidget_visible" style="display: none;">
-            <h2><i class="fa-solid fa-shield-halved" style="color: var(--warning-color);"></i> Warranty Expiring Soon (30 Days)</h2>
+            <h2><i class="fa-solid fa-shield-alt" style="color: var(--warning-color);"></i> Warranty Expiring Soon (30 Days)</h2>
             <div id="warrantyWidgetContent">
               <div class="skeleton-block"><div class="skeleton sk-line" style="width:70%"></div><div class="skeleton sk-line" style="width:90%"></div><div class="skeleton sk-line" style="width:55%"></div></div>
             </div>
@@ -4306,7 +4307,7 @@
         </div>
         <div class="nested-tab-buttons"><span class="tab-pill"></span>
           <button class="nested-tab-button active" data-nested-tab="inventory"><i class="fa-solid fa-boxes-stacked tb-ico"></i><span class="tb-txt">Inventory</span></button>
-          <button class="nested-tab-button" data-nested-tab="summary"><i class="fa-solid fa-chart-simple tb-ico"></i><span class="tb-txt">Summary</span></button>
+          <button class="nested-tab-button" data-nested-tab="summary"><i class="fa-solid fa-chart-bar tb-ico"></i><span class="tb-txt">Summary</span></button>
         </div>
         <div id="nested-inventory" class="nested-tab-content active">
           <div class="search-export-section sp-search-section">
@@ -4672,7 +4673,7 @@
 
       <div id="device-lookup" class="tab-content">
         <div class="card" style="max-width: 900px; margin: 0 auto;">
-          <h2><i class="fa-solid fa-magnifying-glass-chart" style="color: var(--primary-accent-color);"></i> Device Lookup</h2>
+          <h2><i class="fa-solid fa-magnifying-glass" style="color: var(--primary-accent-color);"></i> Device Lookup</h2>
           <div style="position:relative; margin-top:15px;">
             <input type="text" id="dlSearchInput" autocomplete="off" placeholder="Computer name, serial number or user..." style="width:100%; box-sizing:border-box; padding:10px 14px; border-radius:6px; border:1px solid var(--input-border-color); background:var(--input-bg-color); color:var(--text-color);">
             <div id="dlSuggestions" style="display:none; position:absolute; left:0; right:0; top:100%; margin-top:4px; z-index:50; max-height:320px; overflow:auto; border:1px solid var(--input-border-color); border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,.18);"></div>
@@ -4691,7 +4692,7 @@
         </div>
         <div class="card" id="warrantyCard" style="display:none; max-width: 900px; margin: 20px auto 0;">
           <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-            <h3 style="margin:0;"><i class="fa-solid fa-shield-halved" style="color: var(--success-color);"></i> Warranty</h3>
+            <h3 style="margin:0;"><i class="fa-solid fa-shield-alt" style="color: var(--success-color);"></i> Warranty</h3>
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
               <label for="warrantyImportFile" class="import-button custom-btn" data-permission="warrantyCheck_canAdd" style="display:none;">
                 <i class="fa-solid fa-file-import"></i> Bulk Import
@@ -5058,7 +5059,7 @@
         <div class="pa-report-card">
           <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:15px;">
             <div>
-              <h3 style="margin:0;"><i class="fa-solid fa-shield-halved"></i> Permissions Access Report</h3>
+              <h3 style="margin:0;"><i class="fa-solid fa-shield-alt"></i> Permissions Access Report</h3>
               <p style="margin:4px 0 0 0; font-size:0.85em; color:var(--secondary-color);">Every main and sub permission in the system, and exactly which users (Display Name / Role) currently have it.</p>
             </div>
             <div class="search-container" style="max-width:280px; margin-bottom:0;">
