@@ -9982,9 +9982,9 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261106225031';
+var APP_VERSION='20261106225320';
 var ban=null,shown='',busy=false;
-function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span><span dir="rtl">في تحديث جديد للتطبيق — اقفل البرنامج وافتحه تاني علشان تستفيد بيه.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){try{location.reload()}catch(e){location.href=location.href}});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show')})}
+function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){try{location.reload()}catch(e){location.href=location.href}});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show')})}
 function show(v){build(v);if(shown===v)return;shown=v;requestAnimationFrame(function(){ban.classList.add('show')})}
 function check(){if(busy||document.hidden||!navigator.onLine)return;busy=true;fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(j&&j.v&&/^[0-9]{14}$/.test(j.v)&&j.v!==APP_VERSION)show(j.v)}).catch(function(){}).then(function(){busy=false})}
 setTimeout(check,4000);setInterval(check,300000);
