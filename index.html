@@ -399,6 +399,20 @@
     #updateBanner .ub-txt span{opacity:.92;display:block}
     #updateBanner button{flex:none;border:0;cursor:pointer;font:inherit;font-weight:700;font-size:.85em;padding:9px 14px;border-radius:12px;background:#fff;color:#4f46e5}
     #updateBanner .ub-x{background:transparent;color:#fff;padding:6px 8px;opacity:.85;font-size:1em}
+    .db-status.syncing-mode{margin-bottom:10px}
+    .ds-track{height:5px;border-radius:99px;background:color-mix(in srgb,var(--text-color) 9%,transparent);overflow:hidden;position:relative}
+    .ds-bar{position:relative;height:100%;width:35%;border-radius:99px;background:linear-gradient(90deg,var(--primary-accent-color),#8b5cf6,#ec4899);box-shadow:0 0 12px color-mix(in srgb,var(--primary-accent-color) 70%,transparent);animation:dsMove 1.1s infinite cubic-bezier(.65,0,.35,1)}
+    @keyframes dsMove{0%{left:-35%}100%{left:100%}}
+    .ds-bar.ds-done,.ds-bar.ds-fail{width:100%;left:0;animation:dsFill .6s cubic-bezier(.2,.8,.2,1) both}
+    .ds-bar.ds-done{background:linear-gradient(90deg,#16a34a,#22c55e,#86efac);box-shadow:0 0 14px rgba(34,197,94,.75)}
+    .ds-bar.ds-fail{background:linear-gradient(90deg,#dc2626,#ef4444,#fb7185);box-shadow:0 0 14px rgba(239,68,68,.75)}
+    @keyframes dsFill{from{width:25%}to{width:100%}}
+    .ds-chip{display:inline-flex;align-items:center;gap:8px;margin-top:9px;padding:6px 8px 6px 12px;border-radius:99px;font-size:.82em;font-weight:700;border:1px solid;animation:dsPop .45s cubic-bezier(.34,1.5,.64,1) both}
+    .ds-chip.ok{color:#22c55e;background:rgba(34,197,94,.13);border-color:rgba(34,197,94,.35);padding-right:12px;animation:dsPop .45s cubic-bezier(.34,1.5,.64,1) both,dsGone .4s ease 2.2s forwards}
+    .ds-chip.err{color:#f87171;background:rgba(239,68,68,.13);border-color:rgba(239,68,68,.4)}
+    .ds-retry{display:inline-flex;align-items:center;gap:6px;border:0;cursor:pointer;font:inherit;font-weight:700;font-size:.95em;padding:5px 11px;border-radius:99px;color:#fff;background:linear-gradient(135deg,#ef4444,#dc2626)}
+    @keyframes dsPop{from{opacity:0;transform:translateY(-6px) scale(.92)}to{opacity:1;transform:none}}
+    @keyframes dsGone{to{opacity:0;max-height:0;margin-top:0;padding-top:0;padding-bottom:0;border-width:0;overflow:hidden}}
     #dlSuggestions{background:#ffffff}
     body.dark-mode #dlSuggestions{background:#1e293b}
     #dlSuggestions .dl-sug:hover{background:rgba(59,130,246,.12)}
@@ -5680,8 +5694,7 @@ async function refreshAllDataAndViews() {
     try {
         // إظهار مؤشر التحميل
         const d = document.getElementById('dbStatus');
-        d.innerHTML = '<div class="progress-container"><div class="progress-bar"></div></div>';
-        d.className = 'db-status show syncing-mode';
+        renderDataStatus('load');
 
         // جلب جميع البيانات في نفس الوقت (Concurrent Fetching) لسرعة قصوى
         const [
@@ -5804,8 +5817,7 @@ async function refreshAllDataAndViews() {
         if(currentUser&&currentUser.permissions.warrantyWidget&&currentUser.permissions.warrantyWidget.visible)loadWarrantyWidget();
 
         // إخفاء مؤشر التحميل
-        d.innerHTML = '<div style="height:3px;background:var(--success-color);width:100%;border-radius:3px;transition:all 0.3s;"></div>';
-        setTimeout(() => d.classList.remove('show'), 1000);
+        renderDataStatus('ok');
 
         // إعادة الاتصال بالـ Realtime لو مفيش قناة شغالة أصلاً، أو لو كان مقطوع بسبب الخمول
         // (يعني زرار الريفريش اللي جوه الموقع بقى بيرجع يوصل الريلتايم من غير ما نحتاج ريفريش للمتصفح)
@@ -5820,11 +5832,13 @@ async function refreshAllDataAndViews() {
         
     } catch (error) {
         console.error("Failed to refresh data:", error);window.__dataFailed=true;
-        document.getElementById('dbStatus').className = 'db-status error show';
+        renderDataStatus('err');
         showNotification("Failed to load data directly from database.", "error");
     }
 }
-function displayDbStatus(message,type){dbStatusDiv.innerHTML=`<i class="fa-solid ${type==='success'?'fa-check-circle':'fa-times-circle'}"></i> <span>${message}</span>`;dbStatusDiv.className='db-status '+type;dbStatusDiv.classList.add('show');setTimeout(()=>{dbStatusDiv.classList.remove('show')},4000)}
+function renderDataStatus(state,quiet){var d=document.getElementById('dbStatus');if(!d)return;window.__dsState=state;var bar,chip='';if(state==='load'){bar='<div class="ds-bar"></div>'}else if(state==='ok'){bar='<div class="ds-bar ds-done"></div>';if(!quiet)chip='<div class="ds-chip ok"><i class="fa-solid fa-circle-check"></i> Data loaded</div>'}else{bar='<div class="ds-bar ds-fail"></div>';chip='<div class="ds-chip err"><i class="fa-solid fa-triangle-exclamation"></i> Couldn\'t load data<button type="button" class="ds-retry"><i class="fa-solid fa-sync-alt"></i> Retry</button></div>'}d.innerHTML='<div class="ds-track">'+bar+'</div>'+chip;d.className='db-status show syncing-mode ds-'+state}
+window.dsRestore=function(){if(window.__dsState)renderDataStatus(window.__dsState,true)};
+function displayDbStatus(message,type){dbStatusDiv.innerHTML=`<i class="fa-solid ${type==='success'?'fa-check-circle':'fa-times-circle'}"></i> <span>${message}</span>`;dbStatusDiv.className='db-status '+type;dbStatusDiv.classList.add('show');clearTimeout(window.__dsT);window.__dsT=setTimeout(()=>{dbStatusDiv.classList.remove('show');window.dsRestore()},4000)}
 function clearSessionCreds(){sessionStorage.removeItem('loggedInUser');sessionStorage.removeItem('loggedInCred');try{localStorage.removeItem('keptUser');localStorage.removeItem('keptCred')}catch(e){}}
 async function checkSession(){let userEmail=sessionStorage.getItem('loggedInUser'),cred=null,fromKept=false;try{cred=sessionStorage.getItem('loggedInCred')}catch(e){}if(!userEmail){try{userEmail=localStorage.getItem('keptUser');cred=localStorage.getItem('keptCred');fromKept=!!userEmail}catch(e){userEmail=null}}if(!userEmail||!cred){if(userEmail)clearSessionCreds();setAsViewOnly();return}let d=null;try{const r=await supabaseClient.rpc('get_my_profile',{payload:{username:userEmail,password:cred}});if(r.error)throw new Error(r.error.message);d=r.data}catch(e){setAsViewOnly();return}if(!d||!d.valid){clearSessionCreds();setAsViewOnly();return}const perms=migratePermissions(typeof d.permissions==='string'?JSON.parse(d.permissions):d.permissions);if(fromKept){if(perms&&perms.session&&perms.session.keepAlive){sessionStorage.setItem('loggedInUser',userEmail);sessionStorage.setItem('loggedInCred',cred)}else{clearSessionCreds();setAsViewOnly();return}}users[d.email]={email:d.email,password:cred,permissions:perms,comment:d.comment||''};currentUser={email:d.email,permissions:perms};applyPermissions();if(currentUser.permissions.manageUsers&&currentUser.permissions.manageUsers.visible){displayUsersInTable()}if(allSpareParts&&allSpareParts.length>0){renderSparePartsCards(allSpareParts)}if(allLaptops&&allLaptops.length>0){tableBody.innerHTML='';allLaptops.forEach(addLaptopRowToTable)}window.startSelfUserChannel();if(window.__dataLoadedAt&&currentUser.permissions.warrantyWidget&&currentUser.permissions.warrantyWidget.visible)loadWarrantyWidget()}
 async function handleLogin(event){
@@ -8799,7 +8813,7 @@ if (muDestSnInput) {
                 document.getElementById('muDestModel').value = a.model || '';
                 displayDbStatus('Dest Asset Found: ' + a.model + (a.otherSerials&&a.otherSerials.length?' (other serial: '+a.otherSerials.join(' / ')+')':''), 'success');
             } else {
-                document.getElementById('dbStatus').classList.remove('show');
+                document.getElementById('dbStatus').classList.remove('show');window.dsRestore();
             }
         }
     });
@@ -9007,7 +9021,7 @@ document.getElementById('muNhDestSN')?.addEventListener('change', async (e) => {
             document.getElementById('muNhDestModel').value = a.model || '';
             displayDbStatus('Dest Asset Found: ' + a.model + (a.otherSerials&&a.otherSerials.length?' (other serial: '+a.otherSerials.join(' / ')+')':''), 'success');
         } else {
-            document.getElementById('dbStatus').classList.remove('show');
+            document.getElementById('dbStatus').classList.remove('show');window.dsRestore();
         }
     }
 });
@@ -9982,7 +9996,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261106225440';
+var APP_VERSION='20261106225851';
 var ban=null,shown='',busy=false;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show')})}
 function show(v){build(v);if(shown===v)return;shown=v;requestAnimationFrame(function(){ban.classList.add('show')})}
@@ -9991,6 +10005,7 @@ setTimeout(check,4000);setInterval(check,300000);
 document.addEventListener('visibilitychange',function(){if(!document.hidden)check()});window.addEventListener('focus',check);window.addEventListener('online',check);
 window.__appVersion=APP_VERSION;
 })();
+(function(){var d=document.getElementById('dbStatus');if(!d)return;d.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.ds-retry');if(!b)return;b.disabled=true;try{refreshAllDataAndViews()}catch(x){}})})();
 window.loadLaptops=refreshAllDataAndViews;resetFormForAdd()});
       </script>
 </body>
