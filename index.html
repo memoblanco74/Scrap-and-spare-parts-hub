@@ -213,6 +213,19 @@
     .slider-sm:before,.slider:before{transition:transform .38s cubic-bezier(.34,1.56,.64,1),background-color .3s}
     .um-sw::after{transition:left .3s cubic-bezier(.34,1.56,.64,1)}
     @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}.fa-spin,.app-spinner,.sk{animation-duration:1s!important;animation-iteration-count:infinite!important}}
+    .ws-seg{position:relative;display:flex;width:fit-content;max-width:100%;overflow-x:auto;gap:2px;margin-top:14px;padding:5px;border-radius:20px;background:var(--secondary-bg-color);border:1px solid var(--border-color);box-shadow:inset 0 2px 8px rgba(0,0,0,.22);scrollbar-width:none}
+    .ws-seg::-webkit-scrollbar{display:none}
+    .ws-pill{position:absolute;top:5px;bottom:5px;left:0;width:0;border-radius:15px;background:linear-gradient(135deg,var(--primary-accent-color),#8b5cf6);box-shadow:0 8px 20px rgba(99,102,241,.5),inset 0 1px 0 rgba(255,255,255,.35);transition:transform .42s cubic-bezier(.34,1.35,.64,1),width .42s cubic-bezier(.34,1.35,.64,1);pointer-events:none}
+    .ws-btn{position:relative;z-index:1;flex:0 0 auto;display:inline-flex;align-items:center;gap:9px;padding:10px 18px;border:none;border-radius:15px;background:transparent;color:var(--secondary-color);font:inherit;font-weight:700;font-size:.95em;cursor:pointer;white-space:nowrap;transition:color .3s ease,transform .15s ease}
+    .ws-btn:hover:not(.active){color:var(--text-color)}
+    .ws-btn:active{transform:scale(.95)}
+    .ws-btn.active{color:#fff}
+    .ws-btn i{font-size:1em;transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+    .ws-btn.active i{transform:scale(1.18) rotate(-6deg)}
+    .ws-dot{width:9px;height:9px;border-radius:50%;border:2px solid currentColor;opacity:.4;box-sizing:border-box;transition:all .3s}
+    .ws-dot.has{background:#22c55e;border-color:#22c55e;opacity:1;box-shadow:0 0 0 3px rgba(34,197,94,.28)}
+    .ws-btn.active .ws-dot.has{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.28)}
+    .ws-fade{animation:tabIn .32s cubic-bezier(.2,.8,.2,1)}
     #dlSuggestions{background:#ffffff}
     body.dark-mode #dlSuggestions{background:#1e293b}
     #dlSuggestions .dl-sug:hover{background:rgba(59,130,246,.12)}
@@ -9335,19 +9348,23 @@ if(!can('visible'))return;
 try{info=(await rpc('dl_info'))||{};renderUploads()}catch(e){}
 }
 var wsSeq=0;
+function wsMove(bar){var pill=bar.querySelector('.ws-pill'),act=bar.querySelector('.ws-btn.active');if(!pill||!act||!act.offsetWidth)return;pill.style.width=act.offsetWidth+'px';pill.style.transform='translateX('+act.offsetLeft+'px)'}
 function setWarrantySwitch(opts){
 var bar=$('warrantySwitch');
-if(!bar){bar=document.createElement('div');bar.id='warrantySwitch';bar.style.cssText='display:none;gap:8px;flex-wrap:wrap;margin-top:12px;';var anchor=$('warrantyLoading');if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(bar,anchor)}
+if(!bar){bar=document.createElement('div');bar.id='warrantySwitch';var anchor=$('warrantyLoading');if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(bar,anchor);if(window.ResizeObserver)new ResizeObserver(function(){wsMove(bar)}).observe(bar)}
+bar.className='ws-seg';
 var my=++wsSeq;
 if(!opts||opts.length<2){bar.style.display='none';bar.innerHTML='';return}
 bar.style.display='flex';
-bar.innerHTML=opts.map(function(o,i){return '<button type="button" class="custom-btn ws-btn" data-sn="'+escapeHtml(o.sn)+'" title="'+escapeHtml(o.title)+'" style="padding:6px 14px;'+(i===0?'background:var(--primary-accent-color);color:#fff;':'')+'">'+escapeHtml(o.label)+'<span class="ws-dot" style="margin-left:6px;font-size:.8em;opacity:.8;"></span></button>'}).join('');
-opts.forEach(function(o,i){findSerialRows('data',o.sn).then(function(r){if(my!==wsSeq)return;var b=bar.querySelectorAll('.ws-btn')[i];if(!b)return;var dt=b.querySelector('.ws-dot');if(dt)dt.textContent=(r&&r.length)?'\u25CF':'\u25CB'}).catch(function(){})})}
+bar.innerHTML='<span class="ws-pill"></span>'+opts.map(function(o,i){var ic=/^Disk/i.test(o.label)?'fa-hard-drive':'fa-laptop';return '<button type="button" class="ws-btn'+(i===0?' active':'')+'" data-sn="'+escapeHtml(o.sn)+'" title="'+escapeHtml(o.title)+'"><i class="fa-solid '+ic+'"></i><span class="ws-t">'+escapeHtml(o.label)+'</span><span class="ws-dot"></span></button>'}).join('');
+requestAnimationFrame(function(){wsMove(bar);setTimeout(function(){wsMove(bar)},120)});
+opts.forEach(function(o,i){findSerialRows('data',o.sn).then(function(r){if(my!==wsSeq)return;var b=bar.querySelectorAll('.ws-btn')[i];if(!b)return;var dt=b.querySelector('.ws-dot');if(dt)dt.className='ws-dot '+((r&&r.length)?'has':'none')}).catch(function(){})})}
 document.addEventListener('click',function(e){
 var b=e.target.closest&&e.target.closest('.ws-btn');if(!b)return;
 var bar=$('warrantySwitch');if(!bar)return;
-bar.querySelectorAll('.ws-btn').forEach(function(x){x.style.background='';x.style.color=''});
-b.style.background='var(--primary-accent-color)';b.style.color='#fff';
+bar.querySelectorAll('.ws-btn').forEach(function(x){x.classList.remove('active')});
+b.classList.add('active');wsMove(bar);
+var wr=$('warrantyResult');if(wr){wr.classList.remove('ws-fade');void wr.offsetWidth;wr.classList.add('ws-fade')}
 var wi=$('warrantySerialInput');if(wi){wi.value=b.dataset.sn;checkWarrantyStatus()}});
 function warrantyOnly(serial){
 setWarrantySwitch(null);
