@@ -3594,13 +3594,21 @@
         <div class="form-row">
           <div class="form-group">
             <label>Part Serial Number *:</label>
-            <input type="text" id="dgPartSN" required placeholder="Enter Part SN">
+            <div class="ssd-sn-row"><input type="text" id="dgPartSN" required placeholder="Enter Part SN" autocomplete="off"><button type="button" id="dgGenBtn" class="ssd-gen-btn"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate</button></div>
           </div>
           <div class="form-group">
             <label>Verified Part Model:</label>
             <input type="text" id="dgPartModelAuto" readonly style="background:var(--tertiary-bg-color)">
           </div>
         </div>
+        <div id="dgGenMsg" class="ssd-msg"></div>
+        <div class="ssd-grid">
+          <label>Type *<select id="dgKind"><option value="SSD">SSD</option><option value="NVMe">NVMe</option><option value="NVMe M.2">NVMe M.2</option></select></label>
+          <label>Brand *<input type="text" id="dgBrand" list="dgBrandList" placeholder="Select or type" autocomplete="off"></label>
+          <label>Model<input type="text" id="dgModelF" list="dgModelList" placeholder="Select or type" autocomplete="off"></label>
+          <label>Size *<input type="text" id="dgSize" list="dgSizeList" placeholder="e.g. 240, 512, 1T" autocomplete="off"></label>
+        </div>
+        <datalist id="dgBrandList"></datalist><datalist id="dgModelList"></datalist><datalist id="dgSizeList"></datalist>
         <hr>
         <div class="form-row">
           <div class="form-group">
@@ -8785,7 +8793,6 @@ const btnPrepareUsageEmail=document.getElementById('btnPrepareUsageEmail');if(bt
 const btnEditEmailRecipients=document.getElementById('btnEditEmailRecipients');if(btnEditEmailRecipients)btnEditEmailRecipients.addEventListener('click',async()=>{if(!canEditRecipients())return showNotification('Permission denied.','error');await ensureEmailTemplateSettingsLoaded();const list=document.getElementById('emailRecipientsList');list.innerHTML=Object.keys(EMAIL_TEMPLATES).map(key=>{const tmpl=EMAIL_TEMPLATES[key];const saved=emailTemplateSettings[key]||{};const to=saved.to||tmpl.defaultTo||'';const cc=saved.cc||tmpl.defaultCc||'';return '<div style="border:1px solid var(--border-color); border-radius:10px; padding:12px; margin-bottom:12px;"><h4 style="margin:0 0 8px 0;">'+escapeHtml(tmpl.label)+'</h4>'+(tmpl.ccOnly?'<input type="hidden" class="er-to" data-key="'+key+'" value="'+escapeHtml(to||'vendor').replace(/"/g,'&quot;')+'"><p class="input-hint" style="margin:0 0 8px 0;">To = the vendor email. Subject = Vendor name|Vendor|</p>':'<div class="form-group full-span-group"><label>To:</label><input type="text" class="er-to" data-key="'+key+'" required value="'+escapeHtml(to).replace(/"/g,'&quot;')+'" placeholder="name@company.com"></div>')+'<div class="form-group full-span-group"><label>CC:</label><input type="text" class="er-cc" data-key="'+key+'" value="'+escapeHtml(cc).replace(/"/g,'&quot;')+'" placeholder="team1@company.com;team2@company.com"></div></div>';}).join('');showModal(document.getElementById('emailRecipientsOverlay'));});
 const closeEmailRecipientsModal=document.getElementById('closeEmailRecipientsModal');if(closeEmailRecipientsModal)closeEmailRecipientsModal.addEventListener('click',()=>hideModal(document.getElementById('emailRecipientsOverlay')));
 const emailRecipientsForm=document.getElementById('emailRecipientsForm');if(emailRecipientsForm)emailRecipientsForm.addEventListener('submit',async(e)=>{e.preventDefault();if(!canEditRecipients())return showNotification('Permission denied.','error');const btn=e.target.querySelector('button[type="submit"]');const changes=[];document.querySelectorAll('#emailRecipientsList .er-to').forEach(inp=>{const key=inp.dataset.key;const to=inp.value.trim();const ccEl=document.querySelector('#emailRecipientsList .er-cc[data-key="'+key+'"]');const cc=ccEl?ccEl.value.trim():'';const tmpl=EMAIL_TEMPLATES[key]||{};const saved=emailTemplateSettings[key]||{};const curTo=(saved.to||tmpl.defaultTo||'').trim();const curCc=(saved.cc||tmpl.defaultCc||'').trim();if(to!==curTo||cc!==curCc)changes.push({key,to,cc});});if(changes.some(c=>!c.to))return showNotification('To cannot be empty.','error');if(!changes.length){hideModal(document.getElementById('emailRecipientsOverlay'));return showNotification('No changes.','info');}toggleButtonLoading(btn,true);try{for(const c of changes){const{data:updated,error:etsSaveErr}=await supabaseClient.rpc('save_email_template_setting',{payload:{templateKey:c.key,to:c.to,cc:c.cc}});if(etsSaveErr)throw new Error(etsSaveErr.message);emailTemplateSettings=updated||emailTemplateSettings;}logActivity('Edit Email Recipients',changes.map(c=>'Template: '+c.key+' | To: '+c.to+' | CC: '+c.cc).join(' || '));showNotification('Recipients updated successfully.','success');hideModal(document.getElementById('emailRecipientsOverlay'));}catch(err){showNotification(err.message,'error');}finally{toggleButtonLoading(btn,false);}});
-document.getElementById('dgPartSN').addEventListener('change',async(e)=>{const sn=e.target.value.trim().toUpperCase();if(!sn)return;try{const res=await lookupPartModelBySerial(sn);if(res){const autoInput=document.getElementById('dgPartModelAuto');autoInput.value=res;const sizeMatch=String(res).match(/(\d{2,4})\s*-?\s*GB/i);autoInput.dataset.size=sizeMatch?sizeMatch[1]:'';if(!sizeMatch){displayDbStatus('Verified, but could not detect GB size from: '+res,'warning');}else{displayDbStatus('Part Serial Verified — '+sizeMatch[1]+'GB','success');}}else{document.getElementById('dgPartSN').value='';document.getElementById('dgPartModelAuto').value='';document.getElementById('dgPartModelAuto').dataset.size='';showNotification('Serial not found in Warranty sheet','error');}}catch(err){showNotification(err.message,'error');}});
 document.getElementById('dgDeviceSN').addEventListener('change',async (e)=>{const s=e.target.value.trim();if(!s)return;const l=allLaptops.find(x=>String(x.serial_number).toLowerCase()===String(s).toLowerCase());const autoInput=document.getElementById('dgDeviceModelAuto');if(l){autoInput.value=(l.brand||'')+' '+(l.laptop_model||'');autoInput.dataset.brand=l.brand||'';autoInput.dataset.model=l.laptop_model||'';displayDbStatus('Device Found: '+l.laptop_model,'success')}else{displayDbStatus('Searching DB for Asset...','info');const a=await findAssetBySerial(s);if(a){autoInput.value=(a.brand||'')+' '+(a.model||'');autoInput.dataset.brand=a.brand||'';autoInput.dataset.model=a.model||'';displayDbStatus('Device Asset Found: '+a.model,'success')}else{document.getElementById('dgDeviceSN').value='';autoInput.value='';autoInput.dataset.brand='';autoInput.dataset.model='';showNotification('Serial not found in Laptops or Assets','error')}}});
 document.getElementById('downgradeForm').addEventListener('submit',async(e)=>{
     e.preventDefault();
@@ -8794,14 +8801,16 @@ document.getElementById('downgradeForm').addEventListener('submit',async(e)=>{
     try{
         const autoInput = document.getElementById('dgDeviceModelAuto');
         const dgModelInput = document.getElementById('dgPartModelAuto');
-        const detectedSize = dgModelInput.dataset.size || '';
-        if(!detectedSize) throw new Error('Could not determine the SSD size (GB) from this serial. Please verify the Part SN.');
+        const dgErr0 = window.validateDgPanel();
+        if(dgErr0) throw new Error(dgErr0);
+        const dgf = window.readDgPanel();
+        const detectedSize = dgf.size;
         const payload={
-            type: "SSD", 
-            brand: "CRUCIAL", 
-            model: detectedSize, 
-            partSN: document.getElementById('dgPartSN').value,
-            partModel: dgModelInput.value,
+            type: dgf.kind, 
+            brand: dgf.brand, 
+            model: dgf.size, 
+            partSN: document.getElementById('dgPartSN').value.trim().toUpperCase(),
+            partModel: dgModelInput.value || [dgf.brand,dgf.model,dgf.size].filter(Boolean).join(' '),
             deviceBrand: autoInput.dataset.brand || "Unknown",
             deviceModel: autoInput.dataset.model || "Unknown",
             deviceSN: document.getElementById('dgDeviceSN').value,
@@ -8809,10 +8818,10 @@ document.getElementById('downgradeForm').addEventListener('submit',async(e)=>{
             reason: document.getElementById('dgReason').value,
             timestamp: (() => { const n = new Date(); const p = v => String(v).padStart(2, '0'); return `${n.getFullYear()}-${p(n.getMonth() + 1)}-${p(n.getDate())} ${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`; })()
         };
-        const { data: dgRes, error: dgErr } = await supabaseClient.rpc('downgrade_part_transaction', { payload: { model: payload.model, reason: payload.reason, partSN: payload.partSN, partModel: payload.partModel, deviceBrand: payload.deviceBrand, deviceModel: payload.deviceModel, deviceSN: payload.deviceSN, user: currentUser ? currentUser.email : '' } });
+        const { data: dgRes, error: dgErr } = await supabaseClient.rpc('downgrade_part_transaction', { payload: { type: payload.type, brand: payload.brand, model: payload.model, reason: payload.reason, partSN: payload.partSN, partModel: payload.partModel, deviceBrand: payload.deviceBrand, deviceModel: payload.deviceModel, deviceSN: payload.deviceSN, user: currentUser ? currentUser.email : '' } });
         if (dgErr) throw new Error(dgErr.message);
         const cardLogMsg = dgRes && dgRes.merged ? `Merged into Card ID: ${dgRes.cardId} (New Qty: ${dgRes.newQuantity})` : `New Card Created — ID: ${dgRes ? dgRes.cardId : 'N/A'}`;
-logActivity('Downgrade Part', `Part SN: ${payload.partSN} | ${cardLogMsg} (SSD CRUCIAL ${payload.model}) | Original Record: ${payload.partModel} | Device SN: ${payload.deviceSN} | Device: ${payload.deviceBrand} ${payload.deviceModel} | Reason: ${payload.reason}`);
+logActivity('Downgrade Part', `Part SN: ${payload.partSN} | ${cardLogMsg} (${payload.type} ${payload.brand} ${payload.model}) | Original Record: ${payload.partModel} | Device SN: ${payload.deviceSN} | Device: ${payload.deviceBrand} ${payload.deviceModel} | Reason: ${payload.reason}`);
 showNotification('Downgrade recorded successfully!','success');
         e.target.reset();
         hideModal(document.getElementById('downgradeOverlay'));
@@ -9088,7 +9097,7 @@ window.toggleFrameBtn = function(cb) {
         span.style.borderColor = 'var(--border-color)';
     }
 };
-document.getElementById('btnDowngrade').addEventListener('click', () => {const dgForm=document.getElementById('downgradeForm');if(dgForm)dgForm.reset();const dgModelInput=document.getElementById('dgPartModelAuto');if(dgModelInput)dgModelInput.dataset.size='';const dgDeviceModelAuto=document.getElementById('dgDeviceModelAuto');if(dgDeviceModelAuto){dgDeviceModelAuto.value='';dgDeviceModelAuto.dataset.brand='';dgDeviceModelAuto.dataset.model='';}showModal(document.getElementById('downgradeOverlay'));});
+document.getElementById('btnDowngrade').addEventListener('click', () => {const dgForm=document.getElementById('downgradeForm');if(dgForm)dgForm.reset();const dgModelInput=document.getElementById('dgPartModelAuto');if(dgModelInput)dgModelInput.dataset.size='';if(window.resetDgPanel)window.resetDgPanel();const dgDeviceModelAuto=document.getElementById('dgDeviceModelAuto');if(dgDeviceModelAuto){dgDeviceModelAuto.value='';dgDeviceModelAuto.dataset.brand='';dgDeviceModelAuto.dataset.model='';}showModal(document.getElementById('downgradeOverlay'));});
 document.getElementById('closeDowngradeModal').addEventListener('click', () => hideModal(document.getElementById('downgradeOverlay')));
 (function(){
 var PUSH_PUB="BCkoiju474wMoUt_e9LX99CygwZBXyVpZxzNQUg5M0s41Ku_r5jvbP63QzLYGNnY2nJRLeuiyjWOuGGFQztJTss";
@@ -10027,7 +10036,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261107053032';
+var APP_VERSION='20261107053510';
 var ban=null,shown='',busy=false;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show')})}
 function show(v){build(v);if(shown===v)return;shown=v;requestAnimationFrame(function(){ban.classList.add('show')})}
@@ -10043,7 +10052,7 @@ const normSize=v=>{v=String(v||'').trim().toUpperCase().replace(/\s+/g,'');v=v.r
 const uniq=a=>[...new Set(a.filter(Boolean))];
 const DEF_BRANDS=['CRUCIAL','SAMSUNG','WD','KINGSTON','SANDISK','LEXAR','ADATA','TOSHIBA','SEAGATE','INTEL','HYNIX','TEAM','PNY'];
 const DEF_SIZES=['120','128','240','250','256','480','500','512','1T','2T'];
-const kindOf=()=>$('ssdKind').value;
+window.ssdHelpers={normSize,parseDesc:null,uniq,fill:null,DEF_BRANDS,DEF_SIZES};const kindOf=()=>$('ssdKind').value;
 function fill(id,vals){const d=$(id);if(!d)return;d.innerHTML=vals.map(v=>'<option value="'+String(v).replace(/"/g,'&quot;')+'"></option>').join('')}
 window.refreshSsdSuggestions=function(){
   const cards=(typeof allSpareParts!=='undefined'?allSpareParts:[]).filter(p=>/^(ssd|nvme)/i.test(String(p.type||'')));
@@ -10063,6 +10072,7 @@ function parseDesc(desc){
   out.model=d.slice(toks[0].length,idx).replace(/\bM\.?2\b/i,'').trim();
   return out;
 }
+window.ssdHelpers.parseDesc=parseDesc;window.ssdHelpers.fill=fill;
 function msg(t,c){const m=$('ssdGenMsg');m.textContent=t||'';m.className='ssd-msg '+(c||'')}
 async function gen(){
   const sn=$('ssdSn').value.trim();if(!sn){msg('Enter the disk serial first.','warn');return}
@@ -10105,6 +10115,36 @@ $('ssdGenBtn').addEventListener('click',gen);
 $('ssdSn').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();gen()}});
 $('ssdSn').addEventListener('change',()=>{if(!$('ssdBrand').value&&!$('ssdSize').value)gen()});
 ['ssdKind','ssdBrand','ssdSize'].forEach(i=>$(i).addEventListener('input',()=>{syncType();if(i==='ssdBrand')window.refreshSsdSuggestions()}));
+})();
+(function(){
+const $=id=>document.getElementById(id);const H=window.ssdHelpers;
+function sugg(){
+  const cards=(typeof allSpareParts!=='undefined'?allSpareParts:[]).filter(p=>/^(ssd|nvme)/i.test(String(p.type||'')));
+  const dg=(typeof allDowngrades!=='undefined'?allDowngrades:[]).filter(d=>/^(ssd|nvme)/i.test(String(d.type||'')));
+  H.fill('dgBrandList',H.uniq([...cards.map(p=>String(p.brand||'').toUpperCase()),...dg.map(d=>String(d.brand||'').toUpperCase()),...H.DEF_BRANDS]).filter(b=>b!=='GENERIC'&&b!=='ALL'));
+  const br=String($('dgBrand').value||'').trim().toUpperCase();
+  H.fill('dgModelList',H.uniq(dg.filter(d=>!br||String(d.brand||'').toUpperCase()===br).map(d=>d.part_model)));
+  H.fill('dgSizeList',H.uniq([...cards.filter(p=>!br||String(p.brand||'').toUpperCase()===br).map(p=>H.normSize(p.model)),...H.DEF_SIZES]).filter(x=>/^\d+(\.\d+)?T?$/.test(x)));
+}
+function msg(t,c){const m=$('dgGenMsg');m.textContent=t||'';m.className='ssd-msg '+(c||'')}
+async function gen(){
+  const sn=$('dgPartSN').value.trim();if(!sn){msg('Enter the part serial first.','warn');return}
+  msg('Searching...','');
+  try{
+    const desc=await lookupPartModelBySerial(sn);
+    if(!desc){msg('Serial not found in Data Reports - fill the fields manually.','warn');return}
+    const r=H.parseDesc(desc);
+    $('dgPartModelAuto').value=desc;$('dgKind').value=r.kind;if(r.brand)$('dgBrand').value=r.brand;$('dgModelF').value=r.model;if(r.size)$('dgSize').value=r.size;
+    sugg();msg('Found: '+desc,'ok');
+  }catch(e){msg('Lookup failed - fill manually.','err')}
+}
+window.readDgPanel=()=>({kind:$('dgKind').value,brand:$('dgBrand').value.trim().toUpperCase(),model:$('dgModelF').value.trim(),size:H.normSize($('dgSize').value)});
+window.validateDgPanel=()=>{const f=window.readDgPanel();if(!f.brand)return 'Part brand is required.';if(!f.size||!/^\d+(\.\d+)?T?$/.test(f.size))return 'Part size is required (e.g. 240, 512, 1T).';return null};
+window.resetDgPanel=()=>{['dgBrand','dgModelF','dgSize'].forEach(i=>$(i).value='');$('dgKind').value='SSD';msg('','');sugg()};
+$('dgGenBtn').addEventListener('click',gen);
+$('dgPartSN').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();gen()}});
+$('dgPartSN').addEventListener('change',()=>{if(!$('dgBrand').value&&!$('dgSize').value)gen()});
+$('dgBrand').addEventListener('input',sugg);
 })();
 window.loadLaptops=refreshAllDataAndViews;resetFormForAdd()});
       </script>
