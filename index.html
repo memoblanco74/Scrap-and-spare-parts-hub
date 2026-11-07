@@ -3603,12 +3603,12 @@
           <h4 style="color: var(--success-color); margin: 0 0 12px 0;"><i class="fa-solid fa-hard-drive"></i> Part Details</h4>
           <div class="form-row">
             <div class="form-group">
-              <label for="dgPartSN">Part Serial Number *:</label>
-              <input type="text" id="dgPartSN" required placeholder="Part SN" autocomplete="off">
-            </div>
-            <div class="form-group">
               <label for="dgPartModelAuto">Verified Part Model:</label>
               <input type="text" id="dgPartModelAuto" readonly style="background-color:var(--tertiary-bg-color);border:1px dashed var(--border-color);">
+            </div>
+            <div class="form-group">
+              <label for="dgPartSN">Part Serial Number *:</label>
+              <input type="text" id="dgPartSN" required placeholder="Part SN" autocomplete="off">
             </div>
           </div>
           <button type="button" id="dgGenBtn" class="ssd-gen-btn ssd-gen-block"><i class="fa-solid fa-bolt"></i><span>Generate details from serial</span></button>
@@ -3627,12 +3627,12 @@
           <h4 style="color: var(--danger-color); margin: 0 0 12px 0;"><i class="fa-solid fa-laptop"></i> Device Details</h4>
           <div class="form-row">
             <div class="form-group">
-              <label for="dgDeviceSN">Computer Serial Number *:</label>
-              <input type="text" id="dgDeviceSN" required placeholder="PC SN">
-            </div>
-            <div class="form-group">
               <label for="dgDeviceModelAuto">Verified PC Model:</label>
               <input type="text" id="dgDeviceModelAuto" readonly style="background-color:var(--tertiary-bg-color);border:1px dashed var(--border-color);">
+            </div>
+            <div class="form-group">
+              <label for="dgDeviceSN">Computer Serial Number *:</label>
+              <input type="text" id="dgDeviceSN" required placeholder="PC SN">
             </div>
           </div>
           <div class="form-row">
@@ -10055,7 +10055,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261107053933';
+var APP_VERSION='20261107054219';
 var ban=null,shown='',busy=false;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show')})}
 function show(v){build(v);if(shown===v)return;shown=v;requestAnimationFrame(function(){ban.classList.add('show')})}
