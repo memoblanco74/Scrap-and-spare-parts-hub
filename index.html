@@ -445,6 +445,8 @@
 .ssd-grid label{display:flex;flex-direction:column;gap:4px;font-size:.82em;font-weight:600;text-align:left}
 .ssd-grid input,.ssd-grid select{width:100%;box-sizing:border-box}
 #downgradeForm .form-group input,#downgradeForm .form-group select,#ssdPanel .form-group input,#ssdPanel .form-group select{height:44px;box-sizing:border-box}
+.tab-button.tb-member{display:none!important}
+.grp-bar .nested-tab-button{cursor:pointer}
 #dlSuggestions{background:#ffffff}
     body.dark-mode #dlSuggestions{background:#1e293b}
     #dlSuggestions .dl-sug:hover{background:rgba(59,130,246,.12)}
@@ -4242,6 +4244,7 @@
 </label>
               <input type="file" id="importFile" accept=".xlsx, .xls, .csv" style="display:none">
               <button id="exportButton" class="custom-btn export-btn" data-permission="dataManagement_canExport"><i class="fa-solid fa-download"></i> Export</button>
+              <button id="addLaptopButton" class="custom-btn" style="background-color:var(--success-color);color:white;" data-permission="addEditLaptop_visible"><i class="fa-solid fa-laptop-medical"></i> Add Laptop</button>
               <button id="bulkEditButton" class="custom-btn" style="background-color:var(--primary-accent-color);color:white;" data-permission="addEditLaptop_visible"><i class="fa-solid fa-pen-to-square"></i> Bulk Edit</button>
               <button id="deleteSelectedButton" class="custom-btn delete-btn" data-permission="dataManagement_canDelete"><i class="fa-solid fa-trash-can"></i> Delete Selected</button>
             </div>
@@ -10072,7 +10075,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261107112539';
+var APP_VERSION='20261107113438';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
@@ -10225,6 +10228,44 @@ window.setupSiteReserved=function(cid,sid,rid,on){
   if(!on){if(s)s.value='';if(r)r.value='';return}
   var o=opts();fill(s,o.sites,'Select site');fill(r,o.res,'Select reserved for');
 };
+})();
+(function(){
+var G=[{id:'workspace-hub',label:'Workspace',icon:'fa-briefcase',before:'incidents',members:['incidents','it-workspace'],names:{'incidents':['Create Incident','fa-triangle-exclamation'],'it-workspace':['IT Workspace','fa-briefcase']}},
+{id:'admin-hub',label:'Admin',icon:'fa-user-shield',before:null,members:['logs','manage-users'],names:{'logs':['Activity Logs','fa-clock-rotate-left'],'manage-users':['Manage Users','fa-users-gear']}}];
+var bar=document.querySelector('.tab-buttons');if(!bar)return;
+function mb(t){return bar.querySelector('.tab-button[data-tab="'+t+'"]')}
+var _ae=mb('add-edit-laptop');if(_ae)_ae.classList.add('tb-member');
+G.forEach(function(g){
+  g.members.forEach(function(t){var b=mb(t);if(b)b.classList.add('tb-member')});
+  var b=document.createElement('button');b.className='tab-button';b.setAttribute('data-group',g.id);
+  b.innerHTML='<i class="fa-solid '+g.icon+' tb-ico"></i><span class="tb-txt">'+g.label+'</span>';
+  var ref=g.before?mb(g.before):null;if(ref)bar.insertBefore(b,ref);else bar.appendChild(b);
+  g.btn=b;
+  b.addEventListener('click',function(){var cur=g.members.filter(function(t){var x=document.getElementById(t);return x&&x.classList.contains('active')})[0];var t=cur||g.members.filter(function(t){var x=mb(t);return x&&x.style.display!=='none'})[0];if(t){var m=mb(t);if(m)m.click()}});
+  g.bars=[];
+  g.members.forEach(function(t){
+    var sec=document.getElementById(t);if(!sec)return;
+    var nb=document.createElement('div');nb.className='nested-tab-buttons grp-bar';nb.innerHTML='<span class="tab-pill"></span>'+g.members.map(function(m){return '<button type="button" class="nested-tab-button" data-go="'+m+'"><i class="fa-solid '+g.names[m][1]+' tb-ico"></i><span class="tb-txt">'+g.names[m][0]+'</span></button>'}).join('');
+    sec.insertBefore(nb,sec.firstChild);g.bars.push(nb);
+    nb.addEventListener('click',function(e){var x=e.target.closest('.nested-tab-button');if(!x)return;var m=mb(x.getAttribute('data-go'));if(m)m.click()});
+  });
+});
+function pill(nb){var p=nb.querySelector('.tab-pill'),a=nb.querySelector('.nested-tab-button.active');if(!p)return;if(!a||!a.offsetWidth){p.classList.remove('on');return}p.classList.add('noanim');p.style.height=a.offsetHeight+'px';p.style.width=a.offsetWidth+'px';p.style.transform='translate('+a.offsetLeft+'px,'+a.offsetTop+'px)';p.classList.add('on');requestAnimationFrame(function(){p.classList.remove('noanim')})}
+function vis(){G.forEach(function(g){
+  var any=false;
+  g.members.forEach(function(t){var m=mb(t),ok=!!m&&m.style.display!=='none';if(ok)any=true;g.bars.forEach(function(nb){var x=nb.querySelector('[data-go="'+t+'"]');if(x)x.style.display=ok?'':'none'})});
+  if(any)g.btn.style.removeProperty('display');else g.btn.style.setProperty('display','none','important');
+  g.bars.forEach(pill)})}
+function sync(id){
+  bar.querySelectorAll('.tab-button.tb-member').forEach(function(b){b.classList.remove('active')});
+  G.forEach(function(g){var on=g.members.indexOf(id)>-1;g.btn.classList.toggle('active',on);g.bars.forEach(function(nb){nb.querySelectorAll('.nested-tab-button').forEach(function(x){x.classList.toggle('active',x.getAttribute('data-go')===id)})})});
+  if(id==='add-edit-laptop'){var d=mb('data-management');if(d)d.classList.add('active')}
+  vis();requestAnimationFrame(function(){G.forEach(function(g){g.bars.forEach(pill)})})}
+var orig=showTab;showTab=function(id,skip){var r=orig(id,skip);sync(id);return r};
+var mo=new MutationObserver(vis);G.forEach(function(g){g.members.forEach(function(t){var m=mb(t);if(m)mo.observe(m,{attributes:true,attributeFilter:['style']})})});
+window.addEventListener('resize',function(){G.forEach(function(g){g.bars.forEach(pill)})});
+var ab=document.getElementById('addLaptopButton');if(ab)ab.addEventListener('click',function(){var m=mb('add-edit-laptop');if(m)m.click()});
+vis();
 })();
 window.loadLaptops=refreshAllDataAndViews;resetFormForAdd()});
       </script>
