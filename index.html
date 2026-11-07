@@ -525,6 +525,10 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .lu-ev time{margin-left:auto;color:var(--secondary-color);font-size:.85em;white-space:nowrap}
 .lu-empty{padding:18px;text-align:center;color:var(--secondary-color);font-size:.9em}
 .lu-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.lu-kill{flex:none;width:34px;height:34px;border-radius:10px;border:1px solid color-mix(in srgb,#ef4444 40%,transparent);background:color-mix(in srgb,#ef4444 12%,transparent);color:#ef4444;cursor:pointer;display:grid;place-items:center;transition:.2s}
+.lu-kill:hover{background:#ef4444;color:#fff;transform:scale(1.06)}
+.lu-you{flex:none;font-size:.75em;padding:3px 10px;border-radius:999px;background:color-mix(in srgb,var(--primary-accent-color) 18%,transparent);color:var(--primary-accent-color);font-weight:700}
+.lu-ev.nav i{color:var(--primary-accent-color)}
 #dlSuggestions{background:#ffffff}
     body.dark-mode #dlSuggestions{background:#1e293b}
     #dlSuggestions .dl-sug:hover{background:rgba(59,130,246,.12)}
@@ -3509,6 +3513,20 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
           </div>
 
           <div class="permission-section">
+            <h4>Live Users</h4>
+            <div class="permissions-group">
+              <div class="permission-item">
+                <input type="checkbox" name="liveUsers_visible" id="edit-live-vis">
+                <label for="edit-live-vis">View Page</label>
+              </div>
+              <div class="permission-item">
+                <input type="checkbox" name="liveUsers_canTerminate" id="edit-live-term">
+                <label for="edit-live-term">Can Terminate Sessions</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="permission-section">
             <h4>Session</h4>
             <div class="permissions-group">
               <div class="permission-item">
@@ -4193,7 +4211,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         <button class="tab-button" id="printersTabBtn" data-tab="printers-page" data-permission="printers_visible" style="display: none;"><i class="fa-solid fa-print tb-ico"></i><span class="tb-txt">Printers</span></button>
         <button class="tab-button" data-tab="logs" data-permission="logs_visible" style="display: none;"><i class="fa-solid fa-clock-rotate-left tb-ico"></i><span class="tb-txt">Activity Logs</span></button>
         <button class="tab-button" data-tab="manage-users" data-permission="manageUsers_visible" style="display: none;"><i class="fa-solid fa-users-gear tb-ico"></i><span class="tb-txt">Manage Users</span></button>
-        <button class="tab-button" data-tab="live-users" data-permission="manageUsers_visible" style="display: none;"><i class="fa-solid fa-signal tb-ico"></i><span class="tb-txt">Live Users</span></button>
+        <button class="tab-button" data-tab="live-users" data-permission="liveUsers_visible" style="display: none;"><i class="fa-solid fa-signal tb-ico"></i><span class="tb-txt">Live Users</span></button>
       </div>
       <div id="dashboard" class="tab-content active">
         <div class="dashboard-grid">
@@ -5073,7 +5091,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
       <div id="live-users" class="tab-content">
         <div class="lu-head">
           <div><h2 style="margin:0">Live Users</h2><p style="margin:4px 0 0;font-size:.9em;color:var(--secondary-color)">Who is connected right now. Updates instantly when someone opens or leaves the app.</p></div>
-          <div class="lu-actions"><label class="lu-notify"><input type="checkbox" id="luNotify" checked> Notify me on join / leave</label><button type="button" id="pushUpdateBtn" class="custom-btn" style="background-color:#007bff;color:white;margin:0"><i class="fa-solid fa-rocket"></i> Push Update to All Users</button></div>
+          <div class="lu-actions"><label class="lu-notify"><input type="checkbox" id="luNotify" checked> Notify me on join / leave</label><button type="button" id="pushUpdateBtn" data-permission="manageUsers_visible" class="custom-btn" style="background-color:#007bff;color:white;margin:0"><i class="fa-solid fa-rocket"></i> Push Update to All Users</button></div>
         </div>
         <div class="lu-stats">
           <div class="lu-stat"><b id="luCount">0</b><span>Connected sessions</span></div>
@@ -5183,6 +5201,15 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
                 <div class="perm-toggle-item">
                   <label for="new-user-vis">Manage Users (Admin)</label>
                   <label class="switch"><input type="checkbox" name="manageUsers_visible" id="new-user-vis"><span class="slider-sm"></span></label>
+                </div>
+
+                <div class="perm-toggle-item">
+                  <label for="new-live-vis">Live Users Page</label>
+                  <label class="switch"><input type="checkbox" name="liveUsers_visible" id="new-live-vis"><span class="slider-sm"></span></label>
+                </div>
+                <div class="perm-toggle-item">
+                  <label for="new-live-term">Live Users: Terminate Sessions</label>
+                  <label class="switch"><input type="checkbox" name="liveUsers_canTerminate" id="new-live-term"><span class="slider-sm"></span></label>
                 </div>
 
                 <div class="perm-toggle-item">
@@ -5831,7 +5858,7 @@ async function hashPassword(string){const msgBuffer=new TextEncoder().encode(str
 const appContainer=document.getElementById('appContainer'),dbStatusDiv=document.getElementById('dbStatus'),tabButtons=document.querySelectorAll('.tab-button'),tabContents=document.querySelectorAll('.tab-content'),themeToggle=document.getElementById('theme-toggle'),loginOverlay=document.getElementById('loginOverlay'),loginForm=document.getElementById('loginForm'),loginError=document.getElementById('loginError'),loginButton=document.getElementById('loginButton'),logoutButton=document.getElementById('logoutButton'),closeLoginModalBtn=document.getElementById('closeLoginModal'),userInfoDiv=document.getElementById('userInfo'),userEmailDisplay=document.getElementById('userEmailDisplay'),editUserOverlay=document.getElementById('editUserOverlay'),editUserForm=document.getElementById('editUserForm'),closeEditUserModalBtn=document.getElementById('closeEditUserModal'),usePartOverlay=document.getElementById('usePartOverlay'),usePartForm=document.getElementById('usePartForm'),usePartBrandInput=document.getElementById('usePartBrand'),usePartModelInput=document.getElementById('usePartModel'),closeUseModalBtn=document.getElementById('closeUseModal'),usePartInfo=document.getElementById('usePartInfo'),usePartIdInput=document.getElementById('usePartId'),deductPartOverlay=document.getElementById('deductPartOverlay'),deductPartForm=document.getElementById('deductPartForm'),closeDeductModalBtn=document.getElementById('closeDeductModal'),deductPartInfo=document.getElementById('deductPartInfo'),deductPartIdInput=document.getElementById('deductPartId'),componentBrandFilter=document.getElementById('componentBrandFilter'),componentModelFilter=document.getElementById('componentModelFilter'),ramManufacturerFilter=document.getElementById('ramManufacturerFilter'),ramPathFilter=document.getElementById('ramPathFilter'),modelComponentDetailsElem=document.getElementById('modelComponentDetails'),modelComponentLaptopListElem=document.getElementById('modelComponentLaptopList'),ramSummaryListElem=document.getElementById('ramSummaryList'),globalSearchInput=document.getElementById('globalSearchInput'),tableBody=document.querySelector('#laptopTable tbody'),selectAllCheckbox=document.getElementById('selectAll'),exportButton=document.getElementById('exportButton'),deleteSelectedButton=document.getElementById('deleteSelectedButton'),displayedLaptopsCount=document.getElementById('displayedLaptopsCount'),selectedLaptopsCount=document.getElementById('selectedLaptopsCount'),addDataForm=document.getElementById('addDataForm'),formTitle=document.getElementById('formTitle'),laptopIDInput=document.getElementById('laptopID'),originalLaptopIdInput=document.getElementById('originalLaptopId'),idHint=document.getElementById('idHint'),cancelEditButton=document.getElementById('cancelEditButton'),brandInput=document.getElementById('brand'),laptopModelInput=document.getElementById('laptopModel'),modelDatalist=document.getElementById('model-list'),ramEntriesContainer=document.getElementById('ramEntriesContainer'),addRamEntryBtn=document.getElementById('addRamEntryBtn'),groupForm=document.getElementById('compatibilityGroupForm'),groupModelsSelect=document.getElementById('groupModels'),existingGroupsContainer=document.getElementById('existingGroupsContainer'),logsTableBody=document.querySelector('#logsTable tbody'),clearLogsButton=document.getElementById('clearLogsButton'),incidentTypeSelector=document.getElementById('incidentTypeSelector'),incidentFormsContainer=document.getElementById('incidentFormsContainer'),incidentOutputContainer=document.getElementById('incidentOutputContainer'),incidentOutput=document.getElementById('incidentOutput'),copyIncidentBtn=document.getElementById('copyIncidentBtn'),addSparePartBtn_form3=document.getElementById('addSparePartBtn_form3'),sparePartsList_form3=document.getElementById('sparePartsList_form3'),addSparePartBtn_form4=document.getElementById('addSparePartBtn_form4'),sparePartsList_form4=document.getElementById('sparePartsList_form4'),userManagementForm=document.getElementById('userManagementForm'),usersTableBody=document.querySelector('#usersTable tbody'),addSparePartForm=document.getElementById('addSparePartForm'),sparePartsCardContainer=document.getElementById('sparePartsCardContainer'),sparePartsSearchInput=document.getElementById('sparePartsSearchInput'),sparePartsTab=document.getElementById('spare-parts'),sparePartSummaryContainer=document.getElementById('sparePartSummaryContainer'),sparePartPurchaseOrderInput=document.getElementById('sparePartPurchaseOrder'),sparePartDateInput=document.getElementById('sparePartDate'),toggleAddSparePartFormBtn=document.getElementById('toggleAddSparePartFormBtn'),sparePartTypeInput=document.getElementById('sparePartType'),sparePartModelInput=document.getElementById('sparePartModel'),sparePartModelList=document.getElementById('spare-part-model-list'),sparePartQuantityInput=document.getElementById('sparePartQuantity'),sparePartCategoryInput=document.getElementById('sparePartCategory'),sparePartLocationInput=document.getElementById('sparePartLocation'),sparePartBrandInput=document.getElementById('sparePartBrand'),sparePartSiteInput=document.getElementById('sparePartSite'),sparePartReservedForInput=document.getElementById('sparePartReservedFor'),sparePartIncidentInput=document.getElementById('sparePartIncident'),sparePartCommentInput=document.getElementById('sparePartComment'),reportTypesSelect=document.getElementById('reportTypes'),reportSitesSelect=document.getElementById('reportSites'),reportStartDateInput=document.getElementById('reportStartDate'),reportEndDateInput=document.getElementById('reportEndDate'),btnGenerateReport=document.getElementById('btnGenerateReport'),btnExportUsageReport=document.getElementById('btnExportUsageReport'),reportOutputContainer=document.getElementById('reportOutputContainer'),reportTotalCount=document.getElementById('reportTotalCount'),reportDetailsTable=document.getElementById('reportDetailsTable');
 let isEditing=false,isEditingSparePart=false,editingSparePartId=null,allLaptops=[],allGroups=[],allSpareParts=[],allAssets=[],allUsageHistory=[],allDeductHistory=[],allDowngrades=[],currentComponentModelFilteredLaptops=[],currentUser=null,users={},adminUsers={},ramEntryCounter=0,lastUsageReportRows=[],emailTemplateSettings={},emailTemplateSettingsLoaded=false;
 function toggleButtonLoading(b,l){b.disabled=l;if(l){b.dataset.tx=b.innerHTML;b.innerHTML='<i class="fas fa-circle-notch fa-spin app-spinner"></i>';}else{b.innerHTML=b.dataset.tx||'Save';}}
-function getDefaultPermissions(isAdmin=false){return {dashboard:{visible:true,manageCompatibility:isAdmin,canBackup:isAdmin},dataManagement:{visible:isAdmin,canImport:isAdmin,canExport:isAdmin,canDelete:isAdmin},addEditLaptop:{visible:isAdmin},spareParts:{visible:isAdmin,canAdd:isAdmin,canUse:isAdmin,canDeduct:isAdmin,canDelete:isAdmin,canRollback:isAdmin,canLock:isAdmin,canSetLocation:isAdmin,canEditUsage:isAdmin},incidents:{visible:isAdmin},logs:{visible:isAdmin,canClear:isAdmin},manageUsers:{visible:isAdmin},qrSystem:{access:isAdmin},itWorkspace:{visible:isAdmin},warrantyCheck:{canAdd:isAdmin,canEdit:isAdmin,canDelete:isAdmin,canAddVendor:false,canEditVendor:false,canDeleteVendor:false},deviceLookup:{visible:isAdmin,canUpload:isAdmin,canViewBitlocker:isAdmin},printers:{visible:isAdmin,canAdd:isAdmin,canEdit:isAdmin,canDelete:isAdmin},warrantyWidget:{visible:isAdmin},notifications:{receive:false},session:{keepAlive:false},scanner:{canSetOcrKey:isAdmin},emailRecipients:{canEdit:isAdmin}};}
+function getDefaultPermissions(isAdmin=false){return {dashboard:{visible:true,manageCompatibility:isAdmin,canBackup:isAdmin},dataManagement:{visible:isAdmin,canImport:isAdmin,canExport:isAdmin,canDelete:isAdmin},addEditLaptop:{visible:isAdmin},spareParts:{visible:isAdmin,canAdd:isAdmin,canUse:isAdmin,canDeduct:isAdmin,canDelete:isAdmin,canRollback:isAdmin,canLock:isAdmin,canSetLocation:isAdmin,canEditUsage:isAdmin},incidents:{visible:isAdmin},logs:{visible:isAdmin,canClear:isAdmin},manageUsers:{visible:isAdmin},liveUsers:{visible:isAdmin,canTerminate:isAdmin},qrSystem:{access:isAdmin},itWorkspace:{visible:isAdmin},warrantyCheck:{canAdd:isAdmin,canEdit:isAdmin,canDelete:isAdmin,canAddVendor:false,canEditVendor:false,canDeleteVendor:false},deviceLookup:{visible:isAdmin,canUpload:isAdmin,canViewBitlocker:isAdmin},printers:{visible:isAdmin,canAdd:isAdmin,canEdit:isAdmin,canDelete:isAdmin},warrantyWidget:{visible:isAdmin},notifications:{receive:false},session:{keepAlive:false},scanner:{canSetOcrKey:isAdmin},emailRecipients:{canEdit:isAdmin}};}
 function migratePermissions(oldPerms){if(oldPerms&&oldPerms.dashboard)return oldPerms;return getDefaultPermissions(false);}
 // ==================== PWA Install & Service Worker ====================
 // تسجيل الـ Service Worker (بيشتغل بس لو الملف sw.js موجود فعلاً على نفس الاستضافة)
@@ -6122,7 +6149,7 @@ async function handleLogout() {
 function setAsViewOnly(){appContainer.classList.add('view-only');userInfoDiv.style.display='none';loginButton.style.display='block';document.querySelectorAll('.tab-button').forEach(tabButton=>{tabButton.style.setProperty('display','none','important')});const dashboardTabButton=document.querySelector('.tab-button[data-tab="dashboard"]');if(dashboardTabButton){dashboardTabButton.style.setProperty('display','flex','important');dashboardTabButton.style.setProperty('pointer-events','auto','important');dashboardTabButton.style.setProperty('opacity','1','important');dashboardTabButton.style.setProperty('cursor','pointer','important')}showTab('dashboard',true);}
 function applyPermissions(){if(!currentUser){setAsViewOnly();return}appContainer.classList.remove('view-only');loginButton.style.display='none';userInfoDiv.style.display='flex';userEmailDisplay.textContent=currentUser.email;const perms=currentUser.permissions;document.querySelectorAll('[data-permission]').forEach(el=>{const permKey=el.dataset.permission;const keys=permKey.split('_');let hasPermission=false;if(keys.length===2&&perms[keys[0]]&&typeof perms[keys[0]][keys[1]]!=='undefined'){hasPermission=perms[keys[0]][keys[1]]}el.style.display='';el.style.pointerEvents='';el.style.opacity='';el.style.cursor='';if(hasPermission){if(el.parentElement.classList.contains('buttons-group')||el.classList.contains('tab-button')){el.style.display='flex'}else{el.style.display=''}}else{el.style.display='none'}});if(document.getElementById('existingGroupsContainer'))displayExistingGroups();}
 function readPermissionsFromForm(form){const formData=new FormData(form);const perms=getDefaultPermissions(false);for(const pageName in perms){for(const permName in perms[pageName]){const key=`${pageName}_${permName}`;if(formData.has(key))perms[pageName][permName]=true}}perms.dashboard.visible=true;return perms}
-const permissionLabelsMap={dashboard:{label:'Dashboard',visible:'View Page',manageCompatibility:'Manage Compatibility',canBackup:'Full DB Export'},dataManagement:{label:'Data Management',visible:'View Page',canImport:'Can Import',canExport:'Can Export',canDelete:'Can Delete'},addEditLaptop:{label:'Add/Edit Laptop',visible:'View Page'},spareParts:{label:'Spare Parts',visible:'View Page',canAdd:'Can Add/Edit',canUse:'Can Use',canDeduct:'Can Deduct',canDelete:'Can Delete',canRollback:'Can Rollback Transfer',canLock:'Can Lock/Unlock Cards',canSetLocation:'Can Edit Site Location',canEditUsage:'Can Edit Usage Records'},incidents:{label:'Incidents',visible:'View Page'},logs:{label:'Logs',visible:'View Page',canClear:'Can Clear'},manageUsers:{label:'Manage Users',visible:'View Page'},qrSystem:{label:'QR System',access:'Access QR Scanner'},notifications:{label:'Notifications',receive:'Receive Log Notifications'},session:{label:'Session',keepAlive:'Stay Logged In (no idle logout)'},scanner:{label:'Serial Scanner',canSetOcrKey:'Set OCR Key'},emailRecipients:{label:'Email Recipients',canEdit:'Edit Email Recipients / CC'},itWorkspace:{label:'IT Workspace',visible:'View Page'},deviceLookup:{label:'Device Lookup',visible:'View Page',canUpload:'Can Upload Reports',canViewBitlocker:'Can View BitLocker Keys'},warrantyCheck:{label:'Warranty Records (inside Device Lookup)',canAdd:'Devices: Can Add',canEdit:'Devices: Can Edit',canDelete:'Devices: Can Delete',canAddVendor:'Vendors: Can Add',canEditVendor:'Vendors: Can Edit',canDeleteVendor:'Vendors: Can Delete'},printers:{label:'Printers',visible:'View Page',canAdd:'Can Add',canEdit:'Can Edit',canDelete:'Can Delete'},warrantyWidget:{label:'Warranty Widget (Dashboard)',visible:'View Widget'}};
+const permissionLabelsMap={dashboard:{label:'Dashboard',visible:'View Page',manageCompatibility:'Manage Compatibility',canBackup:'Full DB Export'},dataManagement:{label:'Data Management',visible:'View Page',canImport:'Can Import',canExport:'Can Export',canDelete:'Can Delete'},addEditLaptop:{label:'Add/Edit Laptop',visible:'View Page'},spareParts:{label:'Spare Parts',visible:'View Page',canAdd:'Can Add/Edit',canUse:'Can Use',canDeduct:'Can Deduct',canDelete:'Can Delete',canRollback:'Can Rollback Transfer',canLock:'Can Lock/Unlock Cards',canSetLocation:'Can Edit Site Location',canEditUsage:'Can Edit Usage Records'},incidents:{label:'Incidents',visible:'View Page'},logs:{label:'Logs',visible:'View Page',canClear:'Can Clear'},manageUsers:{label:'Manage Users',visible:'View Page'},liveUsers:{label:'Live Users',visible:'View Page',canTerminate:'Can Terminate Sessions'},qrSystem:{label:'QR System',access:'Access QR Scanner'},notifications:{label:'Notifications',receive:'Receive Log Notifications'},session:{label:'Session',keepAlive:'Stay Logged In (no idle logout)'},scanner:{label:'Serial Scanner',canSetOcrKey:'Set OCR Key'},emailRecipients:{label:'Email Recipients',canEdit:'Edit Email Recipients / CC'},itWorkspace:{label:'IT Workspace',visible:'View Page'},deviceLookup:{label:'Device Lookup',visible:'View Page',canUpload:'Can Upload Reports',canViewBitlocker:'Can View BitLocker Keys'},warrantyCheck:{label:'Warranty Records (inside Device Lookup)',canAdd:'Devices: Can Add',canEdit:'Devices: Can Edit',canDelete:'Devices: Can Delete',canAddVendor:'Vendors: Can Add',canEditVendor:'Vendors: Can Edit',canDeleteVendor:'Vendors: Can Delete'},printers:{label:'Printers',visible:'View Page',canAdd:'Can Add',canEdit:'Can Edit',canDelete:'Can Delete'},warrantyWidget:{label:'Warranty Widget (Dashboard)',visible:'View Widget'}};
 function renderPermissionsAccessReport(){
     const container=document.getElementById('permissionsAccessReportContainer');
     if(!container)return;
@@ -10216,7 +10243,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261107224536';
+var APP_VERSION='20261107225953';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
@@ -10442,12 +10469,13 @@ openPartHistoryModal=async function(partIds){
 };
 })();
 (function(){
-var ch=null,ready=false,events=[],state={};
+var ch=null,ready=false,events=[],state={},myKey='';
 var $=function(id){return document.getElementById(id)};
 function dev(){var u=navigator.userAgent||'';return /Android|iPhone|iPad|Mobile/i.test(u)?'Mobile':'Desktop'}
-function pageName(){var b=document.querySelector('.tab-buttons .tab-button.active');return b?b.textContent.trim():'-'}
+function pageName(){var t=document.querySelector('.tab-content.active');if(!t)return '-';var b=document.querySelector('.tab-button[data-tab="'+t.id+'"]');return b?b.textContent.trim():t.id}
 function me(){return {email:currentUser?currentUser.email:'',device:dev(),page:pageName(),away:!!document.hidden,since:window.__luSince||(window.__luSince=Date.now())}}
-function isAdmin(){try{return !!(currentUser&&currentUser.permissions&&currentUser.permissions.manageUsers&&currentUser.permissions.manageUsers.visible)}catch(e){return false}}
+function isAdmin(){try{return !!(currentUser&&currentUser.permissions&&currentUser.permissions.liveUsers&&currentUser.permissions.liveUsers.visible)}catch(e){return false}}
+function canKill(){try{return !!(currentUser&&currentUser.permissions&&currentUser.permissions.liveUsers&&currentUser.permissions.liveUsers.canTerminate)}catch(e){return false}}
 function rel(t){var d=Math.max(0,Math.floor((Date.now()-t)/1000));if(d<60)return 'just now';if(d<3600)return Math.floor(d/60)+' min ago';if(d<86400)return Math.floor(d/3600)+' h ago';return Math.floor(d/86400)+' d ago'}
 function hhmm(t){var x=new Date(t);return x.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'})}
 function flat(){var out=[];Object.keys(state).forEach(function(k){(state[k]||[]).forEach(function(p){out.push({key:k,p:p})})});return out}
@@ -10455,9 +10483,10 @@ function render(){
   var list=$('luList');if(!list)return;var rows=flat().sort(function(a,b){return (b.p.since||0)-(a.p.since||0)});
   var users={},act=0;rows.forEach(function(r){users[String(r.p.email).toLowerCase()]=1;if(!r.p.away)act++});
   $('luCount').textContent=rows.length;$('luUsers').textContent=Object.keys(users).length;$('luActive').textContent=act;
-  list.innerHTML=rows.length?rows.map(function(r){var p=r.p,em=String(p.email||'?');return '<div class="lu-row"><div class="lu-av'+(p.away?' bg':'')+'">'+escapeHtml(em.charAt(0).toUpperCase())+'</div><div class="lu-main"><b>'+escapeHtml(em)+'</b><small>'+escapeHtml(p.device||'')+' · '+escapeHtml(p.page||'-')+' · '+(p.away?'In background':'Active')+'</small></div><div class="lu-since">'+escapeHtml(rel(p.since||Date.now()))+'</div></div>'}).join(''):'<div class="lu-empty">Nobody is connected.</div>';
-  var ev=$('luEvents');ev.innerHTML=events.length?events.slice(0,40).map(function(e){return '<div class="lu-ev '+(e.k==='in'?'in':'out')+'"><i class="fa-solid '+(e.k==='in'?'fa-right-to-bracket':'fa-right-from-bracket')+'"></i><span>'+escapeHtml(e.email)+' '+(e.k==='in'?'connected':'disconnected')+(e.device?' ('+escapeHtml(e.device)+')':'')+'</span><time>'+escapeHtml(hhmm(e.t))+'</time></div>'}).join(''):'<div class="lu-empty">No activity yet since you opened the app.</div>';
+  list.innerHTML=rows.length?rows.map(function(r){var p=r.p,em=String(p.email||'?');var mine=r.key===myKey;return '<div class="lu-row"><div class="lu-av'+(p.away?' bg':'')+'">'+escapeHtml(em.charAt(0).toUpperCase())+'</div><div class="lu-main"><b>'+escapeHtml(em)+'</b><small>'+escapeHtml(p.device||'')+' · '+escapeHtml(p.page||'-')+' · '+(p.away?'In background':'Active')+'</small></div><div class="lu-since">'+escapeHtml(rel(p.since||Date.now()))+'</div>'+(canKill()&&!mine?'<button type="button" class="lu-kill" data-key="'+escapeHtml(r.key)+'" data-email="'+escapeHtml(em)+'" title="Terminate session"><i class="fa-solid fa-power-off"></i></button>':(mine?'<span class="lu-you">You</span>':''))+'</div>'}).join(''):'<div class="lu-empty">Nobody is connected.</div>';
+  var ev=$('luEvents');ev.innerHTML=events.length?events.slice(0,40).map(function(e){return '<div class="lu-ev '+e.k+'"><i class="fa-solid '+(e.k==='in'?'fa-right-to-bracket':(e.k==='nav'?'fa-arrow-right':'fa-right-from-bracket'))+'"></i><span>'+escapeHtml(e.email)+' '+(e.k==='in'?'connected':(e.k==='nav'?'opened <b>'+escapeHtml(e.page)+'</b>':'disconnected'))+(e.device&&e.k!=='nav'?' ('+escapeHtml(e.device)+')':'')+'</span><time>'+escapeHtml(hhmm(e.t))+'</time></div>'}).join(''):'<div class="lu-empty">No activity yet since you opened the app.</div>';
 }
+function navEv(email,device,page){events.unshift({k:'nav',email:email||'?',device:device||'',page:page||'-',t:Date.now()});if(events.length>80)events.pop()}
 function note(k,list){
   (list||[]).forEach(function(p){
     var e={k:k,email:p.email||'?',device:p.device||'',t:Date.now()};events.unshift(e);if(events.length>80)events.pop();
@@ -10465,14 +10494,26 @@ function note(k,list){
   })}
 function start(){
   if(ch||!currentUser||!supabaseClient)return;
-  var key=currentUser.email+'|'+Math.random().toString(36).slice(2,9);
+  var key=currentUser.email+'|'+Math.random().toString(36).slice(2,9);myKey=key;
   ch=supabaseClient.channel('app-presence',{config:{presence:{key:key}}});
   ch.on('presence',{event:'sync'},function(){state=ch.presenceState();ready=true;render()})
-    .on('presence',{event:'join'},function(m){note('in',m.newPresences)})
-    .on('presence',{event:'leave'},function(m){note('out',m.leftPresences)})
+    .on('presence',{event:'join'},function(m){var cur=m.currentPresences||[];if(cur.length){var a=cur[cur.length-1],b=(m.newPresences||[])[0];if(b&&a&&a.page!==b.page&&m.key!==myKey)navEv(b.email,b.device,b.page);render()}else note('in',m.newPresences)})
+    .on('presence',{event:'leave'},function(m){if((m.currentPresences||[]).length)return;note('out',m.leftPresences)})
+    .on('broadcast',{event:'terminate'},function(m){var p=m.payload||{};if(p.key&&p.key===myKey)forceOut(p.by)})
     .subscribe(function(st){if(st==='SUBSCRIBED')ch.track(me())});
 }
-function stop(){if(!ch)return;var c=ch;ch=null;ready=false;state={};try{c.untrack()}catch(e){}try{supabaseClient.removeChannel(c)}catch(e){}}
+function forceOut(by){
+  if(!currentUser)return;
+  try{Swal.fire({icon:'warning',title:'Session terminated',text:'Your session was ended by an administrator.',confirmButtonText:'OK',allowOutsideClick:false})}catch(e){}
+  stop();handleLogout()}
+function kill(key,email){
+  Swal.fire({icon:'warning',title:'Terminate session?',text:email+' will be logged out immediately.',showCancelButton:true,confirmButtonText:'Terminate',confirmButtonColor:'#ef4444'}).then(function(r){
+    if(!r.isConfirmed||!ch||!canKill())return;
+    ch.send({type:'broadcast',event:'terminate',payload:{key:key,by:currentUser.email}});
+    try{logActivity('Terminate Session','Terminated session of '+email)}catch(e){}
+    showNotification('Terminate signal sent to '+email,'success')})}
+document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.lu-kill');if(b)kill(b.getAttribute('data-key'),b.getAttribute('data-email'))});
+function stop(){if(!ch)return;var c=ch;ch=null;myKey='';ready=false;state={};try{c.untrack()}catch(e){}try{supabaseClient.removeChannel(c)}catch(e){}}
 function retrack(){if(ch&&currentUser)try{ch.track(me())}catch(e){}}
 setInterval(function(){if(currentUser&&!ch)start();else if(!currentUser&&ch){stop();render()}},2000);
 document.addEventListener('visibilitychange',retrack);
