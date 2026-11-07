@@ -4522,6 +4522,7 @@
 <option value="New (Purchased in bulk)">New (Purchased in bulk)</option>
 <option value="Used (From scrapped laptops)">Used (From scrapped laptops)</option>
 <option value="Used (From working devices)">Used (From working devices)</option>
+<option value="Used (Downgrade)">Used (Downgrade)</option>
 </select>
                   </div>
                   <div class="form-group">
@@ -7961,7 +7962,7 @@ function renderSparePartsCards(p) {
         if (pm.canDeduct && !isHid && !isDg && !x.locked) bh += '<button class="custom-btn deduct-part-btn" style="background-color: var(--warning-color); color: #111;" data-id="' + did + '"><i class="fa-solid fa-minus-circle"></i> Deduct</button>';
         if (pm.canRollback && /Transferred from SV Store \(Ref: \d+\)/.test(cc)) bh += '<button class="custom-btn rollback-transfer-btn" style="background-color:#8e44ad; color:white;" data-id="' + did + '"><i class="fa-solid fa-rotate-left"></i> Rollback</button>';
         bh += '<button class="custom-btn report-usage-btn" style="background-color: var(--secondary-color); color: white;" data-id="' + did + '"><i class="fa-solid fa-file-export"></i> Report</button>';
-        if (pm.canAdd && !isDg) bh += '<button class="custom-btn edit-spare-part-btn" data-id="' + did + '"><i class="fa-solid fa-pen"></i> Edit</button>';
+        if (pm.canAdd) bh += '<button class="custom-btn edit-spare-part-btn" data-id="' + did + '"><i class="fa-solid fa-pen"></i> Edit</button>';
         if (pm.canLock) bh += '<button class="custom-btn lock-part-btn" data-id="' + did + '" data-ids="' + x.ids.join(',') + '" data-locked="' + (x.locked ? '1' : '0') + '"><i class="fa-solid ' + (x.locked ? 'fa-lock-open' : 'fa-lock') + '"></i> ' + (x.locked ? 'Unlock' : 'Lock') + '</button>';
         if (pm.canDelete) bh += '<button class="custom-btn delete-btn delete-spare-part-btn" data-id="' + did + '"><i class="fa-solid fa-trash"></i></button>';
         if (currentUser && currentUser.permissions.qrSystem && currentUser.permissions.qrSystem.access) {
@@ -10128,7 +10129,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261107162015';
+var APP_VERSION='20261107162908';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
