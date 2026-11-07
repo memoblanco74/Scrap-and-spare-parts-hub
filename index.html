@@ -430,7 +430,8 @@
     .ssd-panel{flex:1 1 100%;width:100%;margin-top:10px;padding:12px 14px;border:1px solid var(--border-color,#d9dee7);border-radius:14px;background:var(--input-bg-color,#f6f8fb);box-sizing:border-box}
 .ssd-title{font-weight:700;font-size:.9em;margin-bottom:8px;display:flex;align-items:center;gap:8px}
 .ssd-sn-row{display:flex;gap:8px;flex-wrap:wrap}
-.ssd-sn-row input{flex:1 1 220px;min-width:0}
+.ssd-sn-row input{flex:1 1 180px;min-width:0}
+.ssd-gen-block{width:100%;margin:2px 0 4px}
 .ssd-gen-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;min-height:42px;padding:0 20px;margin:0;border:0;border-radius:999px;cursor:pointer;font-weight:700;font-size:.9em;letter-spacing:.2px;color:#fff;background:linear-gradient(135deg,var(--primary-accent-color),#8b5cf6);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),inset 0 -2px 0 rgba(0,0,0,.14),0 10px 20px -10px color-mix(in srgb,var(--primary-accent-color) 75%,transparent);transition:transform .15s,filter .15s,box-shadow .15s}
 .ssd-gen-btn i{font-size:.95em}
 .ssd-gen-btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
@@ -443,6 +444,7 @@
 .ssd-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:10px}
 .ssd-grid label{display:flex;flex-direction:column;gap:4px;font-size:.82em;font-weight:600;text-align:left}
 .ssd-grid input,.ssd-grid select{width:100%;box-sizing:border-box}
+#downgradeForm .form-group input,#downgradeForm .form-group select,#ssdPanel .form-group input,#ssdPanel .form-group select{height:44px;box-sizing:border-box}
 #dlSuggestions{background:#ffffff}
     body.dark-mode #dlSuggestions{background:#1e293b}
     #dlSuggestions .dl-sug:hover{background:rgba(59,130,246,.12)}
@@ -3597,42 +3599,52 @@
       <button id="closeDowngradeModal" class="close-modal-btn">&times;</button>
       <h2>Downgrade Part</h2>
       <form id="downgradeForm">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Part Serial Number *:</label>
-            <div class="ssd-sn-row"><input type="text" id="dgPartSN" required placeholder="Enter Part SN" autocomplete="off"><button type="button" id="dgGenBtn" class="ssd-gen-btn"><i class="fa-solid fa-bolt"></i><span>Generate</span></button></div>
+        <div style="background: var(--tertiary-bg-color); border: 1px solid var(--border-color); border-left: 4px solid var(--success-color); border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+          <h4 style="color: var(--success-color); margin: 0 0 12px 0;"><i class="fa-solid fa-hard-drive"></i> Part Details</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="dgPartSN">Part Serial Number *:</label>
+              <input type="text" id="dgPartSN" required placeholder="Part SN" autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="dgPartModelAuto">Verified Part Model:</label>
+              <input type="text" id="dgPartModelAuto" readonly style="background-color:var(--tertiary-bg-color);border:1px dashed var(--border-color);">
+            </div>
           </div>
-          <div class="form-group">
-            <label>Verified Part Model:</label>
-            <input type="text" id="dgPartModelAuto" readonly style="background:var(--tertiary-bg-color)">
+          <button type="button" id="dgGenBtn" class="ssd-gen-btn ssd-gen-block"><i class="fa-solid fa-bolt"></i><span>Generate details from serial</span></button>
+          <div id="dgGenMsg" class="ssd-msg"></div>
+          <div class="form-row">
+            <div class="form-group"><label for="dgKind">Type *:</label><select id="dgKind"><option value="SSD">SSD</option><option value="NVMe">NVMe</option><option value="NVMe M.2">NVMe M.2</option></select></div>
+            <div class="form-group"><label for="dgBrand">Brand *:</label><input type="text" id="dgBrand" list="dgBrandList" placeholder="Select or type" autocomplete="off"></div>
           </div>
+          <div class="form-row">
+            <div class="form-group"><label for="dgModelF">Model:</label><input type="text" id="dgModelF" list="dgModelList" placeholder="Select or type" autocomplete="off"></div>
+            <div class="form-group"><label for="dgSize">Size *:</label><input type="text" id="dgSize" list="dgSizeList" placeholder="e.g. 240, 512, 1T" autocomplete="off"></div>
+          </div>
+          <datalist id="dgBrandList"></datalist><datalist id="dgModelList"></datalist><datalist id="dgSizeList"></datalist>
         </div>
-        <div id="dgGenMsg" class="ssd-msg"></div>
-        <div class="ssd-grid">
-          <label>Type *<select id="dgKind"><option value="SSD">SSD</option><option value="NVMe">NVMe</option><option value="NVMe M.2">NVMe M.2</option></select></label>
-          <label>Brand *<input type="text" id="dgBrand" list="dgBrandList" placeholder="Select or type" autocomplete="off"></label>
-          <label>Model<input type="text" id="dgModelF" list="dgModelList" placeholder="Select or type" autocomplete="off"></label>
-          <label>Size *<input type="text" id="dgSize" list="dgSizeList" placeholder="e.g. 240, 512, 1T" autocomplete="off"></label>
-        </div>
-        <datalist id="dgBrandList"></datalist><datalist id="dgModelList"></datalist><datalist id="dgSizeList"></datalist>
-        <hr>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Computer Serial Number *:</label>
-            <input type="text" id="dgDeviceSN" required placeholder="Enter PC SN">
+        <div style="background: var(--tertiary-bg-color); border: 1px solid var(--border-color); border-left: 4px solid var(--danger-color); border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+          <h4 style="color: var(--danger-color); margin: 0 0 12px 0;"><i class="fa-solid fa-laptop"></i> Device Details</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="dgDeviceSN">Computer Serial Number *:</label>
+              <input type="text" id="dgDeviceSN" required placeholder="PC SN">
+            </div>
+            <div class="form-group">
+              <label for="dgDeviceModelAuto">Verified PC Model:</label>
+              <input type="text" id="dgDeviceModelAuto" readonly style="background-color:var(--tertiary-bg-color);border:1px dashed var(--border-color);">
+            </div>
           </div>
-          <div class="form-group">
-            <label>Verified PC Model:</label>
-            <input type="text" id="dgDeviceModelAuto" readonly style="background:var(--tertiary-bg-color)">
-          </div>
-          <div class="form-group full-span-group">
-            <label>Reason *:</label>
-            <select id="dgReason" required>
-              <option value="" disabled selected>Select a reason</option>
-              <option value="Vendor">Vendor</option>
-              <option value="Laptop Fail MB">Laptop Fail MB</option>
-              <option value="Upgrade">Upgrade</option>
-            </select>
+          <div class="form-row">
+            <div class="form-group full-span-group">
+              <label for="dgReason">Reason *:</label>
+              <select id="dgReason" required>
+                <option value="" disabled selected>Select a reason</option>
+                <option value="Vendor">Vendor</option>
+                <option value="Laptop Fail MB">Laptop Fail MB</option>
+                <option value="Upgrade">Upgrade</option>
+              </select>
+            </div>
           </div>
         </div>
         <div class="form-buttons">
@@ -4361,16 +4373,17 @@
                   </div>
                   <div id="ssdPanel" class="ssd-panel" style="display:none">
                     <div class="ssd-title"><i class="fa-solid fa-memory"></i> Extracted disk details</div>
-                    <div class="ssd-sn-row">
-                      <input type="text" id="ssdSn" name="ssd_sn" placeholder="Disk serial number *" autocomplete="off">
-                      <button type="button" id="ssdGenBtn" class="ssd-gen-btn"><i class="fa-solid fa-bolt"></i><span>Generate</span></button>
+                    <div class="form-row">
+                      <div class="form-group full-span-group"><label for="ssdSn">Disk Serial Number *:</label>
+                        <div class="ssd-sn-row"><input type="text" id="ssdSn" name="ssd_sn" placeholder="Disk serial number" autocomplete="off"><button type="button" id="ssdGenBtn" class="ssd-gen-btn"><i class="fa-solid fa-bolt"></i><span>Generate</span></button></div>
+                        <div id="ssdGenMsg" class="ssd-msg"></div>
+                      </div>
                     </div>
-                    <div id="ssdGenMsg" class="ssd-msg"></div>
-                    <div class="ssd-grid">
-                      <label>Type *<select id="ssdKind"><option value="SSD">SSD</option><option value="NVMe">NVMe</option><option value="NVMe M.2">NVMe M.2</option></select></label>
-                      <label>Brand *<input type="text" id="ssdBrand" name="ssd_brand" list="ssdBrandList" placeholder="Select or type" autocomplete="off"></label>
-                      <label>Model<input type="text" id="ssdModel" name="ssd_model" list="ssdModelList" placeholder="Select or type" autocomplete="off"></label>
-                      <label>Size *<input type="text" id="ssdSize" name="ssd_size" list="ssdSizeList" placeholder="e.g. 240, 512, 1T" autocomplete="off"></label>
+                    <div class="form-row">
+                      <div class="form-group"><label for="ssdKind">Type *:</label><select id="ssdKind"><option value="SSD">SSD</option><option value="NVMe">NVMe</option><option value="NVMe M.2">NVMe M.2</option></select></div>
+                      <div class="form-group"><label for="ssdBrand">Brand *:</label><input type="text" id="ssdBrand" name="ssd_brand" list="ssdBrandList" placeholder="Select or type" autocomplete="off"></div>
+                      <div class="form-group"><label for="ssdModel">Model:</label><input type="text" id="ssdModel" name="ssd_model" list="ssdModelList" placeholder="Select or type" autocomplete="off"></div>
+                      <div class="form-group"><label for="ssdSize">Size *:</label><input type="text" id="ssdSize" name="ssd_size" list="ssdSizeList" placeholder="e.g. 240, 512, 1T" autocomplete="off"></div>
                     </div>
                     <datalist id="ssdBrandList"></datalist><datalist id="ssdModelList"></datalist><datalist id="ssdSizeList"></datalist>
                   </div>
@@ -10042,7 +10055,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261107053520';
+var APP_VERSION='20261107053933';
 var ban=null,shown='',busy=false;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show')})}
 function show(v){build(v);if(shown===v)return;shown=v;requestAnimationFrame(function(){ban.classList.add('show')})}
