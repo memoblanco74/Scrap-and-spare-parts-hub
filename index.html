@@ -7896,7 +7896,7 @@ function renderSparePartsCards(p) {
     const gp = {};
 
     p.forEach(x => {
-        const k = `${x.type}_${x.brand}_${x.model}_${x.category}_${x.site}_${x.location}_${x.incident}_${x.date}_${x.comment}_${x.reservedFor}`;
+        const k = x.category === 'Used (Downgrade)' ? `DG_${x.type}_${String(x.brand||'').toUpperCase()}_${x.model}_${x.site}_${x.location}_${x.comment}_${x.reservedFor}` : `${x.type}_${x.brand}_${x.model}_${x.category}_${x.site}_${x.location}_${x.incident}_${x.date}_${x.comment}_${x.reservedFor}`;
         if (!gp[k]) gp[k] = { ...x, quantity: 0, initial_quantity: 0, ids: [], comments: x.comment ? [x.comment] : [] };
         gp[k].quantity += Number(x.quantity);
         gp[k].initial_quantity += Number(x.initial_quantity || x.quantity);
@@ -10136,7 +10136,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261107163043';
+var APP_VERSION='20261107163450';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
