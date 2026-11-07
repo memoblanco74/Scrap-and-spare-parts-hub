@@ -10077,7 +10077,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261107113820';
+var APP_VERSION='20261107155037';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
@@ -10264,6 +10264,7 @@ function sync(id){
   if(id==='add-edit-laptop'){var d=mb('data-management');if(d)d.classList.add('active')}
   vis();requestAnimationFrame(function(){G.forEach(function(g){g.bars.forEach(pill)})})}
 var orig=showTab;showTab=function(id,skip){var r=orig(id,skip);sync(id);return r};
+bar.querySelectorAll('.tab-button[data-tab]').forEach(function(m){m.addEventListener('click',function(){sync(m.getAttribute('data-tab'))})});
 var mo=new MutationObserver(vis);G.forEach(function(g){g.members.forEach(function(t){var m=mb(t);if(m)mo.observe(m,{attributes:true,attributeFilter:['style']})})});
 window.addEventListener('resize',function(){G.forEach(function(g){g.bars.forEach(pill)})});
 var ab=document.getElementById('addLaptopButton');if(ab)ab.addEventListener('click',function(){var m=mb('add-edit-laptop');if(m)m.click()});
