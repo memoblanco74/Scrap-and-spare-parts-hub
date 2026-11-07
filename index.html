@@ -499,6 +499,7 @@
 .spare-part-card[data-dg="1"] .qty-current.qty-mismatch{color:inherit!important;animation:none!important;text-shadow:none!important}
 .spare-part-card[data-dg="1"].out-of-stock{opacity:1!important;filter:none!important}
 .spare-part-card[data-dg="1"].out-of-stock::after{display:none!important}
+.dg-tabs{display:flex;gap:8px;margin:14px 0 10px}.dg-tabs button{padding:8px 16px;border-radius:10px;border:1px solid var(--border-color);background:var(--tertiary-bg-color);color:var(--text-color);cursor:pointer;font-weight:600}.dg-tabs button.active{background:var(--primary-accent-color);color:#fff;border-color:transparent}
 #dlSuggestions{background:#ffffff}
     body.dark-mode #dlSuggestions{background:#1e293b}
     #dlSuggestions .dl-sug:hover{background:rgba(59,130,246,.12)}
@@ -7409,6 +7410,39 @@ async function openPartHistoryModal(partIds){
 }
 // ==================== Warranty Check ====================
 let currentWarrantyRecord=null;
+async function getAppSites(){
+    const bad=/^(|n\/a|none|-|store)$/i,m={};
+    const add=v=>{v=String(v==null?'':v).trim();if(!v||bad.test(v))return;const k=v.toUpperCase();if(!m[k])m[k]=v};
+    (typeof allLaptops!=='undefined'?allLaptops:[]).forEach(l=>add(l.site));
+    (typeof allSpareParts!=='undefined'?allSpareParts:[]).forEach(p=>add(p.site));
+    try{const r=await supabaseClient.from('site_locations').select('site');(r.data||[]).forEach(x=>add(x.site))}catch(e){}
+    return Object.keys(m).sort().map(k=>m[k]);
+}
+async function askVendorTicketDetails(d){
+    const sites=await getAppSites();
+    const dark=document.body.classList.contains('dark-mode');
+    const isLaptop=/laptop/i.test(String(d.item||''));
+    const lab='display:block;text-align:left;font-size:.85em;font-weight:600;margin:12px 0 4px;';
+    const fld='width:100%;box-sizing:border-box;padding:9px 10px;border-radius:8px;border:1px solid '+(dark?'#475569':'#cbd5e1')+';background:'+(dark?'#0f172a':'#fff')+';color:'+(dark?'#e2e8f0':'#111')+';font:inherit;';
+    let h='';
+    if(isLaptop)h+='<label style="'+lab+'">Item *</label><select id="vtItem" style="'+fld+'"><option value="Laptop" selected>Laptop</option><option value="Charger">Charger</option></select>';
+    h+='<label style="'+lab+'">Site *</label><select id="vtSite" style="'+fld+'"><option value="">Select site</option>'+sites.map(x=>'<option value="'+escapeHtml(x)+'">'+escapeHtml(x)+'</option>').join('')+'</select>';
+    h+='<label style="'+lab+'">Issue *</label><textarea id="vtIssue" rows="3" placeholder="Describe the problem" style="'+fld+'resize:vertical;"></textarea>';
+    h+='<label style="'+lab+'">Xceed Ticket *</label><input id="vtTicket" type="text" placeholder="Xceed ticket number" style="'+fld+'">';
+    h+='<label style="'+lab+'">Mobile Number *</label><input id="vtMobile" type="tel" placeholder="Mobile number" style="'+fld+'">';
+    const r=await Swal.fire({title:'Vendor ticket details',html:h,showCancelButton:true,confirmButtonText:'Generate',background:dark?'#1e293b':'#fff',color:dark?'#e2e8f0':'#333',focusConfirm:false,
+        preConfirm:()=>{
+            const g=id=>{const e=document.getElementById(id);return e?String(e.value||'').trim():''};
+            const v={item:isLaptop?g('vtItem'):String(d.item||''),site:g('vtSite'),issue:g('vtIssue'),ticket:g('vtTicket'),mobile:g('vtMobile')};
+            if(!v.site){Swal.showValidationMessage('Select a site from the list.');return false}
+            if(sites.indexOf(v.site)<0){Swal.showValidationMessage('Site must be one of the listed sites.');return false}
+            if(!v.issue){Swal.showValidationMessage('Issue is required.');return false}
+            if(!v.ticket){Swal.showValidationMessage('Xceed Ticket is required.');return false}
+            if(!v.mobile){Swal.showValidationMessage('Mobile number is required.');return false}
+            return v;
+        }});
+    return r.isConfirmed?r.value:null;
+}
 async function prepareVendorTicketEmail(d,providerEmail,searched){
     const toList=String(providerEmail||'').split(/[;,]/).map(x=>x.trim()).filter(x=>x.indexOf('@')>0);
     if(!toList.length)return showNotification('No vendor email registered for this provider.','error');
@@ -7419,16 +7453,18 @@ async function prepareVendorTicketEmail(d,providerEmail,searched){
     const toAddr=toList.join(';');
     const parts=String(d.serial_number||'').split('/').map(x=>x.trim()).filter(Boolean);
     const sn=parts.find(x=>x.toLowerCase()===String(searched||'').toLowerCase())||searched||d.serial_number||'';
+    const vi=await askVendorTicketDetails(d);
+    if(!vi)return;
     const header=['Item','Model','S/N','Issue','Site','Xceed Ticket','Plan / out plan'];
-    const row=[d.item||'',d.asset_description||'',sn,'','','',''];
-    const subject=(d.provider||'Vendor')+'|Vendor|';
+    const row=[vi.item||d.item||'',d.asset_description||'',sn,vi.issue,vi.site,vi.ticket,''];
+    const subject=(d.provider||'Vendor')+'|Vendor|'+vi.site;
     const f='font-family:Calibri,Arial,sans-serif;font-size:11pt;';
     const th='style="border:1px solid #000000;background-color:#006400;color:#ffffff;padding:6px 10px;'+f+'font-weight:bold;text-align:center;vertical-align:middle;"';
     const td='style="border:1px solid #000000;padding:6px 10px;'+f+'text-align:center;vertical-align:middle;"';
     let html='<p style="'+f+'">Dears,</p><p style="'+f+'">&nbsp;</p><p style="'+f+'">Kindly we need to open ticket with the below and reply to all with external incident number.</p><p style="'+f+'">&nbsp;</p>';
     html+='<table cellspacing="0" cellpadding="0" style="border-collapse:collapse;border:1px solid #000000;"><tr>'+header.map(h=>'<td align="center" bgcolor="#006400" '+th+'><b><font color="#ffffff">'+escapeHtml(h)+'</font></b></td>').join('')+'</tr><tr>'+row.map(v=>'<td align="center" '+td+'>'+(v===''?'&nbsp;':escapeHtml(String(v)))+'</td>').join('')+'</tr></table>';
-    html+='<p style="'+f+'">&nbsp;</p><p style="'+f+'">Mobile Number:</p>';
-    const plain='Dears,\r\n\r\nKindly we need to open ticket with the below and reply to all with external incident number.\r\n\r\n'+header.join('\t')+'\r\n'+row.join('\t')+'\r\n\r\nMobile Number:';
+    html+='<p style="'+f+'">&nbsp;</p><p style="'+f+'">Mobile Number: '+escapeHtml(vi.mobile)+'</p>';
+    const plain='Dears,\r\n\r\nKindly we need to open ticket with the below and reply to all with external incident number.\r\n\r\n'+header.join('\t')+'\r\n'+row.join('\t')+'\r\n\r\nMobile Number: '+vi.mobile;
     const copied=await copyRichTableToClipboard(html,plain);
     if(copied){
         openMailtoDraft(toAddr,ccAddr,subject,'');
@@ -10140,7 +10176,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261107163819';
+var APP_VERSION='20261107221531';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
@@ -10339,6 +10375,31 @@ function paint(){Array.prototype.forEach.call(seg.querySelectorAll('button'),fun
 seg.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;sel.value=b.getAttribute('data-v');sel.dispatchEvent(new Event('change',{bubbles:true}));paint()});
 sel.addEventListener('change',paint);paint();
 if(cnt){var f=function(){cnt.classList.toggle('on',(parseInt(cnt.textContent,10)||0)>0)};new MutationObserver(f).observe(cnt,{childList:true,characterData:true,subtree:true});f()}
+})();
+(function(){
+var _hd=openPartHistoryModal;
+openPartHistoryModal=async function(partIds){
+  var ids=(Array.isArray(partIds)?partIds:[partIds]).map(Number).filter(function(n){return !isNaN(n)});
+  var part=allSpareParts.find(function(p){return ids.indexOf(Number(p.id))!==-1});
+  var r=await _hd.apply(this,arguments);
+  if(!part||String(part.category||'').trim().toLowerCase()!=='used (downgrade)')return r;
+  try{
+    var contentEl=document.getElementById('partHistoryContent');if(!contentEl)return r;
+    var rows=await fetchAllFromSupabase('downgrade');
+    var cards=allSpareParts.filter(function(p){return ids.indexOf(Number(p.id))!==-1});
+    var rs={};cards.forEach(function(c){rs[String(c.comment||'')]=1});
+    rows=(rows||[]).filter(function(x){return String(x.type||'')===String(part.type||'')&&String(x.brand||'').toUpperCase()===String(part.brand||'').toUpperCase()&&String(x.model||'')===String(part.model||'')&&rs[String(x.reason||'')]}).sort(function(a,b){return String(b.timestamp||'').localeCompare(String(a.timestamp||''))});
+    var old=document.createElement('div');old.id='dgHistOld';old.style.display='none';
+    while(contentEl.firstChild)old.appendChild(contentEl.firstChild);
+    var bar=document.createElement('div');bar.className='dg-tabs';
+    bar.innerHTML='<button type="button" class="active" data-t="d1">Downgrade History ('+rows.length+')</button><button type="button" data-t="d2">Usage / Transfers</button>';
+    var d1=document.createElement('div');d1.id='dgHistNew';d1.className='table-container';d1.style.maxHeight='min(58vh,620px)';
+    d1.innerHTML='<table><thead><tr><th>Date</th><th>Part SN</th><th>Part Model</th><th>Device</th><th>Device SN</th><th>Reason</th><th>By</th></tr></thead><tbody>'+(rows.map(function(x){var dev=[x.device_brand,x.device_model].filter(Boolean).join(' ');return '<tr><td style="white-space:pre;">'+escapeHtml(formatDT(x.timestamp)||'-')+'</td><td>'+escapeHtml(x.part_sn||'-')+'</td><td>'+escapeHtml(x.part_model||'-')+'</td><td>'+escapeHtml(dev||'-')+'</td><td>'+escapeHtml(x.device_sn||'-')+'</td><td>'+escapeHtml(x.reason||'-')+'</td><td>'+escapeHtml(x.user||'-')+'</td></tr>'}).join('')||'<tr><td colspan="7">No downgrade records for this card.</td></tr>')+'</tbody></table>';
+    contentEl.appendChild(bar);contentEl.appendChild(d1);contentEl.appendChild(old);
+    bar.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;bar.querySelectorAll('button').forEach(function(x){x.classList.toggle('active',x===b)});d1.style.display=b.dataset.t==='d1'?'':'none';old.style.display=b.dataset.t==='d2'?'':'none'});
+  }catch(e){}
+  return r;
+};
 })();
 window.loadLaptops=refreshAllDataAndViews;resetFormForAdd()});
       </script>
