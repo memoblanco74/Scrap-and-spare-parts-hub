@@ -463,6 +463,24 @@
 #usersTable{width:100%!important;margin:0!important}
 #usersTable th,#usersTable td{padding:15px 14px!important}
 #usersTable td{font-size:1.02em}
+.ue-bar{margin:16px 0;padding:16px 18px;border-radius:18px;border:1px solid var(--border-color);background:linear-gradient(135deg,color-mix(in srgb,var(--primary-accent-color) 10%,var(--tertiary-bg-color)),var(--tertiary-bg-color));box-shadow:0 14px 30px -22px rgba(0,0,0,.7);display:flex;flex-direction:column;gap:14px}
+.ue-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ue-ico{flex:none;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:18px;color:#fff;background:linear-gradient(135deg,var(--primary-accent-color),#8b5cf6);box-shadow:0 8px 18px -8px var(--primary-accent-color)}
+.ue-ttl{display:flex;flex-direction:column;gap:2px;flex:1 1 200px;min-width:0}
+.ue-ttl b{font-size:1.02em;color:var(--header-color)}
+.ue-ttl small{font-size:.8em;color:var(--secondary-color)}
+.ue-count{flex:none;padding:6px 14px;border-radius:999px;font-size:.82em;font-weight:700;border:1px solid var(--border-color);color:var(--secondary-color);background:var(--bg-color)}
+.ue-count.on{color:#fff;border-color:transparent;background:linear-gradient(135deg,#22c55e,#16a34a)}
+.ue-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ue-seg{display:inline-flex;gap:4px;padding:4px;border-radius:14px;background:var(--bg-color);border:1px solid var(--border-color);flex-wrap:wrap}
+.ue-seg button{display:inline-flex;align-items:center;gap:8px;border:0;background:transparent;color:var(--text-color);font:inherit;font-size:.88em;font-weight:600;padding:9px 14px;border-radius:10px;cursor:pointer;opacity:.75;transition:background .15s,opacity .15s}
+.ue-seg button:hover{opacity:1}
+.ue-seg button.on{background:linear-gradient(135deg,var(--primary-accent-color),#8b5cf6);color:#fff;opacity:1;box-shadow:0 6px 14px -6px color-mix(in srgb,var(--primary-accent-color) 70%,transparent)}
+.ue-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-left:auto}
+.ue-go{width:auto!important;min-height:44px;padding:0 22px!important;border-radius:999px!important}
+.ue-hint{font-size:.78em;color:var(--secondary-color);display:flex;gap:8px;align-items:flex-start}
+.ue-hint i{margin-top:2px;color:var(--primary-accent-color)}
+@media(max-width:640px){.ue-seg{width:100%}.ue-seg button{flex:1 1 100%;justify-content:center}.ue-actions{width:100%;margin-left:0}.ue-go{flex:1 1 auto}}
 #dlSuggestions{background:#ffffff}
     body.dark-mode #dlSuggestions{background:#1e293b}
     #dlSuggestions .dl-sug:hover{background:rgba(59,130,246,.12)}
@@ -4619,17 +4637,29 @@
               <h4 class="summary-card-title">Total Units Used</h4>
               <p class="summary-card-count" id="reportTotalCount">0</p>
             </div>
-            <div id="usageEmailToolbar" class="card" style="margin:15px 0; padding:15px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-              <div style="font-weight:600; color:var(--header-color);"><i class="fa-solid fa-envelope"></i> Send Selected as Email:</div>
-              <select id="emailTemplateSelect" style="min-width:220px; width:auto;">
-                <option value="outOfWarranty">Out of Warranty Laptops</option>
-                <option value="fixedOnSpot">Fixed on Spot</option>
-                <option value="hardwareUpgrade">Hardware Upgrade</option>
-              </select>
-              <button id="btnPrepareUsageEmail" type="button" class="form-btn submit-btn" style="width:auto;"><i class="fa-solid fa-paper-plane"></i> Prepare Email</button>
-              <button id="btnEditEmailRecipients" type="button" class="custom-btn" style="display:none;"><i class="fa-solid fa-gear"></i> Edit Recipients</button>
-              <span id="usageEmailSelectedCount" style="font-size:0.85em; color:var(--secondary-color);">0 selected</span>
-              <div style="flex-basis:100%; font-size:0.78em; color:var(--secondary-color); margin-top:-4px;"><i class="fa-solid fa-circle-info"></i> This copies a formatted table to your clipboard and opens Outlook — click inside the email body and press Ctrl+V to paste it.</div>
+            <div id="usageEmailToolbar" class="ue-bar">
+              <div class="ue-head">
+                <div class="ue-ico"><i class="fa-solid fa-envelope-open-text"></i></div>
+                <div class="ue-ttl"><b>Send selected as email</b><small>Pick a template, tick the rows below, then prepare the email.</small></div>
+                <span id="usageEmailSelectedCount" class="ue-count">0 selected</span>
+              </div>
+              <div class="ue-row">
+                <div class="ue-seg" id="ueSeg">
+                  <button type="button" data-v="outOfWarranty"><i class="fa-solid fa-file-circle-xmark"></i><span>Out of Warranty</span></button>
+                  <button type="button" data-v="fixedOnSpot"><i class="fa-solid fa-screwdriver-wrench"></i><span>Fixed on Spot</span></button>
+                  <button type="button" data-v="hardwareUpgrade"><i class="fa-solid fa-microchip"></i><span>Hardware Upgrade</span></button>
+                </div>
+                <div style="display:none"><select id="emailTemplateSelect">
+                  <option value="outOfWarranty">Out of Warranty Laptops</option>
+                  <option value="fixedOnSpot">Fixed on Spot</option>
+                  <option value="hardwareUpgrade">Hardware Upgrade</option>
+                </select></div>
+                <div class="ue-actions">
+                  <button id="btnPrepareUsageEmail" type="button" class="form-btn submit-btn ue-go"><i class="fa-solid fa-paper-plane"></i> Prepare Email</button>
+                  <button id="btnEditEmailRecipients" type="button" class="custom-btn" style="display:none;"><i class="fa-solid fa-gear"></i> Edit Recipients</button>
+                </div>
+              </div>
+              <div class="ue-hint"><i class="fa-solid fa-circle-info"></i> Copies a formatted table to your clipboard and opens Outlook. Click inside the email body and press Ctrl+V to paste it.</div>
             </div>
             <div id="reportDetailsTable" style="margin-top: 15px; overflow-x: auto;"></div>
           </div>
@@ -10092,7 +10122,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261107155208';
+var APP_VERSION='20261107161302';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
@@ -10284,6 +10314,13 @@ var mo=new MutationObserver(vis);G.forEach(function(g){g.members.forEach(functio
 window.addEventListener('resize',function(){G.forEach(function(g){g.bars.forEach(pill)})});
 var ab=document.getElementById('addLaptopButton');if(ab)ab.addEventListener('click',function(){var m=mb('add-edit-laptop');if(m)m.click()});
 vis();
+})();
+(function(){
+var sel=document.getElementById('emailTemplateSelect'),seg=document.getElementById('ueSeg'),cnt=document.getElementById('usageEmailSelectedCount');if(!sel||!seg)return;
+function paint(){Array.prototype.forEach.call(seg.querySelectorAll('button'),function(b){b.classList.toggle('on',b.getAttribute('data-v')===sel.value)})}
+seg.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;sel.value=b.getAttribute('data-v');sel.dispatchEvent(new Event('change',{bubbles:true}));paint()});
+sel.addEventListener('change',paint);paint();
+if(cnt){var f=function(){cnt.classList.toggle('on',(parseInt(cnt.textContent,10)||0)>0)};new MutationObserver(f).observe(cnt,{childList:true,characterData:true,subtree:true});f()}
 })();
 window.loadLaptops=refreshAllDataAndViews;resetFormForAdd()});
       </script>
