@@ -481,6 +481,12 @@
 .ue-hint{font-size:.78em;color:var(--secondary-color);display:flex;gap:8px;align-items:flex-start}
 .ue-hint i{margin-top:2px;color:var(--primary-accent-color)}
 @media(max-width:640px){.ue-seg{width:100%}.ue-seg button{flex:1 1 100%;justify-content:center}.ue-actions{width:100%;margin-left:0}.ue-go{flex:1 1 auto}}
+*{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--primary-accent-color) 55%,transparent) transparent}
+#reportDetailsTable{overflow:auto!important;max-height:78vh;width:100%;border-radius:16px;border:1px solid var(--border-color);background:linear-gradient(180deg,color-mix(in srgb,var(--primary-accent-color) 5%,transparent),transparent);box-shadow:0 12px 28px -20px rgba(0,0,0,.6)}
+#reportDetailsTable #reportTable{width:100%!important;min-width:100%;font-size:.9em!important;margin:0}
+#reportDetailsTable #reportTable th,#reportDetailsTable #reportTable td{padding:12px 10px!important}
+#reportDetailsTable #reportTable thead th{position:sticky;top:0;z-index:5}
+.ws-seg,.nested-tab-buttons,.tab-buttons{scrollbar-width:none}
 #dlSuggestions{background:#ffffff}
     body.dark-mode #dlSuggestions{background:#1e293b}
     #dlSuggestions .dl-sug:hover{background:rgba(59,130,246,.12)}
@@ -10122,7 +10128,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261107161302';
+var APP_VERSION='20261107162015';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
