@@ -447,6 +447,7 @@
 #downgradeForm .form-group input,#downgradeForm .form-group select,#ssdPanel .form-group input,#ssdPanel .form-group select{height:44px;box-sizing:border-box}
 .tab-button.tb-member{display:none!important}
 .grp-bar .nested-tab-button{cursor:pointer}
+#userMenu .um-style{padding:11px 12px;display:flex;flex-direction:column;gap:10px;font-weight:600;font-size:.95em;color:var(--text-color)}#userMenu .um-style .um-l{display:flex;align-items:center;gap:12px}#userMenu .um-style .um-l i{width:18px;text-align:center;color:var(--primary-accent-color)}#userMenu .sp-style-seg{display:flex;width:100%;box-sizing:border-box}#userMenu .sp-style-seg button{flex:1;padding:8px 4px}
 #dlSuggestions{background:#ffffff}
     body.dark-mode #dlSuggestions{background:#1e293b}
     #dlSuggestions .dl-sug:hover{background:rgba(59,130,246,.12)}
@@ -4067,6 +4068,7 @@
       <div id="header-actions-wrapper">
         <div id="userSessionContainer">
           <div id="userInfo" style="display: none;">
+            <div id="spStyleHolder" style="display:none"><div class="sp-style-seg" id="spStyleSeg"><button type="button" data-s="classic">Classic</button><button type="button" data-s="a">Ring</button><button type="button" data-s="b">Stock</button><button type="button" data-s="c">Tiles</button></div></div>
             <span id="userEmailDisplay"></span>
             <button id="openChangePassBtn" class="custom-btn" style="background-color: var(--warning-color); color: #111; padding: 5px 10px;" title="Change Password">
         <i class="fa-solid fa-key"></i>
@@ -4532,7 +4534,6 @@
               </form>
             </div>
           </div>
-          <div class="sp-style-bar"><span class="sp-style-lbl"><i class="fa-solid fa-palette"></i> Card style</span><div class="sp-style-seg" id="spStyleSeg"><button type="button" data-s="classic">Classic</button><button type="button" data-s="a">Ring</button><button type="button" data-s="b">Stock</button><button type="button" data-s="c">Tiles</button></div></div>
           <div id="sparePartsCardContainer" class="spare-parts-card-grid"></div>
         </div>
         <div id="nested-summary" class="nested-tab-content">
@@ -9486,7 +9487,8 @@ function ini(t){t=String(t||'').trim();return (t.replace(/[^A-Za-z\u0600-\u06FF]
 function updHead(){var em=(currentUser&&currentUser.email)||nameEl.textContent||'';head.querySelector('.um-av').textContent=ini(em);head.querySelector('.um-nm').textContent=em;var u=(typeof users!=='undefined'&&users[em])||{};var rl=head.querySelector('.um-rl');rl.textContent=u.comment||'';rl.style.display=u.comment?'block':'none'}
 function setIni(){nameEl.dataset.i=ini(nameEl.textContent)}
 new MutationObserver(setIni).observe(nameEl,{childList:true,characterData:true,subtree:true});setIni();
-[rPass,rTheme,rNotif,rLoc,rSet,rInst,rOut].forEach(function(x){menu.appendChild(x)});
+var rStyle=document.createElement('div');rStyle.className='um-style';rStyle.innerHTML='<span class="um-l"><i class="fa-solid fa-palette"></i>Card style</span>';var _seg=document.getElementById('spStyleSeg');if(_seg)rStyle.appendChild(_seg);
+[rPass,rTheme,rStyle,rNotif,rLoc,rSet,rInst,rOut].forEach(function(x){menu.appendChild(x)});
 function sync(){var pb=document.getElementById('pushBtn'),lb=document.getElementById('spLocSwitch'),ib=document.getElementById('pwaInstallBtn');rNotif.style.display=(pb&&pb.style.display!=='none')?'flex':'none';swN.classList.toggle('on',!!(pb&&pb.dataset.on==='1'));rLoc.style.display=lb?'flex':'none';swL.classList.toggle('on',!!(lb&&lb.checked));var stx=document.getElementById('spLocStatus');locSub.textContent=(lb&&lb.checked&&stx)?stx.textContent:'';locSub.style.display=locSub.textContent?'block':'none';var cs=!!(currentUser&&currentUser.permissions&&currentUser.permissions.spareParts&&currentUser.permissions.spareParts.canSetLocation);rSet.style.display=(cs&&document.getElementById('spLocPin'))?'flex':'none';rInst.style.display=(ib&&ib.style.display!=='none')?'flex':'none'}
 function place(){var r=nameEl.getBoundingClientRect(),w=menu.offsetWidth;var left=Math.max(8,Math.min(r.left,innerWidth-w-8));menu.style.left=left+'px';menu.style.top=(r.bottom+8)+'px'}
 function open(){sync();updHead();menu.classList.add('show');nameEl.classList.add('open');place()}
@@ -10075,7 +10077,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261107113438';
+var APP_VERSION='20261107113820';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
