@@ -9916,7 +9916,7 @@ showNotification('Idle logout is now '+r.data.idleMinutes+' minutes.','success')
 if(window.__csInit)return;window.__csInit=1;
 var cur=null;
 function lbl(sel){var o=sel.options[sel.selectedIndex];return o?o.text:''}
-function closePanel(){if(!cur)return;var pn=cur.panel;pn.classList.add('closing');setTimeout(function(){try{pn.remove()}catch(e){}},170);cur.wrap.classList.remove('open');document.removeEventListener('pointerdown',cur.onDown,true);document.removeEventListener('keydown',cur.onKey,true);window.removeEventListener('resize',closePanel);window.removeEventListener('scroll',cur.onScroll,true);cur=null}
+function closePanel(){if(!cur)return;var pn=cur.panel;pn.classList.add('closing');setTimeout(function(){try{pn.remove()}catch(e){}},170);cur.wrap.classList.remove('open');document.removeEventListener('pointerdown',cur.onDown,true);document.removeEventListener('keydown',cur.onKey,true);window.removeEventListener('resize',cur.onRes||closePanel);window.removeEventListener('scroll',cur.onScroll,true);cur=null}
 function enhance(sel){
 try{
 if(sel.dataset.cs||sel.multiple||sel.size>1||sel.hasAttribute('data-native')||sel.closest('.swal2-container'))return;
@@ -9964,7 +9964,7 @@ function pick(d){if(!d||!d.__o||d.__o.disabled)return;var ch=sel.value!==d.__o.v
 panel.addEventListener('click',function(e){var d=e.target.closest('.cs-opt');if(d)pick(d)});
 panel.addEventListener('mousemove',function(e){var d=e.target.closest('.cs-opt');if(d&&!d.classList.contains('dis'))setAct(d)});
 var sd=items.filter(function(d){return d.classList.contains('sel')})[0];if(sd){setAct(sd);if(sd.scrollIntoView)sd.scrollIntoView({block:'center'})}
-if(search){search.addEventListener('input',function(){var q=search.value.trim().toLowerCase(),n=0;items.forEach(function(d){var ok=!q||d.__t.indexOf(q)>-1;d.style.display=ok?'':'none';if(ok)n++});empty.style.display=n?'none':'block';setAct(vis()[0])});setTimeout(function(){search.focus()},0)}
+if(search){search.addEventListener('input',function(){var q=search.value.trim().toLowerCase(),n=0;items.forEach(function(d){var ok=!q||d.__t.indexOf(q)>-1;d.style.display=ok?'':'none';if(ok)n++});empty.style.display=n?'none':'block';setAct(vis()[0])});if(!(window.matchMedia&&matchMedia('(pointer:coarse)').matches))setTimeout(function(){search.focus()},0)}
 function onDown(e){if(panel.contains(e.target)||wrap.contains(e.target))return;closePanel()}
 function onKey(e){
 if(e.key==='Escape'){e.preventDefault();e.stopPropagation();closePanel();btn.focus();return}
@@ -9973,8 +9973,9 @@ if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();var i=v.indexOf(pa
 else if(e.key==='Enter'){e.preventDefault();pick(panel.querySelector('.cs-opt.act'))}
 else if(e.key==='Tab'){closePanel()}}
 function onScroll(e){if(panel.contains(e.target))return;closePanel()}
-document.addEventListener('pointerdown',onDown,true);document.addEventListener('keydown',onKey,true);window.addEventListener('resize',closePanel);window.addEventListener('scroll',onScroll,true);
-cur={sel:sel,wrap:wrap,panel:panel,onDown:onDown,onKey:onKey,onScroll:onScroll}}
+function onRes(){var a=document.activeElement;if(a&&a.classList&&a.classList.contains('cs-search'))return;closePanel()}
+document.addEventListener('pointerdown',onDown,true);document.addEventListener('keydown',onKey,true);window.addEventListener('resize',onRes);window.addEventListener('scroll',onScroll,true);
+cur={sel:sel,wrap:wrap,panel:panel,onDown:onDown,onKey:onKey,onScroll:onScroll,onRes:onRes}}
 btn.addEventListener('click',function(){if(!sel.disabled)openPanel()});
 btn.addEventListener('keydown',function(e){if(!cur&&(e.key==='ArrowDown'||e.key==='ArrowUp')){e.preventDefault();if(!sel.disabled)openPanel()}})
 }catch(err){try{sel.classList.remove('cs-native')}catch(e){}}
@@ -10071,7 +10072,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261107111813';
+var APP_VERSION='20261107112539';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
