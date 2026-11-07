@@ -10055,12 +10055,12 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261107054219';
-var ban=null,shown='',busy=false;
-function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show')})}
-function show(v){build(v);if(shown===v)return;shown=v;requestAnimationFrame(function(){ban.classList.add('show')})}
-function check(){if(busy||document.hidden||!navigator.onLine)return;busy=true;fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(j&&j.v&&/^[0-9]{14}$/.test(j.v)&&j.v!==APP_VERSION)show(j.v)}).catch(function(){}).then(function(){busy=false})}
-setTimeout(check,4000);setInterval(check,300000);
+var APP_VERSION='20261107105944';
+var ban=null,pending='',busy=false,snoozeUntil=0;
+function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
+function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
+function check(){if(pending){show(pending);return}if(busy||document.hidden||!navigator.onLine)return;busy=true;var ac=window.AbortController?new AbortController():null,tm=setTimeout(function(){if(ac)ac.abort();busy=false},8000);fetch('version.json?t='+Date.now(),{cache:'no-store',signal:ac?ac.signal:undefined}).then(function(r){return r.ok?r.json():null}).then(function(j){if(j&&j.v&&/^[0-9]{14}$/.test(j.v)&&j.v!==APP_VERSION)show(j.v)}).catch(function(){}).then(function(){clearTimeout(tm);busy=false})}
+setTimeout(check,4000);setInterval(check,120000);window.addEventListener('pageshow',check);
 document.addEventListener('visibilitychange',function(){if(!document.hidden)check()});window.addEventListener('focus',check);window.addEventListener('online',check);
 window.__appVersion=APP_VERSION;
 })();
