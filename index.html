@@ -448,6 +448,21 @@
 .tab-button.tb-member{display:none!important}
 .grp-bar .nested-tab-button{cursor:pointer}
 #userMenu .um-style{padding:11px 12px;display:flex;flex-direction:column;gap:10px;font-weight:600;font-size:.95em;color:var(--text-color)}#userMenu .um-style .um-l{display:flex;align-items:center;gap:12px}#userMenu .um-style .um-l i{width:18px;text-align:center;color:var(--primary-accent-color)}#userMenu .sp-style-seg{display:flex;width:100%;box-sizing:border-box}#userMenu .sp-style-seg button{flex:1;padding:8px 4px}
+.component-laptop-list{max-height:none!important;overflow:visible!important;padding:12px 14px!important}
+#modelComponentLaptopListElem .table-container{max-height:min(74vh,760px)!important}
+#modelComponentLaptopListElem table th,#modelComponentLaptopListElem table td{padding:14px 14px!important;font-size:.98em}
+#modelComponentLaptopListElem table th{font-size:.8em!important}
+#partHistoryOverlay .modal-content{max-width:min(1180px,95vw)!important;max-height:92vh!important;width:95vw}
+#partHistoryContent .table-container{max-height:min(58vh,620px)!important}
+#partHistoryContent table{width:100%}
+#partHistoryContent table th,#partHistoryContent table td{padding:13px 14px!important;font-size:.95em;white-space:normal!important;word-break:normal;overflow-wrap:break-word;min-width:72px}
+#partHistoryContent table td:first-child,#partHistoryContent table th:first-child{min-width:120px}
+#partHistoryContent table th{font-size:.78em!important;white-space:nowrap!important}
+.um-table-card{overflow:visible!important;padding:16px!important}
+.um-table-card .table-container{max-height:min(80vh,920px)!important;width:100%}
+#usersTable{width:100%!important;margin:0!important}
+#usersTable th,#usersTable td{padding:15px 14px!important}
+#usersTable td{font-size:1.02em}
 #dlSuggestions{background:#ffffff}
     body.dark-mode #dlSuggestions{background:#1e293b}
     #dlSuggestions .dl-sug:hover{background:rgba(59,130,246,.12)}
@@ -10077,7 +10092,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261107155037';
+var APP_VERSION='20261107155208';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
