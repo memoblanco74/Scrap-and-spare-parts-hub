@@ -501,6 +501,30 @@
 .spare-part-card[data-dg="1"].out-of-stock::after{display:none!important}
 .dg-tabs{display:flex;gap:8px;margin:14px 0 10px}.dg-tabs button{padding:8px 16px;border-radius:10px;border:1px solid var(--border-color);background:var(--tertiary-bg-color);color:var(--text-color);cursor:pointer;font-weight:600}.dg-tabs button.active{background:var(--primary-accent-color);color:#fff;border-color:transparent}
 input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus,input:-webkit-autofill:active,textarea:-webkit-autofill,select:-webkit-autofill{-webkit-box-shadow:0 0 0 1000px var(--input-bg-color) inset!important;box-shadow:0 0 0 1000px var(--input-bg-color) inset!important;-webkit-text-fill-color:var(--text-color)!important;caret-color:var(--text-color);border-color:var(--border-color)!important;transition:background-color 99999s ease-in-out 0s}
+.lu-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.lu-notify{display:inline-flex;align-items:center;gap:8px;font-size:.88em;cursor:pointer}
+.lu-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.lu-stat{padding:16px 18px;border-radius:16px;border:1px solid var(--border-color);background:var(--tertiary-bg-color);display:flex;flex-direction:column;gap:4px}
+.lu-stat b{font-size:2em;line-height:1;color:var(--primary-accent-color)}
+.lu-stat span{font-size:.82em;color:var(--secondary-color)}
+.lu-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px;align-items:start}
+@media(max-width:900px){.lu-grid{grid-template-columns:1fr}}
+.lu-row{display:flex;align-items:center;gap:12px;padding:11px 8px;border-bottom:1px solid var(--border-color)}
+.lu-row:last-child{border-bottom:0}
+.lu-av{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--primary-accent-color),#8b5cf6);position:relative}
+.lu-av::after{content:"";position:absolute;right:-1px;bottom:-1px;width:11px;height:11px;border-radius:50%;background:#22c55e;border:2px solid var(--tertiary-bg-color)}
+.lu-av.bg::after{background:#f59e0b}
+.lu-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.lu-main b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lu-main small{color:var(--secondary-color);font-size:.8em}
+.lu-since{font-size:.8em;color:var(--secondary-color);white-space:nowrap}
+.lu-ev{display:flex;gap:10px;align-items:center;padding:8px 4px;font-size:.88em;border-bottom:1px solid var(--border-color)}
+.lu-ev:last-child{border-bottom:0}
+.lu-ev i{width:18px;text-align:center}
+.lu-ev.in i{color:#22c55e}.lu-ev.out i{color:#ef4444}
+.lu-ev time{margin-left:auto;color:var(--secondary-color);font-size:.85em;white-space:nowrap}
+.lu-empty{padding:18px;text-align:center;color:var(--secondary-color);font-size:.9em}
+.lu-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 #dlSuggestions{background:#ffffff}
     body.dark-mode #dlSuggestions{background:#1e293b}
     #dlSuggestions .dl-sug:hover{background:rgba(59,130,246,.12)}
@@ -4169,6 +4193,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         <button class="tab-button" id="printersTabBtn" data-tab="printers-page" data-permission="printers_visible" style="display: none;"><i class="fa-solid fa-print tb-ico"></i><span class="tb-txt">Printers</span></button>
         <button class="tab-button" data-tab="logs" data-permission="logs_visible" style="display: none;"><i class="fa-solid fa-clock-rotate-left tb-ico"></i><span class="tb-txt">Activity Logs</span></button>
         <button class="tab-button" data-tab="manage-users" data-permission="manageUsers_visible" style="display: none;"><i class="fa-solid fa-users-gear tb-ico"></i><span class="tb-txt">Manage Users</span></button>
+        <button class="tab-button" data-tab="live-users" data-permission="manageUsers_visible" style="display: none;"><i class="fa-solid fa-signal tb-ico"></i><span class="tb-txt">Live Users</span></button>
       </div>
       <div id="dashboard" class="tab-content active">
         <div class="dashboard-grid">
@@ -5045,12 +5070,26 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
           </table>
         </div>
       </div>
+      <div id="live-users" class="tab-content">
+        <div class="lu-head">
+          <div><h2 style="margin:0">Live Users</h2><p style="margin:4px 0 0;font-size:.9em;color:var(--secondary-color)">Who is connected right now. Updates instantly when someone opens or leaves the app.</p></div>
+          <div class="lu-actions"><label class="lu-notify"><input type="checkbox" id="luNotify" checked> Notify me on join / leave</label><button type="button" id="pushUpdateBtn" class="custom-btn" style="background-color:#007bff;color:white;margin:0"><i class="fa-solid fa-rocket"></i> Push Update to All Users</button></div>
+        </div>
+        <div class="lu-stats">
+          <div class="lu-stat"><b id="luCount">0</b><span>Connected sessions</span></div>
+          <div class="lu-stat"><b id="luUsers">0</b><span>Unique users</span></div>
+          <div class="lu-stat"><b id="luActive">0</b><span>Active now</span></div>
+        </div>
+        <div class="lu-grid">
+          <div class="card"><h3 style="margin-top:0"><i class="fa-solid fa-signal" style="color:var(--success-color)"></i> Online now</h3><div id="luList"></div></div>
+          <div class="card"><h3 style="margin-top:0"><i class="fa-solid fa-clock-rotate-left" style="color:var(--primary-accent-color)"></i> Recent activity</h3><div id="luEvents"></div></div>
+        </div>
+      </div>
       <div id="manage-users" class="tab-content">
         <div class="um-header">
           <div>
             <h2>User Management</h2>
             <p style="margin:0; font-size:0.9em; color:var(--secondary-color);">Manage access and permissions.</p>
-            <button type="button" id="pushUpdateBtn" class="custom-btn" style="margin-top:10px;background-color:#007bff;color:white;"><i class="fa-solid fa-rocket"></i> Push Update to All Users</button>
           </div>
           <div class="um-stats">
             <div class="um-stat-item">
@@ -10177,7 +10216,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261107224328';
+var APP_VERSION='20261107224536';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
@@ -10333,7 +10372,7 @@ window.setupSiteReserved=function(cid,sid,rid,on){
 })();
 (function(){
 var G=[{id:'workspace-hub',label:'Workspace',icon:'fa-briefcase',before:'incidents',members:['incidents','it-workspace'],names:{'incidents':['Create Incident','fa-triangle-exclamation'],'it-workspace':['IT Workspace','fa-briefcase']}},
-{id:'admin-hub',label:'Admin',icon:'fa-user-shield',before:null,members:['logs','manage-users'],names:{'logs':['Activity Logs','fa-clock-rotate-left'],'manage-users':['Manage Users','fa-users-gear']}}];
+{id:'admin-hub',label:'Admin',icon:'fa-user-shield',before:null,members:['logs','manage-users','live-users'],names:{'logs':['Activity Logs','fa-clock-rotate-left'],'manage-users':['Manage Users','fa-users-gear'],'live-users':['Live Users','fa-signal']}}];
 var bar=document.querySelector('.tab-buttons');if(!bar)return;
 function mb(t){return bar.querySelector('.tab-button[data-tab="'+t+'"]')}
 var _ae=mb('add-edit-laptop');if(_ae)_ae.classList.add('tb-member');
@@ -10401,6 +10440,45 @@ openPartHistoryModal=async function(partIds){
   }catch(e){}
   return r;
 };
+})();
+(function(){
+var ch=null,ready=false,events=[],state={};
+var $=function(id){return document.getElementById(id)};
+function dev(){var u=navigator.userAgent||'';return /Android|iPhone|iPad|Mobile/i.test(u)?'Mobile':'Desktop'}
+function pageName(){var b=document.querySelector('.tab-buttons .tab-button.active');return b?b.textContent.trim():'-'}
+function me(){return {email:currentUser?currentUser.email:'',device:dev(),page:pageName(),away:!!document.hidden,since:window.__luSince||(window.__luSince=Date.now())}}
+function isAdmin(){try{return !!(currentUser&&currentUser.permissions&&currentUser.permissions.manageUsers&&currentUser.permissions.manageUsers.visible)}catch(e){return false}}
+function rel(t){var d=Math.max(0,Math.floor((Date.now()-t)/1000));if(d<60)return 'just now';if(d<3600)return Math.floor(d/60)+' min ago';if(d<86400)return Math.floor(d/3600)+' h ago';return Math.floor(d/86400)+' d ago'}
+function hhmm(t){var x=new Date(t);return x.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'})}
+function flat(){var out=[];Object.keys(state).forEach(function(k){(state[k]||[]).forEach(function(p){out.push({key:k,p:p})})});return out}
+function render(){
+  var list=$('luList');if(!list)return;var rows=flat().sort(function(a,b){return (b.p.since||0)-(a.p.since||0)});
+  var users={},act=0;rows.forEach(function(r){users[String(r.p.email).toLowerCase()]=1;if(!r.p.away)act++});
+  $('luCount').textContent=rows.length;$('luUsers').textContent=Object.keys(users).length;$('luActive').textContent=act;
+  list.innerHTML=rows.length?rows.map(function(r){var p=r.p,em=String(p.email||'?');return '<div class="lu-row"><div class="lu-av'+(p.away?' bg':'')+'">'+escapeHtml(em.charAt(0).toUpperCase())+'</div><div class="lu-main"><b>'+escapeHtml(em)+'</b><small>'+escapeHtml(p.device||'')+' · '+escapeHtml(p.page||'-')+' · '+(p.away?'In background':'Active')+'</small></div><div class="lu-since">'+escapeHtml(rel(p.since||Date.now()))+'</div></div>'}).join(''):'<div class="lu-empty">Nobody is connected.</div>';
+  var ev=$('luEvents');ev.innerHTML=events.length?events.slice(0,40).map(function(e){return '<div class="lu-ev '+(e.k==='in'?'in':'out')+'"><i class="fa-solid '+(e.k==='in'?'fa-right-to-bracket':'fa-right-from-bracket')+'"></i><span>'+escapeHtml(e.email)+' '+(e.k==='in'?'connected':'disconnected')+(e.device?' ('+escapeHtml(e.device)+')':'')+'</span><time>'+escapeHtml(hhmm(e.t))+'</time></div>'}).join(''):'<div class="lu-empty">No activity yet since you opened the app.</div>';
+}
+function note(k,list){
+  (list||[]).forEach(function(p){
+    var e={k:k,email:p.email||'?',device:p.device||'',t:Date.now()};events.unshift(e);if(events.length>80)events.pop();
+    var n=$('luNotify');if(ready&&isAdmin()&&n&&n.checked&&typeof showNotification==='function'&&p.email&&(!currentUser||p.email!==currentUser.email||k==='out'))showNotification(p.email+(k==='in'?' connected':' disconnected'),k==='in'?'success':'info')
+  })}
+function start(){
+  if(ch||!currentUser||!supabaseClient)return;
+  var key=currentUser.email+'|'+Math.random().toString(36).slice(2,9);
+  ch=supabaseClient.channel('app-presence',{config:{presence:{key:key}}});
+  ch.on('presence',{event:'sync'},function(){state=ch.presenceState();ready=true;render()})
+    .on('presence',{event:'join'},function(m){note('in',m.newPresences)})
+    .on('presence',{event:'leave'},function(m){note('out',m.leftPresences)})
+    .subscribe(function(st){if(st==='SUBSCRIBED')ch.track(me())});
+}
+function stop(){if(!ch)return;var c=ch;ch=null;ready=false;state={};try{c.untrack()}catch(e){}try{supabaseClient.removeChannel(c)}catch(e){}}
+function retrack(){if(ch&&currentUser)try{ch.track(me())}catch(e){}}
+setInterval(function(){if(currentUser&&!ch)start();else if(!currentUser&&ch){stop();render()}},2000);
+document.addEventListener('visibilitychange',retrack);
+document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('.tab-button,.nested-tab-button'))setTimeout(retrack,400)});
+setInterval(function(){var t=$('live-users');if(t&&t.classList.contains('active'))render()},30000);
+window.addEventListener('beforeunload',function(){stop()});
 })();
 window.loadLaptops=refreshAllDataAndViews;resetFormForAdd()});
       </script>
