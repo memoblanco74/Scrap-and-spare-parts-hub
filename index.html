@@ -500,6 +500,7 @@
 .spare-part-card[data-dg="1"].out-of-stock{opacity:1!important;filter:none!important}
 .spare-part-card[data-dg="1"].out-of-stock::after{display:none!important}
 .dg-tabs{display:flex;gap:8px;margin:14px 0 10px}.dg-tabs button{padding:8px 16px;border-radius:10px;border:1px solid var(--border-color);background:var(--tertiary-bg-color);color:var(--text-color);cursor:pointer;font-weight:600}.dg-tabs button.active{background:var(--primary-accent-color);color:#fff;border-color:transparent}
+input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus,input:-webkit-autofill:active,textarea:-webkit-autofill,select:-webkit-autofill{-webkit-box-shadow:0 0 0 1000px var(--input-bg-color) inset!important;box-shadow:0 0 0 1000px var(--input-bg-color) inset!important;-webkit-text-fill-color:var(--text-color)!important;caret-color:var(--text-color);border-color:var(--border-color)!important;transition:background-color 99999s ease-in-out 0s}
 #dlSuggestions{background:#ffffff}
     body.dark-mode #dlSuggestions{background:#1e293b}
     #dlSuggestions .dl-sug:hover{background:rgba(59,130,246,.12)}
@@ -5069,11 +5070,11 @@
             <form id="userManagementForm">
               <div class="form-group full-span-group">
                 <label>Username *</label>
-                <input type="text" id="newUserEmail" name="newUserEmail" placeholder="user@example.com" required>
+                <input type="text" id="newUserEmail" name="newUserEmail" placeholder="user@example.com" autocomplete="off" required>
               </div>
               <div class="form-group full-span-group">
                 <label>Password *</label>
-                <input type="password" id="newUserPassword" name="newUserPassword" placeholder="******" required>
+                <input type="password" id="newUserPassword" name="newUserPassword" placeholder="******" autocomplete="new-password" required>
               </div>
               <div class="form-group full-span-group">
                 <label>Display Name / Role</label>
@@ -10176,7 +10177,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261107221531';
+var APP_VERSION='20261107224328';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
