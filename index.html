@@ -487,6 +487,15 @@
 #reportDetailsTable #reportTable th,#reportDetailsTable #reportTable td{padding:12px 10px!important}
 #reportDetailsTable #reportTable thead th{position:sticky;top:0;z-index:5}
 .ws-seg,.nested-tab-buttons,.tab-buttons{scrollbar-width:none}
+#downgradeModal{width:750px!important;max-width:95%!important;max-height:90vh!important;overflow-y:auto!important;padding:20px 30px!important}
+#downgradeModal .form-row{display:flex!important;flex-wrap:wrap!important;gap:15px!important;margin-bottom:12px}
+#downgradeModal .form-group{flex:1 1 22%!important;min-width:150px!important;margin-bottom:0!important}
+#downgradeModal .full-span-group{flex:1 1 100%!important}
+#downgradeModal label{font-size:.85em!important;margin-bottom:3px!important}
+#downgradeModal input,#downgradeModal select{height:36px!important;padding:5px 8px!important;font-size:.9em!important}
+#downgradeModal h4{margin:0 0 12px!important;font-size:1em!important;background:transparent!important;padding:0!important}
+#downgradeModal .ssd-gen-block{min-height:38px}
+#downgradeModal .form-buttons{margin-top:15px!important}
 #dlSuggestions{background:#ffffff}
     body.dark-mode #dlSuggestions{background:#1e293b}
     #dlSuggestions .dl-sug:hover{background:rgba(59,130,246,.12)}
@@ -3637,7 +3646,7 @@
     </div>
   </div>
   <div id="downgradeOverlay" class="modal-overlay" style="display:none;">
-    <div class="modal-content">
+    <div class="modal-content" id="downgradeModal">
       <button id="closeDowngradeModal" class="close-modal-btn">&times;</button>
       <h2>Downgrade Part</h2>
       <form id="downgradeForm">
@@ -3658,8 +3667,6 @@
           <div class="form-row">
             <div class="form-group"><label for="dgKind">Type *:</label><select id="dgKind"><option value="SSD">SSD</option><option value="NVMe">NVMe</option><option value="NVMe M.2">NVMe M.2</option></select></div>
             <div class="form-group"><label for="dgBrand">Brand *:</label><input type="text" id="dgBrand" list="dgBrandList" placeholder="Select or type" autocomplete="off"></div>
-          </div>
-          <div class="form-row">
             <div class="form-group"><label for="dgModelF">Model:</label><input type="text" id="dgModelF" list="dgModelList" placeholder="Select or type" autocomplete="off"></div>
             <div class="form-group"><label for="dgSize">Size *:</label><input type="text" id="dgSize" list="dgSizeList" placeholder="e.g. 240, 512, 1T" autocomplete="off"></div>
           </div>
@@ -10129,7 +10136,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261107162908';
+var APP_VERSION='20261107163043';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
