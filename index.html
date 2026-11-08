@@ -534,6 +534,9 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .lu-seg button{border:0;background:transparent;color:var(--text-color);padding:6px 14px;font-size:.82em;cursor:pointer}
 .lu-seg button.active{background:var(--primary-accent-color);color:#fff}
 .lu-ev time{white-space:nowrap}
+.lu-clearrow{margin-bottom:8px;text-align:right}
+.lu-clear{border:1px solid color-mix(in srgb,#ef4444 40%,transparent);background:color-mix(in srgb,#ef4444 12%,transparent);color:#ef4444;border-radius:10px;padding:6px 12px;font-size:.82em;cursor:pointer}
+.lu-clear:hover{background:#ef4444;color:#fff}
 #dlSuggestions{background:#ffffff}
     body.dark-mode #dlSuggestions{background:#1e293b}
     #dlSuggestions .dl-sug:hover{background:rgba(59,130,246,.12)}
@@ -5105,7 +5108,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         </div>
         <div class="lu-grid">
           <div class="card"><h3 style="margin-top:0"><i class="fa-solid fa-signal" style="color:var(--success-color)"></i> Online now</h3><div id="luList"></div></div>
-          <div class="card"><div class="lu-evhead"><h3 style="margin:0"><i class="fa-solid fa-clock-rotate-left" style="color:var(--primary-accent-color)"></i> Activity</h3><div class="lu-seg"><button type="button" class="active" data-m="live">Live</button><button type="button" data-m="hist">History</button></div></div><div id="luEvents"></div></div>
+          <div class="card"><div class="lu-evhead"><h3 style="margin:0"><i class="fa-solid fa-clock-rotate-left" style="color:var(--primary-accent-color)"></i> Activity</h3><div class="lu-seg"><button type="button" class="active" data-m="live">Live</button><button type="button" data-m="hist">History</button></div></div><div class="lu-clearrow" id="luClearRow" style="display:none"><button type="button" id="luClearHist" class="lu-clear"><i class="fa-solid fa-trash"></i> Clear History</button></div><div id="luEvents"></div></div>
         </div>
       </div>
       <div id="manage-users" class="tab-content">
@@ -10248,7 +10251,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261108034555';
+var APP_VERSION='20261108035055';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
@@ -10489,7 +10492,7 @@ function render(){
   var users={},act=0;rows.forEach(function(r){users[String(r.p.email).toLowerCase()]=1;if(!r.p.away)act++});
   $('luCount').textContent=rows.length;$('luUsers').textContent=Object.keys(users).length;$('luActive').textContent=act;
   list.innerHTML=rows.length?rows.map(function(r){var p=r.p,em=String(p.email||'?');var mine=r.key===myKey;return '<div class="lu-row"><div class="lu-av'+(p.away?' bg':'')+'">'+escapeHtml(em.charAt(0).toUpperCase())+'</div><div class="lu-main"><b>'+escapeHtml(em)+'</b><small>'+escapeHtml(p.device||'')+' · '+escapeHtml(p.page||'-')+' · '+(p.away?'In background':'Active')+'</small></div><div class="lu-since">'+escapeHtml(rel(p.since||Date.now()))+'</div>'+(canKill()&&!mine?'<button type="button" class="lu-kill" data-key="'+escapeHtml(r.key)+'" data-email="'+escapeHtml(em)+'" title="Terminate session"><i class="fa-solid fa-power-off"></i></button>':(mine?'<span class="lu-you">You</span>':''))+'</div>'}).join(''):'<div class="lu-empty">Nobody is connected.</div>';
-  var ev=$('luEvents');
+  var ev=$('luEvents');var cr0=$('luClearRow');if(cr0)cr0.style.display=(mode==='hist'&&canKill())?'':'none';
   if(mode==='hist'){var map={connect:'in',disconnect:'out',navigate:'nav'};ev.innerHTML=hist.length?hist.map(function(e){return evRow(map[e.event]||'out',e.username,e.device,e.page,dt(e.ts))}).join(''):'<div class="lu-empty">No history yet.</div>'}
   else ev.innerHTML=events.length?events.slice(0,40).map(function(e){return evRow(e.k,e.email,e.device,e.page,hhmm(e.t))}).join(''):'<div class="lu-empty">No activity yet since you opened the app.</div>';
 }
@@ -10520,13 +10523,20 @@ function forceOut(by){
   try{supabaseClient.removeAllChannels()}catch(e){}
   try{supabaseClient.realtime.disconnect()}catch(e){}
 }
+function clearHist(){
+  if(!canKill())return;
+  Swal.fire({icon:'warning',title:'Clear activity history?',text:'All saved connect / disconnect / page records will be permanently deleted.',showCancelButton:true,confirmButtonText:'Clear',confirmButtonColor:'#ef4444'}).then(function(r){
+    if(!r.isConfirmed)return;
+    supabaseClient.rpc('clear_presence_events',{payload:cr()}).then(function(x){
+      if(x.error){showNotification(x.error.message||'Failed','error');return}
+      hist=[];render();try{logActivity('Clear Presence History','Cleared Live Users activity history')}catch(e){}showNotification('History cleared.','success')},function(){showNotification('Failed','error')})})}
 function kill(key,email){
   Swal.fire({icon:'warning',title:'Disconnect live connection?',text:email+"'s live connection will be cut immediately.",showCancelButton:true,confirmButtonText:'Disconnect',confirmButtonColor:'#ef4444'}).then(function(r){
     if(!r.isConfirmed||!ch||!canKill())return;
     ch.send({type:'broadcast',event:'terminate',payload:{key:key,by:currentUser.email}});
     try{logActivity('Terminate Session','Terminated session of '+email)}catch(e){}
     showNotification('Terminate signal sent to '+email,'success')})}
-document.addEventListener('click',function(e){var sg=e.target.closest&&e.target.closest('.lu-seg button');if(sg){mode=sg.getAttribute('data-m');sg.parentNode.querySelectorAll('button').forEach(function(x){x.classList.toggle('active',x===sg)});if(mode==='hist')loadHist();render();return}var b=e.target.closest&&e.target.closest('.lu-kill');if(b)kill(b.getAttribute('data-key'),b.getAttribute('data-email'))});
+document.addEventListener('click',function(e){var cl=e.target.closest&&e.target.closest('#luClearHist');if(cl){clearHist();return}var sg=e.target.closest&&e.target.closest('.lu-seg button');if(sg){mode=sg.getAttribute('data-m');sg.parentNode.querySelectorAll('button').forEach(function(x){x.classList.toggle('active',x===sg)});if(mode==='hist')loadHist();render();return}var b=e.target.closest&&e.target.closest('.lu-kill');if(b)kill(b.getAttribute('data-key'),b.getAttribute('data-email'))});
 function stop(){if(!ch)return;var c=ch;ch=null;myKey='';ready=false;state={};try{c.untrack()}catch(e){}try{supabaseClient.removeChannel(c)}catch(e){}}
 function retrack(){if(ch&&currentUser)try{ch.track(me());var pg=pageName();if(pg!==lastPage){lastPage=pg;dbLog('navigate')}}catch(e){}}
 setInterval(function(){if(currentUser&&!ch)start();else if(!currentUser&&ch){stop();render()}},2000);
