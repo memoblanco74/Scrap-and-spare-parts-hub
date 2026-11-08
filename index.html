@@ -10248,7 +10248,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261107230702';
+var APP_VERSION='20261108034418';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
@@ -10474,7 +10474,7 @@ openPartHistoryModal=async function(partIds){
 };
 })();
 (function(){
-var ch=null,ready=false,events=[],state={},myKey='',mode='live',hist=[],lastPage='';
+var killed=false,ch=null,ready=false,events=[],state={},myKey='',mode='live',hist=[],lastPage='';
 var $=function(id){return document.getElementById(id)};
 function dev(){var u=navigator.userAgent||'';return /Android|iPhone|iPad|Mobile/i.test(u)?'Mobile':'Desktop'}
 function pageName(){var t=document.querySelector('.tab-content.active');if(!t)return '-';var b=document.querySelector('.tab-button[data-tab="'+t.id+'"]');return b?b.textContent.trim():t.id}
@@ -10505,7 +10505,7 @@ function note(k,list){
     var n=$('luNotify');if(ready&&isAdmin()&&n&&n.checked&&typeof showNotification==='function'&&p.email&&(!currentUser||p.email!==currentUser.email||k==='out'))showNotification(p.email+(k==='in'?' connected':' disconnected'),k==='in'?'success':'info')
   })}
 function start(){
-  if(ch||!currentUser||!supabaseClient)return;
+  if(killed||ch||!currentUser||!supabaseClient)return;
   var key=currentUser.email+'|'+Math.random().toString(36).slice(2,9);myKey=key;
   ch=supabaseClient.channel('app-presence',{config:{presence:{key:key}}});
   ch.on('presence',{event:'sync'},function(){state=ch.presenceState();ready=true;render()})
@@ -10516,10 +10516,12 @@ function start(){
 }
 function forceOut(by){
   if(!currentUser)return;
-  try{Swal.fire({icon:'warning',title:'Session terminated',text:'Your session was ended by an administrator.',confirmButtonText:'OK',allowOutsideClick:false})}catch(e){}
-  stop();handleLogout()}
+  killed=true;stop();
+  try{supabaseClient.removeAllChannels()}catch(e){}
+  try{supabaseClient.realtime.disconnect()}catch(e){}
+  try{Swal.fire({icon:'warning',title:'Live connection terminated',text:'An administrator disconnected your live connection. Reload the page to reconnect.',confirmButtonText:'Reload',allowOutsideClick:false}).then(function(){location.reload()})}catch(e){}}
 function kill(key,email){
-  Swal.fire({icon:'warning',title:'Terminate session?',text:email+' will be logged out immediately.',showCancelButton:true,confirmButtonText:'Terminate',confirmButtonColor:'#ef4444'}).then(function(r){
+  Swal.fire({icon:'warning',title:'Disconnect live connection?',text:email+"'s live connection will be cut immediately.",showCancelButton:true,confirmButtonText:'Disconnect',confirmButtonColor:'#ef4444'}).then(function(r){
     if(!r.isConfirmed||!ch||!canKill())return;
     ch.send({type:'broadcast',event:'terminate',payload:{key:key,by:currentUser.email}});
     try{logActivity('Terminate Session','Terminated session of '+email)}catch(e){}
