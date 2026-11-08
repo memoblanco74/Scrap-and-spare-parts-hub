@@ -549,6 +549,26 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .dl-rep-btn span{display:flex;flex-direction:column;gap:2px;font-weight:700}
 .dl-rep-btn small{font-weight:500;font-size:.78em;opacity:.8}
 .dl-rep-btn:disabled{opacity:.6;cursor:wait}
+.pm-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 12px}
+.pm-tools input[type=search]{flex:1 1 180px;min-width:0;padding:9px 12px;border-radius:10px;border:1px solid var(--input-border-color);background:var(--input-bg-color);color:var(--text-color)}
+.pm-tools button{border:1px solid var(--border-color);background:var(--tertiary-bg-color);color:var(--text-color);border-radius:10px;padding:8px 12px;font-size:.82em;cursor:pointer}
+.pm-tools button:hover{border-color:var(--primary-accent-color)}
+.pm-page{border:1px solid var(--border-color);border-radius:14px;background:var(--secondary-bg-color);margin-bottom:10px;overflow:hidden}
+.pm-head{width:100%;display:flex;align-items:center;gap:12px;padding:13px 14px;border:0;background:transparent;color:var(--text-color);cursor:pointer;font-size:1em;font-weight:700;text-align:left}
+.pm-head .pm-ico{flex:none;width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:color-mix(in srgb,var(--primary-accent-color) 16%,transparent);color:var(--primary-accent-color)}
+.pm-head .pm-name{flex:1;min-width:0}
+.pm-head .pm-count{flex:none;font-size:.78em;padding:3px 10px;border-radius:999px;background:var(--tertiary-bg-color);border:1px solid var(--border-color);color:var(--secondary-color)}
+.pm-page.has-on .pm-count{background:color-mix(in srgb,var(--success-color) 18%,transparent);border-color:color-mix(in srgb,var(--success-color) 45%,transparent);color:var(--success-color)}
+.pm-head .pm-chev{flex:none;transition:transform .25s;color:var(--secondary-color)}
+.pm-page.open .pm-chev{transform:rotate(180deg)}
+.pm-body{display:none;padding:2px 12px 12px}
+.pm-page.open .pm-body{display:block}
+.pm-body .permission-section{margin:10px 0 0;padding:12px;background:var(--primary-bg-color)}
+.pm-body .permission-section h4{font-size:.95em;margin-bottom:10px;padding-bottom:6px}
+.pm-body .permission-section .permissions-group{margin:0}
+.pm-sub{font-size:.8em;font-weight:700;color:var(--primary-accent-color);margin:12px 0 6px;text-transform:uppercase;letter-spacing:.4px}
+.pm-body .perm-stack{display:grid;gap:8px}
+.pm-hide{display:none!important}
 #dlSuggestions{background:#ffffff}
     body.dark-mode #dlSuggestions{background:#1e293b}
     #dlSuggestions .dl-sug:hover{background:rgba(59,130,246,.12)}
@@ -10355,7 +10375,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261108174853';
+var APP_VERSION='20261108180358';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
@@ -10675,6 +10695,61 @@ document.addEventListener('mouseover',function(e){
 },true);
 document.addEventListener('mouseout',function(e){if(cur&&(!e.relatedTarget||!cur.contains(e.relatedTarget)))hide()},true);
 ['mousedown','scroll','keydown','wheel','touchstart'].forEach(function(ev){window.addEventListener(ev,hide,true)});
+})();
+(function(){
+var PAGES=[
+{t:'Dashboard',i:'fa-chart-line',s:[['dashboard','Dashboard'],['warrantyWidget','Warranty Widget']]},
+{t:'Data Management',i:'fa-database',s:[['dataManagement','Data Management'],['addEditLaptop','Add / Edit Laptop']]},
+{t:'Spare Parts',i:'fa-boxes-stacked',s:[['spareParts','Spare Parts']]},
+{t:'Workspace',i:'fa-briefcase',s:[['incidents','Incidents'],['itWorkspace','IT Workspace']]},
+{t:'Device Lookup',i:'fa-magnifying-glass',s:[['deviceLookup','Device Lookup'],['warrantyCheck','Warranty Records'],['warrantySheet','Warranty Sheet (Data Reports)']]},
+{t:'Printers',i:'fa-print',s:[['printers','Printers']]},
+{t:'Admin',i:'fa-user-shield',s:[['logs','Activity Logs'],['manageUsers','Manage Users'],['liveUsers','Live Users']]},
+{t:'General',i:'fa-sliders',s:[['session','Session'],['notifications','Notifications'],['emailRecipients','Email Recipients'],['scanner','Serial Scanner'],['qrSystem','QR System']]}];
+function pref(el){var i=el.querySelector('input[type=checkbox]');return i&&i.name?i.name.split('_')[0]:''}
+function rank(el){var i=el.querySelector('input[type=checkbox]');var k=i&&i.name?i.name.split('_').slice(1).join('_'):'';return /^(visible|access)$/.test(k)?0:1}
+function build(container,itemSel,stack){
+  if(!container||container.dataset.pmDone)return;
+  var items=Array.prototype.slice.call(container.querySelectorAll(itemSel));
+  if(!items.length)return;
+  container.dataset.pmDone='1';
+  var by={};items.forEach(function(el,ix){var p=pref(el);(by[p]=by[p]||[]).push({el:el,ix:ix})});
+  var used={};
+  var tools=document.createElement('div');tools.className='pm-tools';
+  tools.innerHTML='<input type="search" placeholder="Search permissions..." autocomplete="off"><button type="button" data-a="open">Expand all</button><button type="button" data-a="close">Collapse all</button>';
+  var wrap=document.createElement('div');
+  function mkPage(pg,subs){
+    var page=document.createElement('div');page.className='pm-page';
+    page.innerHTML='<button type="button" class="pm-head"><span class="pm-ico"><i class="fa-solid '+pg.i+'"></i></span><span class="pm-name">'+pg.t+'</span><span class="pm-count">0/0</span><i class="fa-solid fa-chevron-down pm-chev"></i></button><div class="pm-body"></div>';
+    var body=page.querySelector('.pm-body'),multi=subs.length>1||subs[0][1]!==pg.t;
+    subs.forEach(function(sb){
+      var list=(by[sb[0]]||[]).slice().sort(function(a,b){return rank(a.el)-rank(b.el)||a.ix-b.ix});
+      if(!list.length)return;used[sb[0]]=1;
+      if(stack){var h=document.createElement('div');h.className='pm-sub';h.textContent=sb[1];if(multi)body.appendChild(h);var g=document.createElement('div');g.className='perm-stack';list.forEach(function(x){g.appendChild(x.el)});body.appendChild(g)}
+      else{var sec=document.createElement('div');sec.className='permission-section';var hh=document.createElement('h4');hh.textContent=sb[1];if(multi)sec.appendChild(hh);var gr=document.createElement('div');gr.className='permissions-group';list.forEach(function(x){gr.appendChild(x.el)});sec.appendChild(gr);body.appendChild(sec)}
+    });
+    if(body.children.length)wrap.appendChild(page);
+  }
+  PAGES.forEach(function(pg){mkPage(pg,pg.s)});
+  var rest=Object.keys(by).filter(function(k){return !used[k]});
+  if(rest.length)mkPage({t:'Other',i:'fa-ellipsis'},rest.map(function(k){return [k,k]}));
+  container.innerHTML='';container.appendChild(tools);container.appendChild(wrap);
+  function recount(){
+    wrap.querySelectorAll('.pm-page').forEach(function(p){var cb=p.querySelectorAll('input[type=checkbox]:not(:disabled)'),n=0;cb.forEach(function(c){if(c.checked)n++});p.querySelector('.pm-count').textContent=n+'/'+cb.length;p.classList.toggle('has-on',n>0)})}
+  wrap.addEventListener('click',function(e){var h=e.target.closest('.pm-head');if(h)h.parentNode.classList.toggle('open')});
+  wrap.addEventListener('change',recount);
+  tools.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var open=b.dataset.a==='open';wrap.querySelectorAll('.pm-page').forEach(function(p){p.classList.toggle('open',open)})});
+  tools.querySelector('input').addEventListener('input',function(){
+    var q=this.value.trim().toLowerCase();
+    wrap.querySelectorAll('.pm-page').forEach(function(p){
+      var any=false;
+      p.querySelectorAll(itemSel).forEach(function(it){var m=!q||it.textContent.toLowerCase().indexOf(q)>-1||p.querySelector('.pm-name').textContent.toLowerCase().indexOf(q)>-1;it.classList.toggle('pm-hide',!m);if(m)any=true});
+      p.classList.toggle('pm-hide',!any);if(q&&any)p.classList.add('open')})});
+  setInterval(function(){if(container.offsetParent!==null)recount()},600);
+  recount();
+}
+build(document.getElementById('permissions-grid-container'),'.permission-item',false);
+var pg=document.querySelector('.perm-grid');if(pg){pg.style.maxHeight='none';pg.style.overflow='visible';build(pg,'.perm-toggle-item',true)}
 })();
 window.loadLaptops=refreshAllDataAndViews;resetFormForAdd()});
       </script>
