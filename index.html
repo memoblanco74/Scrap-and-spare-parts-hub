@@ -542,6 +542,8 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .sp-card-footer .sp-lock-badge[data-by]::before{content:"";position:absolute;left:50%;bottom:calc(100% + 4px);width:10px;height:10px;background:#0f172a;border-right:1px solid color-mix(in srgb,#ef4444 55%,transparent);border-bottom:1px solid color-mix(in srgb,#ef4444 55%,transparent);transform:translate(-50%,6px) rotate(45deg);opacity:0;pointer-events:none;transition:opacity .18s ease,transform .22s cubic-bezier(.34,1.56,.64,1);z-index:61}
 .sp-card-footer .sp-lock-badge[data-by]:hover::after,.sp-card-footer .sp-lock-badge[data-by]:focus::after{opacity:1;transform:translate(-50%,0) scale(1)}
 .sp-card-footer .sp-lock-badge[data-by]:hover::before,.sp-card-footer .sp-lock-badge[data-by]:focus::before{opacity:1;transform:translate(-50%,0) rotate(45deg)}
+#appTip{position:fixed;left:0;top:0;z-index:100000;max-width:min(320px,86vw);padding:8px 13px;border-radius:12px;font-size:.85rem;line-height:1.35;font-weight:600;color:#fff;background:linear-gradient(135deg,#1e293b,#0f172a);border:1px solid color-mix(in srgb,var(--primary-accent-color,#6366f1) 55%,transparent);box-shadow:0 10px 28px rgba(0,0,0,.45);pointer-events:none;opacity:0;transform:translateY(4px) scale(.97);transition:opacity .15s ease,transform .2s cubic-bezier(.34,1.56,.64,1);white-space:normal;word-wrap:break-word}
+#appTip.on{opacity:1;transform:none}
 #dlSuggestions{background:#ffffff}
     body.dark-mode #dlSuggestions{background:#1e293b}
     #dlSuggestions .dl-sug:hover{background:rgba(59,130,246,.12)}
@@ -10256,7 +10258,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261108171126';
+var APP_VERSION='20261108171320';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
@@ -10551,6 +10553,31 @@ setInterval(heal,15000);
 document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('.tab-button,.nested-tab-button'))setTimeout(retrack,400)});
 setInterval(function(){var t=$('live-users');if(t&&t.classList.contains('active'))render()},30000);
 window.addEventListener('beforeunload',function(){stop()});
+})();
+(function(){
+if(!window.matchMedia||!matchMedia('(hover:hover)').matches)return;
+var tip=document.createElement('div');tip.id='appTip';tip.setAttribute('role','tooltip');document.body.appendChild(tip);
+var cur=null,timer=null;
+function hide(){clearTimeout(timer);tip.classList.remove('on');cur=null}
+function place(el){
+  var r=el.getBoundingClientRect(),tw=tip.offsetWidth,th=tip.offsetHeight,vw=innerWidth,vh=innerHeight;
+  var x=r.left+r.width/2-tw/2;x=Math.max(8,Math.min(x,vw-tw-8));
+  var y=r.top-th-10;if(y<8)y=Math.min(r.bottom+10,vh-th-8);
+  tip.style.left=x+'px';tip.style.top=y+'px'}
+document.addEventListener('mouseover',function(e){
+  var t=e.target;if(!t||!t.closest)return;
+  var el=t.closest('[title],[data-tt]');
+  if(!el||el.closest('#appTip')||el.tagName==='IFRAME'){if(cur&&!(t.closest&&cur.contains(t)))hide();return}
+  if(el===cur)return;
+  var txt=el.getAttribute('title');
+  if(txt!==null){if(!el.hasAttribute('aria-label')&&txt.trim())el.setAttribute('aria-label',txt);el.setAttribute('data-tt',txt);el.removeAttribute('title')}
+  txt=el.getAttribute('data-tt');
+  if(!txt||!txt.trim()){hide();return}
+  cur=el;clearTimeout(timer);
+  timer=setTimeout(function(){if(cur!==el)return;tip.textContent=txt;tip.style.left='-9999px';tip.style.top='0';tip.classList.remove('on');place(el);requestAnimationFrame(function(){place(el);tip.classList.add('on')})},180)
+},true);
+document.addEventListener('mouseout',function(e){if(cur&&(!e.relatedTarget||!cur.contains(e.relatedTarget)))hide()},true);
+['mousedown','scroll','keydown','wheel','touchstart'].forEach(function(ev){window.addEventListener(ev,hide,true)});
 })();
 window.loadLaptops=refreshAllDataAndViews;resetFormForAdd()});
       </script>
