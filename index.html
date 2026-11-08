@@ -569,6 +569,23 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .pm-sub{font-size:.8em;font-weight:700;color:var(--primary-accent-color);margin:12px 0 6px;text-transform:uppercase;letter-spacing:.4px}
 .pm-body .perm-stack{display:grid;gap:8px}
 .pm-hide{display:none!important}
+#permissions-grid-container[data-pm-done]{display:block!important;margin-top:14px}
+#permissions-grid-container[data-pm-done] .permission-section{height:auto;margin-bottom:0!important}
+#permissions-grid-container .pm-tools{position:sticky;top:-20px;z-index:5;padding:10px 0;margin:0 0 8px;background:var(--bg-color,var(--primary-bg-color))}
+.pm-tools input[type=search]{flex:1 1 100%}
+.pm-tools button{flex:1 1 0}
+.pm-head .pm-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pm-body .permissions-group{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+@media(max-width:600px){
+ #editUserModal{padding:14px!important;width:98%!important}
+ .pm-head{padding:14px 12px;font-size:1.02em}
+ .pm-body{padding:0 8px 10px}
+ .pm-body .permission-section{padding:10px;border-radius:12px}
+ .pm-body .permissions-group{grid-template-columns:1fr}
+ .pm-body .permission-item{padding:13px 12px}
+ .pm-body .permission-item label{font-size:.95em;flex:1}
+ .pm-body .permission-item input[type=checkbox]{width:22px;height:22px;flex:none}
+}
 #dlSuggestions{background:#ffffff}
     body.dark-mode #dlSuggestions{background:#1e293b}
     #dlSuggestions .dl-sug:hover{background:rgba(59,130,246,.12)}
@@ -10375,7 +10392,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261108180358';
+var APP_VERSION='20261108180633';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
