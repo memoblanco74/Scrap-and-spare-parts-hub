@@ -3542,6 +3542,16 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
           </div>
 
           <div class="permission-section">
+            <h4>Warranty Sheet (Data Reports)</h4>
+            <div class="permissions-group">
+              <div class="permission-item">
+                <input type="checkbox" name="warrantySheet_canManage" id="edit-wsheet-manage">
+                <label for="edit-wsheet-manage">Upload / Update sheet + Missing disks report</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="permission-section">
             <h4>Session</h4>
             <div class="permissions-group">
               <div class="permission-item">
@@ -4927,7 +4937,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
             <input type="text" id="dlSearchInput" autocomplete="off" placeholder="Computer name, serial number or user..." style="width:100%; box-sizing:border-box; padding:10px 14px; border-radius:6px; border:1px solid var(--input-border-color); background:var(--input-bg-color); color:var(--text-color);">
             <div id="dlSuggestions" style="display:none; position:absolute; left:0; right:0; top:100%; margin-top:4px; z-index:50; max-height:320px; overflow:auto; border:1px solid var(--input-border-color); border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,.18);"></div>
           </div>
-          <div id="dlUploadBox" data-permission="deviceLookup_canUpload" style="display:none; margin-top:14px;">
+          <div id="dlUploadBox" style="display:none; margin-top:14px;">
             <details>
               <summary style="cursor:pointer; font-weight:600;"><i class="fa-solid fa-database" style="color:var(--primary-accent-color);"></i> Data Reports</summary>
               <div id="dlUploadList" style="margin-top:8px;"></div>
@@ -4943,10 +4953,6 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
           <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
             <h3 style="margin:0;"><i class="fa-solid fa-shield-alt" style="color: var(--success-color);"></i> Warranty</h3>
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
-              <label for="warrantyImportFile" class="import-button custom-btn" data-permission="warrantyCheck_canAdd" style="display:none;">
-                <i class="fa-solid fa-file-import"></i> Bulk Import
-              </label>
-              <input type="file" id="warrantyImportFile" accept=".xlsx, .xls, .csv" style="display:none">
               <button class="custom-btn" id="warrantyAddBtn" data-permission="warrantyCheck_canAdd" style="display:none; background-color:var(--success-color); color:white;"><i class="fa-solid fa-plus"></i> Add New Record</button>
             </div>
           </div>
@@ -5218,6 +5224,10 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
                   <label class="switch"><input type="checkbox" name="manageUsers_visible" id="new-user-vis"><span class="slider-sm"></span></label>
                 </div>
 
+                <div class="perm-toggle-item">
+                  <label for="new-wsheet-manage">Warranty Sheet: Upload / Update + Missing disks</label>
+                  <label class="switch"><input type="checkbox" name="warrantySheet_canManage" id="new-wsheet-manage"><span class="slider-sm"></span></label>
+                </div>
                 <div class="perm-toggle-item">
                   <label for="new-live-vis">Live Users Page</label>
                   <label class="switch"><input type="checkbox" name="liveUsers_visible" id="new-live-vis"><span class="slider-sm"></span></label>
@@ -5873,7 +5883,7 @@ async function hashPassword(string){const msgBuffer=new TextEncoder().encode(str
 const appContainer=document.getElementById('appContainer'),dbStatusDiv=document.getElementById('dbStatus'),tabButtons=document.querySelectorAll('.tab-button'),tabContents=document.querySelectorAll('.tab-content'),themeToggle=document.getElementById('theme-toggle'),loginOverlay=document.getElementById('loginOverlay'),loginForm=document.getElementById('loginForm'),loginError=document.getElementById('loginError'),loginButton=document.getElementById('loginButton'),logoutButton=document.getElementById('logoutButton'),closeLoginModalBtn=document.getElementById('closeLoginModal'),userInfoDiv=document.getElementById('userInfo'),userEmailDisplay=document.getElementById('userEmailDisplay'),editUserOverlay=document.getElementById('editUserOverlay'),editUserForm=document.getElementById('editUserForm'),closeEditUserModalBtn=document.getElementById('closeEditUserModal'),usePartOverlay=document.getElementById('usePartOverlay'),usePartForm=document.getElementById('usePartForm'),usePartBrandInput=document.getElementById('usePartBrand'),usePartModelInput=document.getElementById('usePartModel'),closeUseModalBtn=document.getElementById('closeUseModal'),usePartInfo=document.getElementById('usePartInfo'),usePartIdInput=document.getElementById('usePartId'),deductPartOverlay=document.getElementById('deductPartOverlay'),deductPartForm=document.getElementById('deductPartForm'),closeDeductModalBtn=document.getElementById('closeDeductModal'),deductPartInfo=document.getElementById('deductPartInfo'),deductPartIdInput=document.getElementById('deductPartId'),componentBrandFilter=document.getElementById('componentBrandFilter'),componentModelFilter=document.getElementById('componentModelFilter'),ramManufacturerFilter=document.getElementById('ramManufacturerFilter'),ramPathFilter=document.getElementById('ramPathFilter'),modelComponentDetailsElem=document.getElementById('modelComponentDetails'),modelComponentLaptopListElem=document.getElementById('modelComponentLaptopList'),ramSummaryListElem=document.getElementById('ramSummaryList'),globalSearchInput=document.getElementById('globalSearchInput'),tableBody=document.querySelector('#laptopTable tbody'),selectAllCheckbox=document.getElementById('selectAll'),exportButton=document.getElementById('exportButton'),deleteSelectedButton=document.getElementById('deleteSelectedButton'),displayedLaptopsCount=document.getElementById('displayedLaptopsCount'),selectedLaptopsCount=document.getElementById('selectedLaptopsCount'),addDataForm=document.getElementById('addDataForm'),formTitle=document.getElementById('formTitle'),laptopIDInput=document.getElementById('laptopID'),originalLaptopIdInput=document.getElementById('originalLaptopId'),idHint=document.getElementById('idHint'),cancelEditButton=document.getElementById('cancelEditButton'),brandInput=document.getElementById('brand'),laptopModelInput=document.getElementById('laptopModel'),modelDatalist=document.getElementById('model-list'),ramEntriesContainer=document.getElementById('ramEntriesContainer'),addRamEntryBtn=document.getElementById('addRamEntryBtn'),groupForm=document.getElementById('compatibilityGroupForm'),groupModelsSelect=document.getElementById('groupModels'),existingGroupsContainer=document.getElementById('existingGroupsContainer'),logsTableBody=document.querySelector('#logsTable tbody'),clearLogsButton=document.getElementById('clearLogsButton'),incidentTypeSelector=document.getElementById('incidentTypeSelector'),incidentFormsContainer=document.getElementById('incidentFormsContainer'),incidentOutputContainer=document.getElementById('incidentOutputContainer'),incidentOutput=document.getElementById('incidentOutput'),copyIncidentBtn=document.getElementById('copyIncidentBtn'),addSparePartBtn_form3=document.getElementById('addSparePartBtn_form3'),sparePartsList_form3=document.getElementById('sparePartsList_form3'),addSparePartBtn_form4=document.getElementById('addSparePartBtn_form4'),sparePartsList_form4=document.getElementById('sparePartsList_form4'),userManagementForm=document.getElementById('userManagementForm'),usersTableBody=document.querySelector('#usersTable tbody'),addSparePartForm=document.getElementById('addSparePartForm'),sparePartsCardContainer=document.getElementById('sparePartsCardContainer'),sparePartsSearchInput=document.getElementById('sparePartsSearchInput'),sparePartsTab=document.getElementById('spare-parts'),sparePartSummaryContainer=document.getElementById('sparePartSummaryContainer'),sparePartPurchaseOrderInput=document.getElementById('sparePartPurchaseOrder'),sparePartDateInput=document.getElementById('sparePartDate'),toggleAddSparePartFormBtn=document.getElementById('toggleAddSparePartFormBtn'),sparePartTypeInput=document.getElementById('sparePartType'),sparePartModelInput=document.getElementById('sparePartModel'),sparePartModelList=document.getElementById('spare-part-model-list'),sparePartQuantityInput=document.getElementById('sparePartQuantity'),sparePartCategoryInput=document.getElementById('sparePartCategory'),sparePartLocationInput=document.getElementById('sparePartLocation'),sparePartBrandInput=document.getElementById('sparePartBrand'),sparePartSiteInput=document.getElementById('sparePartSite'),sparePartReservedForInput=document.getElementById('sparePartReservedFor'),sparePartIncidentInput=document.getElementById('sparePartIncident'),sparePartCommentInput=document.getElementById('sparePartComment'),reportTypesSelect=document.getElementById('reportTypes'),reportSitesSelect=document.getElementById('reportSites'),reportStartDateInput=document.getElementById('reportStartDate'),reportEndDateInput=document.getElementById('reportEndDate'),btnGenerateReport=document.getElementById('btnGenerateReport'),btnExportUsageReport=document.getElementById('btnExportUsageReport'),reportOutputContainer=document.getElementById('reportOutputContainer'),reportTotalCount=document.getElementById('reportTotalCount'),reportDetailsTable=document.getElementById('reportDetailsTable');
 let isEditing=false,isEditingSparePart=false,editingSparePartId=null,allLaptops=[],allGroups=[],allSpareParts=[],allAssets=[],allUsageHistory=[],allDeductHistory=[],allDowngrades=[],currentComponentModelFilteredLaptops=[],currentUser=null,users={},adminUsers={},ramEntryCounter=0,lastUsageReportRows=[],emailTemplateSettings={},emailTemplateSettingsLoaded=false;
 function toggleButtonLoading(b,l){b.disabled=l;if(l){b.dataset.tx=b.innerHTML;b.innerHTML='<i class="fas fa-circle-notch fa-spin app-spinner"></i>';}else{b.innerHTML=b.dataset.tx||'Save';}}
-function getDefaultPermissions(isAdmin=false){return {dashboard:{visible:true,manageCompatibility:isAdmin,canBackup:isAdmin},dataManagement:{visible:isAdmin,canImport:isAdmin,canExport:isAdmin,canDelete:isAdmin},addEditLaptop:{visible:isAdmin},spareParts:{visible:isAdmin,canAdd:isAdmin,canUse:isAdmin,canDeduct:isAdmin,canDelete:isAdmin,canRollback:isAdmin,canLock:isAdmin,canSetLocation:isAdmin,canEditUsage:isAdmin},incidents:{visible:isAdmin},logs:{visible:isAdmin,canClear:isAdmin},manageUsers:{visible:isAdmin},liveUsers:{visible:isAdmin,canTerminate:isAdmin},qrSystem:{access:isAdmin},itWorkspace:{visible:isAdmin},warrantyCheck:{canAdd:isAdmin,canEdit:isAdmin,canDelete:isAdmin,canAddVendor:false,canEditVendor:false,canDeleteVendor:false},deviceLookup:{visible:isAdmin,canUpload:isAdmin,canViewBitlocker:isAdmin},printers:{visible:isAdmin,canAdd:isAdmin,canEdit:isAdmin,canDelete:isAdmin},warrantyWidget:{visible:isAdmin},notifications:{receive:false},session:{keepAlive:false},scanner:{canSetOcrKey:isAdmin},emailRecipients:{canEdit:isAdmin}};}
+function getDefaultPermissions(isAdmin=false){return {dashboard:{visible:true,manageCompatibility:isAdmin,canBackup:isAdmin},dataManagement:{visible:isAdmin,canImport:isAdmin,canExport:isAdmin,canDelete:isAdmin},addEditLaptop:{visible:isAdmin},spareParts:{visible:isAdmin,canAdd:isAdmin,canUse:isAdmin,canDeduct:isAdmin,canDelete:isAdmin,canRollback:isAdmin,canLock:isAdmin,canSetLocation:isAdmin,canEditUsage:isAdmin},incidents:{visible:isAdmin},logs:{visible:isAdmin,canClear:isAdmin},manageUsers:{visible:isAdmin},liveUsers:{visible:isAdmin,canTerminate:isAdmin},warrantySheet:{canManage:false},qrSystem:{access:isAdmin},itWorkspace:{visible:isAdmin},warrantyCheck:{canAdd:isAdmin,canEdit:isAdmin,canDelete:isAdmin,canAddVendor:false,canEditVendor:false,canDeleteVendor:false},deviceLookup:{visible:isAdmin,canUpload:isAdmin,canViewBitlocker:isAdmin},printers:{visible:isAdmin,canAdd:isAdmin,canEdit:isAdmin,canDelete:isAdmin},warrantyWidget:{visible:isAdmin},notifications:{receive:false},session:{keepAlive:false},scanner:{canSetOcrKey:isAdmin},emailRecipients:{canEdit:isAdmin}};}
 function migratePermissions(oldPerms){if(oldPerms&&oldPerms.dashboard)return oldPerms;return getDefaultPermissions(false);}
 // ==================== PWA Install & Service Worker ====================
 // تسجيل الـ Service Worker (بيشتغل بس لو الملف sw.js موجود فعلاً على نفس الاستضافة)
@@ -6164,7 +6174,7 @@ async function handleLogout() {
 function setAsViewOnly(){appContainer.classList.add('view-only');userInfoDiv.style.display='none';loginButton.style.display='block';document.querySelectorAll('.tab-button').forEach(tabButton=>{tabButton.style.setProperty('display','none','important')});const dashboardTabButton=document.querySelector('.tab-button[data-tab="dashboard"]');if(dashboardTabButton){dashboardTabButton.style.setProperty('display','flex','important');dashboardTabButton.style.setProperty('pointer-events','auto','important');dashboardTabButton.style.setProperty('opacity','1','important');dashboardTabButton.style.setProperty('cursor','pointer','important')}showTab('dashboard',true);}
 function applyPermissions(){if(!currentUser){setAsViewOnly();return}appContainer.classList.remove('view-only');loginButton.style.display='none';userInfoDiv.style.display='flex';userEmailDisplay.textContent=currentUser.email;const perms=currentUser.permissions;document.querySelectorAll('[data-permission]').forEach(el=>{const permKey=el.dataset.permission;const keys=permKey.split('_');let hasPermission=false;if(keys.length===2&&perms[keys[0]]&&typeof perms[keys[0]][keys[1]]!=='undefined'){hasPermission=perms[keys[0]][keys[1]]}el.style.display='';el.style.pointerEvents='';el.style.opacity='';el.style.cursor='';if(hasPermission){if(el.parentElement.classList.contains('buttons-group')||el.classList.contains('tab-button')){el.style.display='flex'}else{el.style.display=''}}else{el.style.display='none'}});if(document.getElementById('existingGroupsContainer'))displayExistingGroups();}
 function readPermissionsFromForm(form){const formData=new FormData(form);const perms=getDefaultPermissions(false);for(const pageName in perms){for(const permName in perms[pageName]){const key=`${pageName}_${permName}`;if(formData.has(key))perms[pageName][permName]=true}}perms.dashboard.visible=true;return perms}
-const permissionLabelsMap={dashboard:{label:'Dashboard',visible:'View Page',manageCompatibility:'Manage Compatibility',canBackup:'Full DB Export'},dataManagement:{label:'Data Management',visible:'View Page',canImport:'Can Import',canExport:'Can Export',canDelete:'Can Delete'},addEditLaptop:{label:'Add/Edit Laptop',visible:'View Page'},spareParts:{label:'Spare Parts',visible:'View Page',canAdd:'Can Add/Edit',canUse:'Can Use',canDeduct:'Can Deduct',canDelete:'Can Delete',canRollback:'Can Rollback Transfer',canLock:'Can Lock/Unlock Cards',canSetLocation:'Can Edit Site Location',canEditUsage:'Can Edit Usage Records'},incidents:{label:'Incidents',visible:'View Page'},logs:{label:'Logs',visible:'View Page',canClear:'Can Clear'},manageUsers:{label:'Manage Users',visible:'View Page'},liveUsers:{label:'Live Users',visible:'View Page',canTerminate:'Can Terminate Sessions'},qrSystem:{label:'QR System',access:'Access QR Scanner'},notifications:{label:'Notifications',receive:'Receive Log Notifications'},session:{label:'Session',keepAlive:'Stay Logged In (no idle logout)'},scanner:{label:'Serial Scanner',canSetOcrKey:'Set OCR Key'},emailRecipients:{label:'Email Recipients',canEdit:'Edit Email Recipients / CC'},itWorkspace:{label:'IT Workspace',visible:'View Page'},deviceLookup:{label:'Device Lookup',visible:'View Page',canUpload:'Can Upload Reports',canViewBitlocker:'Can View BitLocker Keys'},warrantyCheck:{label:'Warranty Records (inside Device Lookup)',canAdd:'Devices: Can Add',canEdit:'Devices: Can Edit',canDelete:'Devices: Can Delete',canAddVendor:'Vendors: Can Add',canEditVendor:'Vendors: Can Edit',canDeleteVendor:'Vendors: Can Delete'},printers:{label:'Printers',visible:'View Page',canAdd:'Can Add',canEdit:'Can Edit',canDelete:'Can Delete'},warrantyWidget:{label:'Warranty Widget (Dashboard)',visible:'View Widget'}};
+const permissionLabelsMap={dashboard:{label:'Dashboard',visible:'View Page',manageCompatibility:'Manage Compatibility',canBackup:'Full DB Export'},dataManagement:{label:'Data Management',visible:'View Page',canImport:'Can Import',canExport:'Can Export',canDelete:'Can Delete'},addEditLaptop:{label:'Add/Edit Laptop',visible:'View Page'},spareParts:{label:'Spare Parts',visible:'View Page',canAdd:'Can Add/Edit',canUse:'Can Use',canDeduct:'Can Deduct',canDelete:'Can Delete',canRollback:'Can Rollback Transfer',canLock:'Can Lock/Unlock Cards',canSetLocation:'Can Edit Site Location',canEditUsage:'Can Edit Usage Records'},incidents:{label:'Incidents',visible:'View Page'},logs:{label:'Logs',visible:'View Page',canClear:'Can Clear'},manageUsers:{label:'Manage Users',visible:'View Page'},liveUsers:{label:'Live Users',visible:'View Page',canTerminate:'Can Terminate Sessions'},warrantySheet:{label:'Warranty Sheet (Data Reports)',canManage:'Upload / Update sheet + Missing disks report'},qrSystem:{label:'QR System',access:'Access QR Scanner'},notifications:{label:'Notifications',receive:'Receive Log Notifications'},session:{label:'Session',keepAlive:'Stay Logged In (no idle logout)'},scanner:{label:'Serial Scanner',canSetOcrKey:'Set OCR Key'},emailRecipients:{label:'Email Recipients',canEdit:'Edit Email Recipients / CC'},itWorkspace:{label:'IT Workspace',visible:'View Page'},deviceLookup:{label:'Device Lookup',visible:'View Page',canUpload:'Can Upload Reports',canViewBitlocker:'Can View BitLocker Keys'},warrantyCheck:{label:'Warranty Records (inside Device Lookup)',canAdd:'Devices: Can Add',canEdit:'Devices: Can Edit',canDelete:'Devices: Can Delete',canAddVendor:'Vendors: Can Add',canEditVendor:'Vendors: Can Edit',canDeleteVendor:'Vendors: Can Delete'},printers:{label:'Printers',visible:'View Page',canAdd:'Can Add',canEdit:'Can Edit',canDelete:'Can Delete'},warrantyWidget:{label:'Warranty Widget (Dashboard)',visible:'View Widget'}};
 function renderPermissionsAccessReport(){
     const container=document.getElementById('permissionsAccessReportContainer');
     if(!container)return;
@@ -9780,21 +9790,26 @@ var $=function(i){return document.getElementById(i)};
 var inp=$('dlSearchInput'),sug=$('dlSuggestions'),res=$('dlResult'),appsCard=$('dlAppsCard'),prog=$('dlProgress'),pt=$('dlProgressText'),pb=$('dlProgressBar'),upList=$('dlUploadList');
 if(!inp)return;
 var seq=0,tm=null,uploading=false,info={};
-var DS=[{k:'main',t:'All Xceed Computers main report',i:'fa-desktop'},{k:'keys',t:'Windows 10 installed key',i:'fa-key'},{k:'disks',t:'Hard Disk serial number reports',i:'fa-hard-drive'},{k:'bitlocker',t:'BitLocker Recovery Password report',i:'fa-lock'},{k:'apps',t:'All Installed Applications',i:'fa-boxes-stacked'}];
+var DS=[{k:'main',t:'All Xceed Computers main report',i:'fa-desktop'},{k:'keys',t:'Windows 10 installed key',i:'fa-key'},{k:'disks',t:'Hard Disk serial number reports',i:'fa-hard-drive'},{k:'bitlocker',t:'BitLocker Recovery Password report',i:'fa-lock'},{k:'apps',t:'All Installed Applications',i:'fa-boxes-stacked'},{k:'warranty',t:'Warranty sheet',i:'fa-shield-halved'}];
 function cr(){var u=currentUser&&users[currentUser.email];return u&&u.password?{username:u.email,password:u.password}:null}
 function can(k){var p=currentUser&&currentUser.permissions&&currentUser.permissions.deviceLookup;return !!(p&&p[k])}
+function canW(){var p=currentUser&&currentUser.permissions&&currentUser.permissions.warrantySheet;return !!(p&&p.canManage)}
 function fd(v){return v?String(v).replace('T',' ').slice(0,16):'-'}
 function dash(v){return v==null||String(v).trim()===''?'-':String(v)}
 async function rpc(fn,extra){var c=cr();if(!c)throw new Error('Please log in again.');var r=await supabaseClient.rpc(fn,{payload:Object.assign({},c,extra||{})});if(r.error)throw new Error(r.error.message);return r.data}
 function hideSug(){sug.style.display='none';sug.innerHTML=''}
-function stText(k){var d=info[k];if(!d)return 'No report uploaded yet.';var n=k==='apps'?(d.rows+' computers, '+d.apps+' apps'):(k==='disks'||k==='bitlocker')?(d.computers!=null?(d.computers+' computers, '+d.rows+(k==='disks'?' disks':' keys')):(d.rows+' rows')):(d.rows+' computers');return n+' - '+new Date(d.at).toLocaleString('en-GB',{timeZone:'Africa/Cairo'})+' by '+d.by}
+function stText(k){var d=info[k];if(!d)return 'No report uploaded yet.';if(k==='warranty')return d.rows+' records - '+new Date(d.at).toLocaleString('en-GB',{timeZone:'Africa/Cairo'})+' by '+d.by;var n=k==='apps'?(d.rows+' computers, '+d.apps+' apps'):(k==='disks'||k==='bitlocker')?(d.computers!=null?(d.computers+' computers, '+d.rows+(k==='disks'?' disks':' keys')):(d.rows+' rows')):(d.rows+' computers');return n+' - '+new Date(d.at).toLocaleString('en-GB',{timeZone:'Africa/Cairo'})+' by '+d.by}
 function renderUploads(){
 if(!upList)return;
-upList.innerHTML=DS.map(function(x){return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--input-border-color);"><div style="min-width:0;flex:1 1 220px;"><div style="font-weight:600;"><i class="fa-solid '+x.i+'" style="color:var(--primary-accent-color);margin-right:6px;"></i>'+escapeHtml(x.t)+'</div><div id="dlSt_'+x.k+'" style="font-size:.82em;color:var(--secondary-color);margin-top:2px;">'+escapeHtml(stText(x.k))+'</div></div><div style="display:flex;gap:8px;flex-wrap:wrap;"><label class="import-button custom-btn dl-up-btn" for="dlFile_'+x.k+'"><i class="fa-solid fa-file-arrow-up"></i> Upload</label><label class="import-button custom-btn dl-up-btn" for="dlUpd_'+x.k+'" title="Update existing data without deleting anything"><i class="fa-solid fa-arrows-rotate"></i> Update</label></div><input type="file" id="dlFile_'+x.k+'" data-ds="'+x.k+'" accept=".xlsx,.xls" style="display:none"><input type="file" id="dlUpd_'+x.k+'" data-ds="'+x.k+'" data-mode="update" accept=".xlsx,.xls" style="display:none"></div>'}).join('')
+var boxEl=$('dlUploadBox');if(boxEl)boxEl.style.display=(can('canUpload')||canW())?'':'none';
+upList.innerHTML=DS.filter(function(x){return x.k==='warranty'?canW():can('canUpload')}).map(function(x){return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--input-border-color);"><div style="min-width:0;flex:1 1 220px;"><div style="font-weight:600;"><i class="fa-solid '+x.i+'" style="color:var(--primary-accent-color);margin-right:6px;"></i>'+escapeHtml(x.t)+'</div><div id="dlSt_'+x.k+'" style="font-size:.82em;color:var(--secondary-color);margin-top:2px;">'+escapeHtml(stText(x.k))+'</div></div><div style="display:flex;gap:8px;flex-wrap:wrap;"><label class="import-button custom-btn dl-up-btn" for="dlFile_'+x.k+'"><i class="fa-solid fa-file-arrow-up"></i> Upload</label><label class="import-button custom-btn dl-up-btn" for="dlUpd_'+x.k+'" title="Update existing data without deleting anything"><i class="fa-solid fa-arrows-rotate"></i> Update</label></div><input type="file" id="dlFile_'+x.k+'" data-ds="'+x.k+'" accept=".xlsx,.xls" style="display:none"><input type="file" id="dlUpd_'+x.k+'" data-ds="'+x.k+'" data-mode="update" accept=".xlsx,.xls" style="display:none"></div>'}).join('')+(!canW()?'':'<div style="padding:14px 0 4px;"><div style="font-weight:700;margin-bottom:8px;"><i class="fa-solid fa-file-circle-exclamation" style="color:var(--primary-accent-color);margin-right:6px;"></i>Reports</div><button type="button" class="custom-btn" id="dlMissingDisksBtn" title="Disks found in the Hard Disk report whose serial is not in the Warranty sheet"><i class="fa-solid fa-file-excel"></i> Missing disk serials (not in Warranty sheet)</button></div>')
 }
 async function loadInfo(){
 if(!can('visible'))return;
-try{info=(await rpc('dl_info'))||{};renderUploads()}catch(e){}
+info={};renderUploads();
+try{if(can('canUpload'))info=(await rpc('dl_info'))||{}}catch(e){}
+try{if(canW()){var wi=await rpc('warranty_info');if(wi)info.warranty=wi}}catch(e2){}
+renderUploads()
 }
 var wsSeq=0;
 function wsMove(bar){var pill=bar.querySelector('.ws-pill'),act=bar.querySelector('.ws-btn.active');if(!pill||!act||!act.offsetWidth)return;pill.style.width=act.offsetWidth+'px';pill.style.transform='translateX('+act.offsetLeft+'px)'}
@@ -9940,7 +9955,83 @@ var PARSE={main:parseMain,keys:parseKeys,disks:parseDisks,bitlocker:parseBitlock
 var SIZE={main:1500,keys:2000,disks:2000,bitlocker:2000};
 function setProg(t,p){prog.style.display='block';pt.textContent=t;pb.style.width=p+'%'}
 async function send(fn,extra){for(var t=0;t<3;t++){try{return await rpc(fn,extra)}catch(e){if(t===2)throw e;await new Promise(function(r){setTimeout(r,800*(t+1))})}}}
+function wParse(grid){
+  var pad=function(n){return String(n).padStart(2,'0')};
+  function toDate(v){
+    if(v===''||v==null)return{ok:true,v:null};
+    if(typeof v==='number'){var c=XLSX.SSF.parse_date_code(v);if(!c)return{ok:false};return{ok:true,v:c.y+'-'+pad(c.m)+'-'+pad(c.d)}}
+    if(v instanceof Date)return{ok:true,v:v.getFullYear()+'-'+pad(v.getMonth()+1)+'-'+pad(v.getDate())};
+    var t=String(v).trim();if(!t)return{ok:true,v:null};
+    var m=t.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);if(m)return{ok:true,v:m[1]+'-'+pad(m[2])+'-'+pad(m[3])};
+    m=t.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/);if(m)return{ok:true,v:m[3]+'-'+pad(m[2])+'-'+pad(m[1])};
+    return{ok:false}}
+  function toInt(v){if(v===''||v==null)return{ok:true,v:null};var n=Number(String(v).trim());if(!isFinite(n))return{ok:false};return{ok:true,v:String(Math.round(n))}}
+  function tx(v){if(v===''||v==null)return null;var t=String(v).trim();return t===''?null:t}
+  var start=0,f0=String((grid[0]||[])[2]||'').trim().toLowerCase();if(f0==='serial_number'||f0==='serial number')start=1;
+  var rows=[],errors=[],skipped=0;
+  for(var i=start;i<grid.length;i++){
+    var r=grid[i],sn=tx(r[2]);
+    if(!sn){if(r.some(function(c){return String(c).trim()!==''}))skipped++;continue}
+    var dis=toDate(r[3]),eow=toDate(r[4]),rem=toInt(r[6]),yrs=toInt(r[8]),bad=[];
+    if(!dis.ok)bad.push('Receive Date');if(!eow.ok)bad.push('End of Warranty');if(!rem.ok)bad.push('Remaining Days');if(!yrs.ok)bad.push('Warranty Years');
+    if(bad.length){errors.push('Row '+(i+1)+': invalid '+bad.join(', '));continue}
+    rows.push({item:tx(r[0]),asset_description:tx(r[1]),serial_number:sn,dis:dis.v,end_of_warranty:eow.v,warranty_status:tx(r[5]),remaining_days:rem.v,provider:tx(r[7]),warranty_years:yrs.v,po:tx(r[9]),comments:tx(r[10]),column3:tx(r[11])})}
+  return{rows:rows,errors:errors,skipped:skipped}}
+function lockBtns(on){document.querySelectorAll('.dl-up-btn').forEach(function(b){b.style.opacity=on?'.5':'';b.style.pointerEvents=on?'none':''})}
+async function uploadWarranty(f,upd){
+  if(!canW())return showNotification('Permission denied.','error');
+  uploading=true;lockBtns(true);
+  try{
+    setProg('Loading Excel library...',2);await window.__lib('xlsx');
+    setProg('Reading file...',5);await new Promise(function(r){setTimeout(r,30)});
+    var wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+    var grid=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:true,defval:'',blankrows:false});wb=null;
+    if(!grid.length)throw new Error('The file is empty.');
+    setProg('Analyzing...',12);await new Promise(function(r){setTimeout(r,30)});
+    var p=wParse(grid);grid=null;
+    if(p.errors.length){prog.style.display='none';Swal.fire({icon:'error',title:'Cancelled',html:'<div style="text-align:left;max-height:260px;overflow:auto;">'+p.errors.slice(0,30).map(escapeHtml).join('<br>')+(p.errors.length>30?'<br>...':'')+'</div>'});return}
+    var rows=p.rows;if(!rows.length)throw new Error('No valid rows found (Serial Number is required).');
+    var old=info.warranty?info.warranty.rows:null;
+    var ok=await Swal.fire({title:(upd?'Update':'Replace')+' "Warranty sheet"?',html:'This file has <b>'+rows.length+'</b> records'+(p.skipped?' ('+p.skipped+' without serial skipped)':'')+'.<br>'+(upd?'Records are matched by <b>Item + Serial Number</b>: existing ones are updated, new ones added, and nothing is deleted.':'The current sheet'+(old?' (<b>'+old+'</b> records)':'')+' will be <b>replaced</b> by this file after the upload completes.'),icon:'question',showCancelButton:true,confirmButtonText:upd?'Update':'Replace'});
+    if(!ok.isConfirmed){prog.style.display='none';return}
+    var SZ=1000,chunks=[];for(var i=0;i<rows.length;i+=SZ)chunks.push(rows.slice(i,i+SZ));
+    var added=0,updated=0,total;
+    if(upd){
+      for(var u=0;u<chunks.length;u++){setProg('Updating '+(u+1)+' / '+chunks.length+'...',12+Math.round(u/chunks.length*83));var r1=await send('warranty_merge_chunk',{rows:chunks[u]});added+=r1.added;updated+=r1.updated}
+      setProg('Finalizing...',97);var f1=await send('warranty_merge_finish',{fileName:f.name});total=f1.rows;
+      try{logActivity('Update Device Data','Warranty sheet ('+f.name+') - '+added+' added, '+updated+' updated, '+total+' in total')}catch(e){}
+      showNotification('Warranty sheet updated: '+added+' added, '+updated+' updated ('+total+' in total).','success')
+    }else{
+      var bid=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16)});
+      for(var c2=0;c2<chunks.length;c2++){setProg('Uploading '+(c2+1)+' / '+chunks.length+'...',12+Math.round(c2/chunks.length*80));await send('warranty_replace_chunk',{batchId:bid,rows:chunks[c2]})}
+      setProg('Replacing old data...',96);var f2=await send('warranty_replace_finish',{batchId:bid,expected:rows.length,fileName:f.name});total=f2.rows;
+      try{logActivity('Upload Device Data','Warranty sheet ('+f.name+') - replaced with '+total+' records')}catch(e){}
+      showNotification('Warranty sheet replaced: '+total+' records.','success')
+    }
+    setProg('Done',100);res.innerHTML='';loadInfo();try{if(typeof loadWarrantyWidget==='function')loadWarrantyWidget()}catch(e){}
+    setTimeout(function(){prog.style.display='none'},1500)
+  }catch(e){showNotification(e.message||'Upload failed','error');setProg('Failed: '+(e.message||'error')+(upd?' (run Update again to complete)':' (previous data is unchanged)'),0)}
+  finally{uploading=false;lockBtns(false);document.querySelectorAll('#dlUploadList input[type=file]').forEach(function(i){i.value=''})}
+}
+async function missingDisksReport(btn){
+  if(!canW())return showNotification('Permission denied.','error');
+  var old=btn.innerHTML;btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+  try{
+    await window.__lib('xlsx');
+    var d=await rpc('dl_missing_disks_report');
+    if(!d||!d.length){showNotification('All disk serials are already in the Warranty sheet.','success');return}
+    var aoa=[['Computer Name','User','Computer Serial','Disk Type','Disk Model','Disk Serial','Size (GB)','SMART']].concat(d);
+    var ws=XLSX.utils.aoa_to_sheet(aoa);ws['!cols']=[{wch:22},{wch:20},{wch:18},{wch:10},{wch:34},{wch:26},{wch:10},{wch:12}];ws['!freeze']={xSplit:0,ySplit:1};
+    var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Missing disks');
+    var comps={};d.forEach(function(r){comps[r[0]]=1});
+    XLSX.writeFile(wb,'Missing_Disk_Serials_'+new Date().toISOString().slice(0,10)+'.xlsx');
+    try{logActivity('Export Report','Missing disk serials report - '+d.length+' disks on '+Object.keys(comps).length+' computers')}catch(e){}
+    showNotification(d.length+' disks on '+Object.keys(comps).length+' computers exported.','success')
+  }catch(e){showNotification(e.message||'Failed','error')}
+  finally{btn.disabled=false;btn.innerHTML=old}
+}
 async function upload(k,f,upd){
+if(k==='warranty')return uploadWarranty(f,upd);
 var def=DS.filter(function(x){return x.k===k})[0];
 uploading=true;document.querySelectorAll('.dl-up-btn').forEach(function(b){b.style.opacity='.5';b.style.pointerEvents='none'});
 try{
@@ -9998,7 +10089,8 @@ setTimeout(function(){prog.style.display='none'},1500)
 }catch(e){showNotification(e.message||'Upload failed','error');setProg('Failed: '+(e.message||'error')+(upd?' (some rows may already be updated - run Update again to complete)':' (previous data is unchanged)'),0)}
 finally{uploading=false;document.querySelectorAll('.dl-up-btn').forEach(function(b){b.style.opacity='';b.style.pointerEvents=''});document.querySelectorAll('#dlUploadList input[type=file]').forEach(function(i){i.value=''})}
 }
-upList.addEventListener('change',function(e){var t=e.target;if(!t||t.type!=='file')return;var f=t.files&&t.files[0];if(!f||uploading)return;if(!can('canUpload')){showNotification('Permission denied.','error');t.value='';return}upload(t.dataset.ds,f,t.dataset.mode==='update')});
+upList.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('#dlMissingDisksBtn');if(b)missingDisksReport(b)});
+upList.addEventListener('change',function(e){var t=e.target;if(!t||t.type!=='file')return;var f=t.files&&t.files[0];if(!f||uploading)return;if(!(t.dataset.ds==='warranty'?canW():can('canUpload'))){showNotification('Permission denied.','error');t.value='';return}upload(t.dataset.ds,f,t.dataset.mode==='update')});
 renderUploads();
 })();
 (function(){
@@ -10258,7 +10350,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261108171320';
+var APP_VERSION='20261108173440';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
