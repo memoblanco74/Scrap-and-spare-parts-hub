@@ -602,6 +602,10 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 @media(max-width:600px){.pa-page-count{display:none}.pa-page-head{padding:14px 12px}.pa-page-body{padding:0 6px 8px}}
 .pa-page .pa-report-row{background:var(--primary-bg-color)}
 .pa-page .pa-report-section h4{margin-top:4px}
+button.pa-user-chip{font:inherit;color:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.18s}
+button.pa-user-chip i{font-size:.8em;opacity:.55}
+button.pa-user-chip:hover{border-color:#ef4444;background:color-mix(in srgb,#ef4444 14%,transparent)}
+button.pa-user-chip:hover i{opacity:1;color:#ef4444}
 #dlSuggestions{background:#ffffff}
     body.dark-mode #dlSuggestions{background:#1e293b}
     #dlSuggestions .dl-sug:hover{background:rgba(59,130,246,.12)}
@@ -6253,6 +6257,8 @@ function renderPermissionsAccessReport(){
     const rest=Object.keys(perms).filter(k=>!placed[k]);
     if(rest.length)PAGES.push({t:'Other',i:'fa-ellipsis',s:rest});
     const esc=v=>String(v).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    const openPages=[...container.querySelectorAll('.pa-page.open .pa-page-name')].map(x=>x.textContent);
+    const openRows=[...container.querySelectorAll('.pa-report-row-details')].filter(d=>d.style.display!=='none'&&d.offsetParent!==null||d.style.display==='flex').map(d=>d.parentNode.dataset.label);
     let html='<div class="pa-tools"><button type="button" data-a="open">Expand all</button><button type="button" data-a="close">Collapse all</button></div>';
     PAGES.forEach(pg=>{
         const keys=pg.s.filter(k=>perms[k]);
@@ -6268,7 +6274,7 @@ function renderPermissionsAccessReport(){
                 const permLabel=pageMeta[permKey]||permKey;
                 const holders=userList.filter((u,ix)=>{const up=migrated[ix];return up[pageKey]&&up[pageKey][permKey]===true});
                 total++;if(holders.length)active++;
-                const chips=holders.length?holders.map(h=>'<span class="pa-user-chip">'+esc(h.comment?h.comment:h.email)+(h.comment?' <small>('+esc(h.email)+')</small>':'')+'</span>').join(''):'<span class="pa-empty">No users have this permission.</span>';
+                const chips=holders.length?holders.map(h=>'<button type="button" class="pa-user-chip pa-chip-rm" data-email="'+esc(h.email)+'" data-page="'+esc(pageKey)+'" data-perm="'+esc(permKey)+'" data-pl="'+esc(permLabel)+'" title="Remove this permission from the user">'+esc(h.comment?h.comment:h.email)+(h.comment?' <small>('+esc(h.email)+')</small>':'')+' <i class="fa-solid fa-xmark"></i></button>').join(''):'<span class="pa-empty">No users have this permission.</span>';
                 body+='<div class="pa-report-row" data-label="'+esc((pg.t+' '+pageLabel+' '+permLabel).toLowerCase())+'">'
                     +'<div class="pa-report-row-header">'
                     +'<span class="pa-perm-name">'+esc(permLabel)+'</span>'
@@ -6283,8 +6289,36 @@ function renderPermissionsAccessReport(){
         html+='<div class="pa-page"><button type="button" class="pa-page-head"><span class="pa-page-ico"><i class="fa-solid '+pg.i+'"></i></span><span class="pa-page-name">'+esc(pg.t)+'</span><span class="pa-page-count">'+total+' permission'+(total===1?'':'s')+'</span><i class="fa-solid fa-chevron-down pa-page-chev"></i></button><div class="pa-page-body">'+body+'</div></div>';
     });
     container.innerHTML=html;
+    if(openPages.length||openRows.length){
+        container.querySelectorAll('.pa-page').forEach(p=>{if(openPages.indexOf(p.querySelector('.pa-page-name').textContent)>-1)p.classList.add('open')});
+        container.querySelectorAll('.pa-report-row').forEach(r=>{if(openRows.indexOf(r.dataset.label)>-1){const d=r.querySelector('.pa-report-row-details');d.style.display='flex';const ic=r.querySelector('.indicator-icon');if(ic){ic.classList.remove('fa-chevron-down');ic.classList.add('fa-chevron-up')}}});
+    }
+}
+async function removePermissionFromUser(email,pageKey,permKey,permLabel){
+    if(!currentUser||!currentUser.permissions.manageUsers||!currentUser.permissions.manageUsers.visible)return showNotification('Permission denied.','error');
+    const u=adminUsers[email];if(!u)return showNotification('User not found.','error');
+    if(pageKey==='dashboard'&&permKey==='visible')return showNotification('Dashboard access is mandatory and cannot be removed.','error');
+    if(email===currentUser.email&&pageKey==='manageUsers'&&permKey==='visible')return showNotification('You cannot remove your own Manage Users access.','error');
+    const name=u.comment?u.comment+' ('+email+')':email;
+    const r=await Swal.fire({title:'Remove permission?',html:'Remove <b>'+permLabel+'</b> from<br><b>'+name+'</b>?',icon:'warning',showCancelButton:true,confirmButtonText:'Yes, remove',confirmButtonColor:'#d33',cancelButtonText:'Cancel'});
+    if(!r.isConfirmed)return;
+    try{
+        const oldP=JSON.parse(JSON.stringify(migratePermissions(u.permissions)));
+        const newP=JSON.parse(JSON.stringify(oldP));
+        if(!newP[pageKey]||newP[pageKey][permKey]!==true)return showNotification('The user no longer has this permission.','info');
+        newP[pageKey][permKey]=false;
+        const raw=u.permissions||{};if(Array.isArray(raw.pinnedParts))newP.pinnedParts=raw.pinnedParts;
+        const{error}=await supabaseClient.rpc('save_user',{payload:{username:email,password:null,permissionsText:JSON.stringify(newP),comment:u.comment||''}});
+        if(error)throw new Error(error.message);
+        adminUsers[email].permissions=newP;
+        renderPermissionsAccessReport();filterPermissionsReport();
+        showNotification('Permission removed from '+(u.comment||email)+'.','success');
+        try{await logActivity('Edit User','Updated user: '+email+' | Changes: ['+generatePermissionsChangeLog(oldP,newP).join(' | ')+']')}catch(e){}
+        loadAdminUsers();
+    }catch(e){showNotification('Error: '+e.message,'error')}
 }
 function handlePermissionsReportClick(event){
+    const rm=event.target.closest('.pa-chip-rm');if(rm){removePermissionFromUser(rm.dataset.email,rm.dataset.page,rm.dataset.perm,rm.dataset.pl);return}
     const ph=event.target.closest('.pa-page-head');if(ph){ph.parentNode.classList.toggle('open');return}
     const tb=event.target.closest('.pa-tools button');if(tb){const op=tb.dataset.a==='open';document.querySelectorAll('#permissionsAccessReportContainer .pa-page').forEach(p=>p.classList.toggle('open',op));return}
     const header=event.target.closest('.pa-report-row-header');
@@ -10437,7 +10471,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261108221045';
+var APP_VERSION='20261108221340';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
