@@ -10251,7 +10251,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261108035055';
+var APP_VERSION='20261108035616';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
@@ -10540,7 +10540,9 @@ document.addEventListener('click',function(e){var cl=e.target.closest&&e.target.
 function stop(){if(!ch)return;var c=ch;ch=null;myKey='';ready=false;state={};try{c.untrack()}catch(e){}try{supabaseClient.removeChannel(c)}catch(e){}}
 function retrack(){if(ch&&currentUser)try{ch.track(me());var pg=pageName();if(pg!==lastPage){lastPage=pg;dbLog('navigate')}}catch(e){}}
 setInterval(function(){if(currentUser&&!ch)start();else if(!currentUser&&ch){stop();render()}},2000);
-document.addEventListener('visibilitychange',retrack);
+document.addEventListener('visibilitychange',function(){retrack();if(!document.hidden)setTimeout(heal,1500)});
+function heal(){if(!ch||!currentUser||killed||!myKey)return;var has=Object.keys(ch.presenceState()||{}).indexOf(myKey)>-1;if(!has)try{ch.track(me())}catch(e){}}
+setInterval(heal,15000);
 document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('.tab-button,.nested-tab-button'))setTimeout(retrack,400)});
 setInterval(function(){var t=$('live-users');if(t&&t.classList.contains('active'))render()},30000);
 window.addEventListener('beforeunload',function(){stop()});
