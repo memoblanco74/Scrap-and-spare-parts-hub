@@ -607,6 +607,28 @@ button.pa-user-chip i{font-size:.8em;opacity:.55}
 button.pa-user-chip:hover{border-color:#ef4444;background:color-mix(in srgb,#ef4444 14%,transparent)}
 button.pa-user-chip:hover i{opacity:1;color:#ef4444}
 .ss-stepper input,.ss-stepper input#idleMinutesInput{color:var(--text-color)!important;-webkit-text-fill-color:var(--text-color)!important;opacity:1!important}
+.dl-rep-badge{margin-left:auto;min-width:34px;padding:3px 10px;border-radius:999px;background:rgba(0,0,0,.28);color:#fff;font-size:.9em;text-align:center}
+.md-wrap{text-align:left}
+.md-search{width:100%;box-sizing:border-box;padding:10px 12px;border-radius:10px;border:1px solid var(--input-border-color,#445);background:var(--input-bg-color,transparent);color:var(--text-color,inherit);margin-bottom:10px}
+.md-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.md-tools>button{border:1px solid var(--border-color,#445);background:var(--tertiary-bg-color,transparent);color:var(--text-color,inherit);border-radius:10px;padding:7px 11px;font-size:.82em;cursor:pointer}
+.md-seg{display:inline-flex;border:1px solid var(--border-color,#445);border-radius:10px;overflow:hidden}
+.md-seg button{border:0;background:transparent;color:var(--text-color,inherit);padding:7px 14px;font-size:.82em;cursor:pointer}
+.md-seg button.active{background:var(--primary-accent-color,#6366f1);color:#fff}
+.md-list{max-height:min(52vh,420px);overflow:auto;border:1px solid var(--border-color,#445);border-radius:12px}
+.md-row{display:flex;align-items:center;gap:10px;padding:11px 12px;border-bottom:1px solid var(--border-color,#445);cursor:pointer;margin:0}
+.md-row:last-child{border-bottom:0}
+.md-row.on{background:color-mix(in srgb,var(--primary-accent-color,#6366f1) 12%,transparent)}
+.md-row input{flex:none;width:20px;height:20px}
+.md-type{flex:none;font-size:.72em;font-weight:800;padding:3px 8px;border-radius:7px;letter-spacing:.4px}
+.md-type.ssd{background:color-mix(in srgb,#22c55e 20%,transparent);color:#22c55e}
+.md-type.hdd{background:color-mix(in srgb,#f59e0b 20%,transparent);color:#f59e0b}
+.md-model{flex:1;min-width:0;font-weight:600;overflow-wrap:anywhere}
+.md-size{flex:none;font-size:.85em;opacity:.75;white-space:nowrap}
+.md-cnt{flex:none;min-width:36px;text-align:center;font-size:.8em;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--tertiary-bg-color,rgba(255,255,255,.08))}
+.md-foot{margin:12px 0 4px;font-size:.9em}
+.md-note{font-size:.75em;opacity:.6}
+.md-empty{padding:20px;text-align:center;opacity:.7}
 #dlSuggestions{background:#ffffff}
     body.dark-mode #dlSuggestions{background:#1e293b}
     #dlSuggestions .dl-sug:hover{background:rgba(59,130,246,.12)}
@@ -9924,14 +9946,14 @@ function stText(k){var d=info[k];if(!d)return 'No report uploaded yet.';if(k==='
 function renderUploads(){
 if(!upList)return;
 var boxEl=$('dlUploadBox');if(boxEl)boxEl.style.display=(can('canUpload')||canW())?'':'none';
-upList.innerHTML=DS.filter(function(x){return x.k==='warranty'?canW():can('canUpload')}).map(function(x){return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--input-border-color);"><div style="min-width:0;flex:1 1 220px;"><div style="font-weight:600;"><i class="fa-solid '+x.i+'" style="color:var(--primary-accent-color);margin-right:6px;"></i>'+escapeHtml(x.t)+'</div><div id="dlSt_'+x.k+'" style="font-size:.82em;color:var(--secondary-color);margin-top:2px;">'+escapeHtml(stText(x.k))+'</div></div><div style="display:flex;gap:8px;flex-wrap:wrap;"><label class="import-button custom-btn dl-up-btn" for="dlFile_'+x.k+'"><i class="fa-solid fa-file-arrow-up"></i> Upload</label><label class="import-button custom-btn dl-up-btn" for="dlUpd_'+x.k+'" title="Update existing data without deleting anything"><i class="fa-solid fa-arrows-rotate"></i> Update</label></div><input type="file" id="dlFile_'+x.k+'" data-ds="'+x.k+'" accept=".xlsx,.xls" style="display:none"><input type="file" id="dlUpd_'+x.k+'" data-ds="'+x.k+'" data-mode="update" accept=".xlsx,.xls" style="display:none"></div>'}).join('')+(!canW()?'':'<div style="padding:14px 0 4px;"><div style="font-weight:700;margin-bottom:8px;"><i class="fa-solid fa-clipboard-list" style="color:var(--primary-accent-color);margin-right:6px;"></i>Reports</div><button type="button" class="import-button custom-btn dl-up-btn dl-rep-btn" id="dlMissingDisksBtn" title="Disks found in the Hard Disk report whose serial is not in the Warranty sheet"><i class="fa-solid fa-file-arrow-down"></i><span>Missing disk serials<small>Not in Warranty sheet \u00b7 Excel</small></span></button></div>')
+upList.innerHTML=DS.filter(function(x){return x.k==='warranty'?canW():can('canUpload')}).map(function(x){return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--input-border-color);"><div style="min-width:0;flex:1 1 220px;"><div style="font-weight:600;"><i class="fa-solid '+x.i+'" style="color:var(--primary-accent-color);margin-right:6px;"></i>'+escapeHtml(x.t)+'</div><div id="dlSt_'+x.k+'" style="font-size:.82em;color:var(--secondary-color);margin-top:2px;">'+escapeHtml(stText(x.k))+'</div></div><div style="display:flex;gap:8px;flex-wrap:wrap;"><label class="import-button custom-btn dl-up-btn" for="dlFile_'+x.k+'"><i class="fa-solid fa-file-arrow-up"></i> Upload</label><label class="import-button custom-btn dl-up-btn" for="dlUpd_'+x.k+'" title="Update existing data without deleting anything"><i class="fa-solid fa-arrows-rotate"></i> Update</label></div><input type="file" id="dlFile_'+x.k+'" data-ds="'+x.k+'" accept=".xlsx,.xls" style="display:none"><input type="file" id="dlUpd_'+x.k+'" data-ds="'+x.k+'" data-mode="update" accept=".xlsx,.xls" style="display:none"></div>'}).join('')+(!canW()?'':'<div style="padding:14px 0 4px;"><div style="font-weight:700;margin-bottom:8px;"><i class="fa-solid fa-clipboard-list" style="color:var(--primary-accent-color);margin-right:6px;"></i>Reports</div><button type="button" class="import-button custom-btn dl-up-btn dl-rep-btn" id="dlMissingDisksBtn" title="Disks found in the Hard Disk report whose serial is not in the Warranty sheet"><i class="fa-solid fa-file-arrow-down"></i><span>Missing disk serials<small>Not in Warranty sheet \u00b7 Excel</small></span><b class="dl-rep-badge" id="dlMissingBadge" style="visibility:hidden">0</b></button></div>');try{mdBadge()}catch(e){}
 }
 async function loadInfo(){
 if(!can('visible'))return;
 info={};renderUploads();
 try{if(can('canUpload'))info=(await rpc('dl_info'))||{}}catch(e){}
 try{if(canW()){var wi=await rpc('warranty_info');if(wi)info.warranty=wi}}catch(e2){}
-renderUploads()
+renderUploads();if(canW())mdRefresh()
 }
 var wsSeq=0;
 function wsMove(bar){var pill=bar.querySelector('.ws-pill'),act=bar.querySelector('.ws-btn.active');if(!pill||!act||!act.offsetWidth)return;pill.style.width=act.offsetWidth+'px';pill.style.transform='translateX('+act.offsetLeft+'px)'}
@@ -10135,22 +10157,63 @@ async function uploadWarranty(f,upd){
   }catch(e){showNotification(e.message||'Upload failed','error');setProg('Failed: '+(e.message||'error')+(upd?' (run Update again to complete)':' (previous data is unchanged)'),0)}
   finally{uploading=false;lockBtns(false);document.querySelectorAll('#dlUploadList input[type=file]').forEach(function(i){i.value=''})}
 }
-async function missingDisksReport(btn){
-  if(!canW())return showNotification('Permission denied.','error');
-  var old=btn.innerHTML;btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+var md={groups:[],filter:null,t:null};
+function mdKey(t,m,z){return (t||'')+'|'+(m||'')+'|'+((z===null||z===undefined||z==='')?'':String(+z))}
+function mdSel(){var f=md.filter;var all=md.groups.map(function(g){return mdKey(g[0],g[1],g[2])});return new Set(f===null?all:f)}
+function mdCount(){var sel=mdSel(),n=0;md.groups.forEach(function(g){if(sel.has(mdKey(g[0],g[1],g[2])))n+=g[3]});return n}
+function mdBadge(){var b=document.getElementById('dlMissingBadge');if(!b)return;b.textContent=mdCount().toLocaleString('en-US');b.style.visibility='visible'}
+async function mdRefresh(){
+  if(!canW())return;
+  try{var r=await rpc('missing_disks_summary');if(r){md.groups=r.groups||[];md.filter=Array.isArray(r.filter)?r.filter:null;mdBadge()}}catch(e){}
+}
+function mdSave(sel){
+  md.filter=Array.from(sel);mdBadge();clearTimeout(md.t);
+  md.t=setTimeout(function(){rpc('missing_disks_set_filter',{filter:md.filter}).catch(function(e){showNotification('Could not save filter: '+(e.message||''),'error')})},350)
+}
+async function mdGenerate(){
+  var sel=mdSel();
   try{
     await window.__lib('xlsx');
     var d=await rpc('dl_missing_disks_report');
-    if(!d||!d.length){showNotification('All disk serials are already in the Warranty sheet.','success');return}
+    d=(d||[]).filter(function(r){return sel.has(mdKey(r[3],r[4],r[6]))});
+    if(!d.length){showNotification('No disks match the selected models.','info');return}
     var aoa=[['Computer Name','User','Computer Serial','Disk Type','Disk Model','Disk Serial','Size (GB)','SMART']].concat(d);
-    var ws=XLSX.utils.aoa_to_sheet(aoa);ws['!cols']=[{wch:22},{wch:20},{wch:18},{wch:10},{wch:34},{wch:26},{wch:10},{wch:12}];ws['!freeze']={xSplit:0,ySplit:1};
+    var ws=XLSX.utils.aoa_to_sheet(aoa);ws['!cols']=[{wch:22},{wch:20},{wch:18},{wch:10},{wch:34},{wch:26},{wch:10},{wch:12}];
     var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Missing disks');
     var comps={};d.forEach(function(r){comps[r[0]]=1});
     XLSX.writeFile(wb,'Missing_Disk_Serials_'+new Date().toISOString().slice(0,10)+'.xlsx');
-    try{logActivity('Export Report','Missing disk serials report - '+d.length+' disks on '+Object.keys(comps).length+' computers')}catch(e){}
+    try{logActivity('Export Report','Missing disk serials report - '+d.length+' disks on '+Object.keys(comps).length+' computers ('+sel.size+' models)')}catch(e){}
     showNotification(d.length+' disks on '+Object.keys(comps).length+' computers exported.','success')
   }catch(e){showNotification(e.message||'Failed','error')}
-  finally{btn.disabled=false;btn.innerHTML=old}
+}
+async function missingDisksReport(btn){
+  if(!canW())return showNotification('Permission denied.','error');
+  await mdRefresh();
+  if(!md.groups.length)return showNotification('All disk serials are already in the Warranty sheet.','success');
+  var sel=mdSel(),typeF='all',q='';
+  function rows(){
+    return md.groups.map(function(g,ix){return{g:g,ix:ix,k:mdKey(g[0],g[1],g[2])}}).filter(function(x){
+      if(typeF!=='all'&&String(x.g[0]).toUpperCase()!==typeF)return false;
+      return !q||(x.g[1]+' '+x.g[0]+' '+x.g[2]).toLowerCase().indexOf(q)>-1})
+  }
+  function draw(root){
+    var list=root.querySelector('.md-list'),r=rows();
+    list.innerHTML=r.length?r.map(function(x){var on=sel.has(x.k),t=String(x.g[0]||'?').toUpperCase();return '<label class="md-row'+(on?' on':'')+'"><input type="checkbox" data-k="'+escapeHtml(x.k)+'"'+(on?' checked':'')+'><span class="md-type '+(t==='SSD'?'ssd':'hdd')+'">'+escapeHtml(t)+'</span><span class="md-model">'+escapeHtml(x.g[1]||'(no model)')+'</span><span class="md-size">'+(x.g[2]!==null&&x.g[2]!==''?escapeHtml(String(+x.g[2]))+' GB':'-')+'</span><span class="md-cnt">'+x.g[3]+'</span></label>'}).join(''):'<div class="md-empty">No models match.</div>';
+    var n=0;md.groups.forEach(function(g){if(sel.has(mdKey(g[0],g[1],g[2])))n+=g[3]});
+    root.querySelector('.md-foot').innerHTML='<b>'+sel.size+'</b> model'+(sel.size===1?'':'s')+' selected · <b>'+n.toLocaleString('en-US')+'</b> disks'}
+  var html='<div class="md-wrap"><input type="search" class="md-search" placeholder="Search model..." autocomplete="off"><div class="md-tools"><div class="md-seg"><button type="button" data-t="all" class="active">All</button><button type="button" data-t="SSD">SSD</button><button type="button" data-t="HDD">HDD</button></div><button type="button" data-a="all">Select shown</button><button type="button" data-a="none">Clear shown</button></div><div class="md-list"></div><div class="md-foot"></div><div class="md-note">The selection is saved and shared with everyone who has access to this report.</div></div>';
+  var res=await Swal.fire({title:'Missing disk serials',html:html,width:'min(600px,96vw)',showCancelButton:true,confirmButtonText:'<i class="fa-solid fa-file-arrow-down"></i> Generate report',cancelButtonText:'Close',focusConfirm:false,
+    preConfirm:function(){if(!sel.size){Swal.showValidationMessage('Select at least one model');return false}return true},
+    didOpen:function(el){
+      var root=el.querySelector('.md-wrap');draw(root);
+      root.querySelector('.md-search').addEventListener('input',function(){q=this.value.trim().toLowerCase();draw(root)});
+      root.querySelector('.md-list').addEventListener('change',function(e){var c=e.target;if(!c.dataset||!c.dataset.k)return;if(c.checked)sel.add(c.dataset.k);else sel.delete(c.dataset.k);c.closest('.md-row').classList.toggle('on',c.checked);mdSave(sel);draw(root)});
+      root.querySelector('.md-tools').addEventListener('click',function(e){
+        var t=e.target.closest('button');if(!t)return;
+        if(t.dataset.t){typeF=t.dataset.t;root.querySelectorAll('.md-seg button').forEach(function(b){b.classList.toggle('active',b===t)});draw(root);return}
+        if(t.dataset.a){rows().forEach(function(x){if(t.dataset.a==='all')sel.add(x.k);else sel.delete(x.k)});mdSave(sel);draw(root)}})
+    }});
+  if(res.isConfirmed)await mdGenerate();
 }
 async function upload(k,f,upd){
 if(k==='warranty')return uploadWarranty(f,upd);
@@ -10472,7 +10535,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261109075725';
+var APP_VERSION='20261109082823';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
