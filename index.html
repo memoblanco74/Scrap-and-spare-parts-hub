@@ -10535,7 +10535,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261109082823';
+var APP_VERSION='20261109101218';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
@@ -10772,10 +10772,10 @@ function rel(t){var d=Math.max(0,Math.floor((Date.now()-t)/1000));if(d<60)return
 function hhmm(t){var x=new Date(t);return x.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'})}
 function flat(){var out=[];Object.keys(state).forEach(function(k){(state[k]||[]).forEach(function(p){out.push({key:k,p:p})})});return out}
 function render(){
-  var list=$('luList');if(!list)return;var rows=flat().sort(function(a,b){return (b.p.since||0)-(a.p.since||0)});
+  var list=$('luList');if(!list)return;var down=(window.__rtOk===false);var rows=down?[]:flat().sort(function(a,b){return (b.p.since||0)-(a.p.since||0)});
   var users={},act=0;rows.forEach(function(r){users[String(r.p.email).toLowerCase()]=1;if(!r.p.away)act++});
-  $('luCount').textContent=rows.length;$('luUsers').textContent=Object.keys(users).length;$('luActive').textContent=act;
-  list.innerHTML=rows.length?rows.map(function(r){var p=r.p,em=String(p.email||'?');var mine=r.key===myKey;return '<div class="lu-row"><div class="lu-av'+(p.away?' bg':'')+'">'+escapeHtml(em.charAt(0).toUpperCase())+'</div><div class="lu-main"><b>'+escapeHtml(em)+'</b><small>'+escapeHtml(p.device||'')+' · '+escapeHtml(p.page||'-')+' · '+(p.away?'In background':'Active')+'</small></div><div class="lu-since">'+escapeHtml(rel(p.since||Date.now()))+'</div>'+(canKill()&&!mine?'<button type="button" class="lu-kill" data-key="'+escapeHtml(r.key)+'" data-email="'+escapeHtml(em)+'" title="Terminate session"><i class="fa-solid fa-power-off"></i></button>':(mine?'<span class="lu-you">You</span>':''))+'</div>'}).join(''):'<div class="lu-empty">Nobody is connected.</div>';
+  $('luCount').textContent=down?'-':rows.length;$('luUsers').textContent=down?'-':Object.keys(users).length;$('luActive').textContent=down?'-':act;
+  list.innerHTML=down?'<div class="lu-empty"><i class="fa-solid fa-plug"></i> Live connection is down. Press the red refresh button at the top to reconnect.</div>':rows.length?rows.map(function(r){var p=r.p,em=String(p.email||'?');var mine=r.key===myKey;return '<div class="lu-row"><div class="lu-av'+(p.away?' bg':'')+'">'+escapeHtml(em.charAt(0).toUpperCase())+'</div><div class="lu-main"><b>'+escapeHtml(em)+'</b><small>'+escapeHtml(p.device||'')+' · '+escapeHtml(p.page||'-')+' · '+(p.away?'In background':'Active')+'</small></div><div class="lu-since">'+escapeHtml(rel(p.since||Date.now()))+'</div>'+(canKill()&&!mine?'<button type="button" class="lu-kill" data-key="'+escapeHtml(r.key)+'" data-email="'+escapeHtml(em)+'" title="Terminate session"><i class="fa-solid fa-power-off"></i></button>':(mine?'<span class="lu-you">You</span>':''))+'</div>'}).join(''):'<div class="lu-empty">Nobody is connected.</div>';
   var ev=$('luEvents');var cr0=$('luClearRow');if(cr0)cr0.style.display=(mode==='hist'&&canKill())?'':'none';
   if(mode==='hist'){var map={connect:'in',disconnect:'out',navigate:'nav'};ev.innerHTML=hist.length?hist.map(function(e){return evRow(map[e.event]||'out',e.username,e.device,e.page,dt(e.ts))}).join(''):'<div class="lu-empty">No history yet.</div>'}
   else ev.innerHTML=events.length?events.slice(0,40).map(function(e){return evRow(e.k,e.email,e.device,e.page,hhmm(e.t))}).join(''):'<div class="lu-empty">No activity yet since you opened the app.</div>';
@@ -10824,6 +10824,13 @@ document.addEventListener('click',function(e){var cl=e.target.closest&&e.target.
 function stop(){if(!ch)return;var c=ch;ch=null;myKey='';ready=false;state={};try{c.untrack()}catch(e){}try{supabaseClient.removeChannel(c)}catch(e){}}
 function retrack(){if(ch&&currentUser)try{ch.track(me());var pg=pageName();if(pg!==lastPage){lastPage=pg;dbLog('navigate')}}catch(e){}}
 setInterval(function(){if(currentUser&&!ch)start();else if(!currentUser&&ch){stop();render()}},2000);
+var lastOk=window.__rtOk;
+setInterval(function(){
+  var ok=window.__rtOk;
+  if(ok===false&&lastOk!==false){if(ch){var c0=ch;stop()}render()}
+  if(ok===true&&lastOk===false&&currentUser&&!killed){if(ch)stop();start()}
+  if(ok===true&&ch&&ch.state!=='joined'&&ch.state!=='joining'&&currentUser&&!killed){stop();start()}
+  lastOk=ok},1000);
 document.addEventListener('visibilitychange',function(){retrack();if(!document.hidden)setTimeout(heal,1500)});
 function heal(){if(!ch||!currentUser||killed||!myKey)return;var has=Object.keys(ch.presenceState()||{}).indexOf(myKey)>-1;if(!has)try{ch.track(me())}catch(e){}}
 setInterval(heal,15000);
