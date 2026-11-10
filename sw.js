@@ -38,7 +38,7 @@ self.addEventListener('push', (event) => {
   let d = {};
   try { d = event.data ? event.data.json() : {}; } catch (e) { d = { body: event.data ? event.data.text() : '' }; }
   const TAG = 'scrap-hub-logs';
-  const badge = new URL('badge.png', self.registration.scope).href;
+  const badge = new URL('badge.png?v=2', self.registration.scope).href;
   const icon = d.icon || 'https://auurmvfaqkxaxowxoqkl.supabase.co/storage/v1/object/public/images/laptop-screen.png?v=2';
   const line = (d.title || 'New log') + (d.body ? ' - ' + d.body : '');
   event.waitUntil(self.registration.getNotifications({ tag: TAG }).then((existing) => {
