@@ -8604,7 +8604,7 @@ function applyUsageReportSearch(){
     if(typeof updateUsageEmailSelectedCount==='function')updateUsageEmailSelectedCount();
 }
 const usageReportSearchInput=document.getElementById('usageReportSearchInput');if(usageReportSearchInput)usageReportSearchInput.addEventListener('input',()=>{clearTimeout(usageLiveTimer);usageLiveTimer=setTimeout(runLiveUsageSearch,350);});
-function applySparePartsSearch(){if(!sparePartsSearchInput)return;const filterString=sparePartsSearchInput.value.toLowerCase();const searchTerms=filterString.split(',').map(t=>t.trim()).filter(t=>t);const cards=sparePartsCardContainer.querySelectorAll('.spare-part-card');cards.forEach(card=>{const text=card.textContent.toLowerCase();const isMatch=searchTerms.length===0?true:searchTerms.every(term=>text.includes(term));const isOutOfStock=card.classList.contains('out-of-stock');card.style.display=searchTerms.length===0?(isOutOfStock?'none':'flex'):(isMatch?'flex':'none');})}
+function applySparePartsSearch(){if(!sparePartsSearchInput)return;const filterString=sparePartsSearchInput.value.toLowerCase();const searchTerms=filterString.split(',').map(t=>t.trim()).filter(t=>t);const cards=sparePartsCardContainer.querySelectorAll('.spare-part-card');cards.forEach(card=>{const text=card.textContent.toLowerCase();const isLk=card.classList.contains('locked-card')||!!card.querySelector('.sp-lock-badge');const isMatch=searchTerms.length===0?true:searchTerms.every(term=>term==='locked'?isLk:(term==='unlocked'?!isLk:text.includes(term)));const isOutOfStock=card.classList.contains('out-of-stock');card.style.display=searchTerms.length===0?(isOutOfStock?'none':'flex'):(isMatch?'flex':'none');})}
 function openGuidedSparePartsSearch(){
     const steps=[['Condition','__cond','fa-box-open'],['Site','site','fa-city'],['Location','location','fa-location-dot'],['Reserved For','reservedFor','fa-bookmark'],['Part Type','type','fa-microchip'],['Brand','brand','fa-tag'],['Model','model','fa-laptop']];
     let ov=document.getElementById('guidedSearchOverlay');
@@ -10535,7 +10535,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261110202736';
+var APP_VERSION='20261113091009';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
