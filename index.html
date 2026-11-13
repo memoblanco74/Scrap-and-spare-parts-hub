@@ -5656,7 +5656,7 @@ const MAX_RETRIES = 3;
 const ENABLE_REALTIME = true;
 
 function setupRealtimeSubscriptions() {
-    if (!ENABLE_REALTIME || window.isIdleDisconnected) return;
+    if (!ENABLE_REALTIME) return;
     clearTimeout(window.__rtTimer);
 
     if (window.realtimeChannel) {
@@ -5745,7 +5745,6 @@ function setupRealtimeSubscriptions() {
 (function rtSelfHeal(){
     function kick(){
         if (!window.realtimeChannel && !window.__rtDown) return;
-        if (window.isIdleDisconnected || typeof currentUser === 'undefined' || !currentUser) return;
         var sock = supabaseClient.realtime;
         var live = window.__rtOk === true && (!sock || typeof sock.isConnected !== 'function' || sock.isConnected());
         if (live) return;
@@ -5811,22 +5810,6 @@ function setupRealtimeSubscriptions() {
         // عشان نضمن إنه يتكتب صح في اللوج، حتى لو currentUser اتصفر بعد كده
         const idleUserEmail = currentUser ? currentUser.email : null;
 
-        if (window.realtimeChannel) {
-            supabaseClient.removeChannel(window.realtimeChannel);
-            window.realtimeChannel = null;
-        }
-
-        const realtimeIcon = document.getElementById('realtimeStatusIcon');
-        const refreshBtn = document.getElementById('refreshDataBtn');
-        if (realtimeIcon) {
-            realtimeIcon.classList.remove('realtime-connected');
-            realtimeIcon.classList.add('realtime-disconnected');
-        }
-        if (refreshBtn) {
-            refreshBtn.classList.remove('is-connected');
-            refreshBtn.classList.add('is-disconnected');
-            refreshBtn.title = "Realtime: Disconnected (inactivity)";
-        }
 
         // بنسجل الخروج محليًا فورًا وبشكل متزامن (من غير ما ننتظر رد السيرفر)
         // عشان الواجهة ترجع View-Only على طول حتى لو التاب كان في الخلفية ورد السيرفر اتأخر أو اتفقد
@@ -10547,7 +10530,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261113140039';
+var APP_VERSION='20261113141229';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
