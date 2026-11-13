@@ -3225,6 +3225,7 @@ button.pa-user-chip:hover i{opacity:1;color:#ef4444}
     table th,table td{text-align:center !important;vertical-align:middle;white-space:nowrap}
     #logsTable td:nth-child(4),#logsTable td:last-child{white-space:normal;word-break:break-word;min-width:200px}
     .table-container table{margin-left:auto;margin-right:auto;min-width:100%}
+    @media(max-width:640px){.buttons-group:has(#btnMultiUse){display:flex!important;flex-wrap:nowrap!important;gap:6px!important;width:100%}.buttons-group:has(#btnMultiUse)>.custom-btn{flex:1 1 0!important;min-width:0!important;width:auto!important;padding:10px 4px!important;font-size:12px!important;white-space:nowrap!important;display:inline-flex;align-items:center;justify-content:center;gap:4px;margin:0!important}.buttons-group:has(#btnMultiUse)>.custom-btn i{font-size:12px;margin:0!important}}
     .logs-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .logs-toolbar .search-container{flex:1 1 300px}
     .comp-laptops-table{margin-top:8px}
@@ -10530,7 +10531,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261113190342';
+var APP_VERSION='20261113211759';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
