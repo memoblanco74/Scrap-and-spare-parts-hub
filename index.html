@@ -629,6 +629,44 @@ button.pa-user-chip:hover i{opacity:1;color:#ef4444}
 .md-foot{margin:12px 0 4px;font-size:.9em}
 .md-note{font-size:.75em;opacity:.6}
 .md-empty{padding:20px;text-align:center;opacity:.7}
+#maintenance-centre .mc-nav{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0}
+#maintenance-centre .mc-tab{background:var(--secondary-bg-color);border:1px solid var(--border-color);color:var(--text-color);padding:8px 14px;border-radius:10px;cursor:pointer;font-weight:600;display:inline-flex;gap:7px;align-items:center;font-family:inherit}
+#maintenance-centre .mc-tab.active{background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;border-color:transparent}
+#maintenance-centre .mc-badge{background:#f59e0b;color:#111;border-radius:999px;padding:0 7px;font-size:.78em;font-weight:800}
+#maintenance-centre .mc-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+#maintenance-centre .mc-bar label{display:flex;align-items:center;gap:6px;font-size:.85em;color:var(--secondary-color)}
+#maintenance-centre .mc-bar input,#maintenance-centre .mc-rh input{background:var(--input-bg-color);border:1px solid var(--input-border-color);color:var(--text-color);padding:7px 10px;border-radius:8px;font-family:inherit}
+#maintenance-centre .mc-quick{display:flex;gap:4px;flex-wrap:wrap}
+#maintenance-centre .mc-quick button{background:transparent;border:1px solid var(--border-color);color:var(--text-color);padding:6px 10px;border-radius:8px;cursor:pointer;font-size:.82em;font-family:inherit}
+#maintenance-centre .mc-btn{margin:0}
+#maintenance-centre .mc-green{background:#16a34a!important;color:#fff!important}
+#maintenance-centre .mc-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:14px}
+#maintenance-centre .mc-kpi{background:var(--secondary-bg-color);border:1px solid var(--border-color);border-radius:12px;padding:14px}
+#maintenance-centre .mc-kl{font-size:.78em;color:var(--secondary-color)}
+#maintenance-centre .mc-kv{font-size:1.4em;font-weight:800;margin-top:4px}
+#maintenance-centre .mc-ks{font-size:.78em;color:var(--secondary-color);margin-top:2px}
+#maintenance-centre .mc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(430px,100%),1fr));gap:14px;margin-bottom:14px}
+#maintenance-centre .mc-card{min-width:0;background:var(--secondary-bg-color);border:1px solid var(--border-color);border-radius:12px;padding:14px;margin-bottom:14px}
+#maintenance-centre .mc-grid .mc-card{margin-bottom:0}
+#maintenance-centre .mc-card h4{margin:0 0 10px}
+#maintenance-centre .mc-scroll{overflow-x:auto}
+#maintenance-centre .mc-table{width:100%;border-collapse:collapse;font-size:.9em}
+#maintenance-centre .mc-table th,#maintenance-centre .mc-table td{padding:8px 10px;border-bottom:1px solid var(--border-color);text-align:left;vertical-align:top}
+#maintenance-centre .mc-table th{font-size:.76em;text-transform:uppercase;letter-spacing:.04em;color:var(--secondary-color)}
+#maintenance-centre .mc-table .n{text-align:right;white-space:nowrap}
+#maintenance-centre .mc-sub{font-size:.8em;color:var(--secondary-color);font-weight:400}
+#maintenance-centre .mc-np{color:#f59e0b;font-size:.85em;font-weight:700}
+#maintenance-centre .mc-warn{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.5);border-radius:10px;padding:10px 14px;margin-bottom:12px}
+#maintenance-centre .mc-warn a{color:var(--primary-accent-color);font-weight:700}
+#maintenance-centre .mc-note{font-size:.82em;color:var(--secondary-color)}
+#maintenance-centre .mc-empty{padding:20px;text-align:center;color:var(--secondary-color)}
+#maintenance-centre .mc-rh{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+#maintenance-centre .mc-ib{background:transparent;border:1px solid var(--border-color);color:var(--text-color);border-radius:8px;padding:5px 9px;cursor:pointer;margin-left:4px}
+#maintenance-centre .mc-del:hover{color:var(--danger-color,#e5484d)}
+.mc-form{text-align:left}.mc-form .mc-f{margin-bottom:10px}.mc-form .mc-f label{display:block;font-size:.82em;color:var(--secondary-color);margin-bottom:3px}
+.mc-form .mc-in{margin:0!important;width:100%!important;box-sizing:border-box;height:auto!important;padding:9px 12px!important;font-size:.95em!important}
+.mc-form .mc-two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mc-form .mc-hint{font-size:.76em;color:var(--secondary-color);margin-top:3px}
+@media(max-width:600px){.mc-form .mc-two{grid-template-columns:1fr}#maintenance-centre .mc-grid{grid-template-columns:minmax(0,1fr)}}
 #dlSuggestions{background:#ffffff}
     body.dark-mode #dlSuggestions{background:#1e293b}
     #dlSuggestions .dl-sug:hover{background:rgba(59,130,246,.12)}
@@ -3614,6 +3652,28 @@ button.pa-user-chip:hover i{opacity:1;color:#ef4444}
           </div>
 
           <div class="permission-section">
+            <h4>Maintenance Centre</h4>
+            <div class="permissions-group">
+              <div class="permission-item">
+                <input type="checkbox" name="maintenanceCentre_visible" id="edit-mc-vis">
+                <label for="edit-mc-vis">View Page</label>
+              </div>
+              <div class="permission-item">
+                <input type="checkbox" name="maintenanceCentre_canEditPrices" id="edit-mc-prices">
+                <label for="edit-mc-prices">Can Edit Price List</label>
+              </div>
+              <div class="permission-item">
+                <input type="checkbox" name="maintenanceCentre_canManageRecords" id="edit-mc-rec">
+                <label for="edit-mc-rec">Can Manage Records (manual entries, re-price)</label>
+              </div>
+              <div class="permission-item">
+                <input type="checkbox" name="maintenanceCentre_canExport" id="edit-mc-exp">
+                <label for="edit-mc-exp">Can Export Report</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="permission-section">
             <h4>Live Users</h4>
             <div class="permissions-group">
               <div class="permission-item">
@@ -4319,6 +4379,7 @@ button.pa-user-chip:hover i{opacity:1;color:#ef4444}
         <button class="tab-button" data-tab="data-management" data-permission="dataManagement_visible" style="display: none;"><i class="fa-solid fa-database tb-ico"></i><span class="tb-txt">Data Management</span></button>
         <button class="tab-button" data-tab="add-edit-laptop" data-permission="addEditLaptop_visible" style="display: none;"><i class="fa-solid fa-laptop-medical tb-ico"></i><span class="tb-txt">Add/Edit Laptop</span></button>
         <button class="tab-button" data-tab="spare-parts" data-permission="spareParts_visible" style="display: none;"><i class="fa-solid fa-microchip tb-ico"></i><span class="tb-txt">Spare Parts</span></button>
+        <button class="tab-button" data-tab="maintenance-centre" data-permission="maintenanceCentre_visible" style="display: none;"><i class="fa-solid fa-screwdriver-wrench tb-ico"></i><span class="tb-txt">Maintenance Centre</span></button>
         <button class="tab-button" data-tab="incidents" data-permission="incidents_visible"><i class="fa-solid fa-triangle-exclamation tb-ico"></i><span class="tb-txt">Create Incident</span></button>
         <button class="tab-button" data-tab="it-workspace" data-permission="itWorkspace_visible" style="display: none;"><i class="fa-solid fa-briefcase tb-ico"></i><span class="tb-txt">IT Workspace</span></button>
         <button class="tab-button" data-tab="device-lookup" data-permission="deviceLookup_visible" style="display: none;"><i class="fa-solid fa-magnifying-glass tb-ico"></i><span class="tb-txt">Device Lookup</span></button>
@@ -5198,6 +5259,7 @@ button.pa-user-chip:hover i{opacity:1;color:#ef4444}
           </table>
         </div>
       </div>
+      <div id="maintenance-centre" class="tab-content"></div>
       <div id="live-users" class="tab-content">
         <div class="lu-head">
           <div><h2 style="margin:0">Live Users</h2><p style="margin:4px 0 0;font-size:.9em;color:var(--secondary-color)">Who is connected right now. Updates instantly when someone opens or leaves the app.</p></div>
@@ -5316,6 +5378,22 @@ button.pa-user-chip:hover i{opacity:1;color:#ef4444}
                 <div class="perm-toggle-item">
                   <label for="new-wsheet-manage">Warranty Sheet: Upload / Update + Missing disks</label>
                   <label class="switch"><input type="checkbox" name="warrantySheet_canManage" id="new-wsheet-manage"><span class="slider-sm"></span></label>
+                </div>
+                <div class="perm-toggle-item">
+                  <label for="new-mc-vis">Maintenance Centre Page</label>
+                  <label class="switch"><input type="checkbox" name="maintenanceCentre_visible" id="new-mc-vis"><span class="slider-sm"></span></label>
+                </div>
+                <div class="perm-toggle-item">
+                  <label for="new-mc-prices">Maintenance Centre: Edit Price List</label>
+                  <label class="switch"><input type="checkbox" name="maintenanceCentre_canEditPrices" id="new-mc-prices"><span class="slider-sm"></span></label>
+                </div>
+                <div class="perm-toggle-item">
+                  <label for="new-mc-rec">Maintenance Centre: Manage Records</label>
+                  <label class="switch"><input type="checkbox" name="maintenanceCentre_canManageRecords" id="new-mc-rec"><span class="slider-sm"></span></label>
+                </div>
+                <div class="perm-toggle-item">
+                  <label for="new-mc-exp">Maintenance Centre: Export Report</label>
+                  <label class="switch"><input type="checkbox" name="maintenanceCentre_canExport" id="new-mc-exp"><span class="slider-sm"></span></label>
                 </div>
                 <div class="perm-toggle-item">
                   <label for="new-live-vis">Live Users Page</label>
@@ -5967,7 +6045,7 @@ async function hashPassword(string){const msgBuffer=new TextEncoder().encode(str
 const appContainer=document.getElementById('appContainer'),dbStatusDiv=document.getElementById('dbStatus'),tabButtons=document.querySelectorAll('.tab-button'),tabContents=document.querySelectorAll('.tab-content'),themeToggle=document.getElementById('theme-toggle'),loginOverlay=document.getElementById('loginOverlay'),loginForm=document.getElementById('loginForm'),loginError=document.getElementById('loginError'),loginButton=document.getElementById('loginButton'),logoutButton=document.getElementById('logoutButton'),closeLoginModalBtn=document.getElementById('closeLoginModal'),userInfoDiv=document.getElementById('userInfo'),userEmailDisplay=document.getElementById('userEmailDisplay'),editUserOverlay=document.getElementById('editUserOverlay'),editUserForm=document.getElementById('editUserForm'),closeEditUserModalBtn=document.getElementById('closeEditUserModal'),usePartOverlay=document.getElementById('usePartOverlay'),usePartForm=document.getElementById('usePartForm'),usePartBrandInput=document.getElementById('usePartBrand'),usePartModelInput=document.getElementById('usePartModel'),closeUseModalBtn=document.getElementById('closeUseModal'),usePartInfo=document.getElementById('usePartInfo'),usePartIdInput=document.getElementById('usePartId'),deductPartOverlay=document.getElementById('deductPartOverlay'),deductPartForm=document.getElementById('deductPartForm'),closeDeductModalBtn=document.getElementById('closeDeductModal'),deductPartInfo=document.getElementById('deductPartInfo'),deductPartIdInput=document.getElementById('deductPartId'),componentBrandFilter=document.getElementById('componentBrandFilter'),componentModelFilter=document.getElementById('componentModelFilter'),ramManufacturerFilter=document.getElementById('ramManufacturerFilter'),ramPathFilter=document.getElementById('ramPathFilter'),modelComponentDetailsElem=document.getElementById('modelComponentDetails'),modelComponentLaptopListElem=document.getElementById('modelComponentLaptopList'),ramSummaryListElem=document.getElementById('ramSummaryList'),globalSearchInput=document.getElementById('globalSearchInput'),tableBody=document.querySelector('#laptopTable tbody'),selectAllCheckbox=document.getElementById('selectAll'),exportButton=document.getElementById('exportButton'),deleteSelectedButton=document.getElementById('deleteSelectedButton'),displayedLaptopsCount=document.getElementById('displayedLaptopsCount'),selectedLaptopsCount=document.getElementById('selectedLaptopsCount'),addDataForm=document.getElementById('addDataForm'),formTitle=document.getElementById('formTitle'),laptopIDInput=document.getElementById('laptopID'),originalLaptopIdInput=document.getElementById('originalLaptopId'),idHint=document.getElementById('idHint'),cancelEditButton=document.getElementById('cancelEditButton'),brandInput=document.getElementById('brand'),laptopModelInput=document.getElementById('laptopModel'),modelDatalist=document.getElementById('model-list'),ramEntriesContainer=document.getElementById('ramEntriesContainer'),addRamEntryBtn=document.getElementById('addRamEntryBtn'),groupForm=document.getElementById('compatibilityGroupForm'),groupModelsSelect=document.getElementById('groupModels'),existingGroupsContainer=document.getElementById('existingGroupsContainer'),logsTableBody=document.querySelector('#logsTable tbody'),clearLogsButton=document.getElementById('clearLogsButton'),incidentTypeSelector=document.getElementById('incidentTypeSelector'),incidentFormsContainer=document.getElementById('incidentFormsContainer'),incidentOutputContainer=document.getElementById('incidentOutputContainer'),incidentOutput=document.getElementById('incidentOutput'),copyIncidentBtn=document.getElementById('copyIncidentBtn'),addSparePartBtn_form3=document.getElementById('addSparePartBtn_form3'),sparePartsList_form3=document.getElementById('sparePartsList_form3'),addSparePartBtn_form4=document.getElementById('addSparePartBtn_form4'),sparePartsList_form4=document.getElementById('sparePartsList_form4'),userManagementForm=document.getElementById('userManagementForm'),usersTableBody=document.querySelector('#usersTable tbody'),addSparePartForm=document.getElementById('addSparePartForm'),sparePartsCardContainer=document.getElementById('sparePartsCardContainer'),sparePartsSearchInput=document.getElementById('sparePartsSearchInput'),sparePartsTab=document.getElementById('spare-parts'),sparePartSummaryContainer=document.getElementById('sparePartSummaryContainer'),sparePartPurchaseOrderInput=document.getElementById('sparePartPurchaseOrder'),sparePartDateInput=document.getElementById('sparePartDate'),toggleAddSparePartFormBtn=document.getElementById('toggleAddSparePartFormBtn'),sparePartTypeInput=document.getElementById('sparePartType'),sparePartModelInput=document.getElementById('sparePartModel'),sparePartModelList=document.getElementById('spare-part-model-list'),sparePartQuantityInput=document.getElementById('sparePartQuantity'),sparePartCategoryInput=document.getElementById('sparePartCategory'),sparePartLocationInput=document.getElementById('sparePartLocation'),sparePartBrandInput=document.getElementById('sparePartBrand'),sparePartSiteInput=document.getElementById('sparePartSite'),sparePartReservedForInput=document.getElementById('sparePartReservedFor'),sparePartIncidentInput=document.getElementById('sparePartIncident'),sparePartCommentInput=document.getElementById('sparePartComment'),reportTypesSelect=document.getElementById('reportTypes'),reportSitesSelect=document.getElementById('reportSites'),reportStartDateInput=document.getElementById('reportStartDate'),reportEndDateInput=document.getElementById('reportEndDate'),btnGenerateReport=document.getElementById('btnGenerateReport'),btnExportUsageReport=document.getElementById('btnExportUsageReport'),reportOutputContainer=document.getElementById('reportOutputContainer'),reportTotalCount=document.getElementById('reportTotalCount'),reportDetailsTable=document.getElementById('reportDetailsTable');
 let isEditing=false,isEditingSparePart=false,editingSparePartId=null,allLaptops=[],allGroups=[],allSpareParts=[],allAssets=[],allUsageHistory=[],allDeductHistory=[],allDowngrades=[],currentComponentModelFilteredLaptops=[],currentUser=null,users={},adminUsers={},ramEntryCounter=0,lastUsageReportRows=[],emailTemplateSettings={},emailTemplateSettingsLoaded=false;
 function toggleButtonLoading(b,l){b.disabled=l;if(l){b.dataset.tx=b.innerHTML;b.innerHTML='<i class="fas fa-circle-notch fa-spin app-spinner"></i>';}else{b.innerHTML=b.dataset.tx||'Save';}}
-function getDefaultPermissions(isAdmin=false){return {dashboard:{visible:true,manageCompatibility:isAdmin,canBackup:isAdmin},dataManagement:{visible:isAdmin,canImport:isAdmin,canExport:isAdmin,canDelete:isAdmin},addEditLaptop:{visible:isAdmin},spareParts:{visible:isAdmin,canAdd:isAdmin,canUse:isAdmin,canDeduct:isAdmin,canDelete:isAdmin,canRollback:isAdmin,canLock:isAdmin,canSetLocation:isAdmin,canEditUsage:isAdmin},incidents:{visible:isAdmin},logs:{visible:isAdmin,canClear:isAdmin},manageUsers:{visible:isAdmin},liveUsers:{visible:isAdmin,canTerminate:isAdmin},warrantySheet:{canManage:false},qrSystem:{access:isAdmin},itWorkspace:{visible:isAdmin},warrantyCheck:{canAdd:isAdmin,canEdit:isAdmin,canDelete:isAdmin,canAddVendor:false,canEditVendor:false,canDeleteVendor:false},deviceLookup:{visible:isAdmin,canUpload:isAdmin,canViewBitlocker:isAdmin},printers:{visible:isAdmin,canAdd:isAdmin,canEdit:isAdmin,canDelete:isAdmin},warrantyWidget:{visible:isAdmin},notifications:{receive:false},session:{keepAlive:false},scanner:{canSetOcrKey:isAdmin},emailRecipients:{canEdit:isAdmin}};}
+function getDefaultPermissions(isAdmin=false){return {dashboard:{visible:true,manageCompatibility:isAdmin,canBackup:isAdmin},dataManagement:{visible:isAdmin,canImport:isAdmin,canExport:isAdmin,canDelete:isAdmin},addEditLaptop:{visible:isAdmin},spareParts:{visible:isAdmin,canAdd:isAdmin,canUse:isAdmin,canDeduct:isAdmin,canDelete:isAdmin,canRollback:isAdmin,canLock:isAdmin,canSetLocation:isAdmin,canEditUsage:isAdmin},incidents:{visible:isAdmin},logs:{visible:isAdmin,canClear:isAdmin},manageUsers:{visible:isAdmin},liveUsers:{visible:isAdmin,canTerminate:isAdmin},maintenanceCentre:{visible:false,canEditPrices:false,canManageRecords:false,canExport:false},warrantySheet:{canManage:false},qrSystem:{access:isAdmin},itWorkspace:{visible:isAdmin},warrantyCheck:{canAdd:isAdmin,canEdit:isAdmin,canDelete:isAdmin,canAddVendor:false,canEditVendor:false,canDeleteVendor:false},deviceLookup:{visible:isAdmin,canUpload:isAdmin,canViewBitlocker:isAdmin},printers:{visible:isAdmin,canAdd:isAdmin,canEdit:isAdmin,canDelete:isAdmin},warrantyWidget:{visible:isAdmin},notifications:{receive:false},session:{keepAlive:false},scanner:{canSetOcrKey:isAdmin},emailRecipients:{canEdit:isAdmin}};}
 function migratePermissions(oldPerms){if(oldPerms&&oldPerms.dashboard)return oldPerms;return getDefaultPermissions(false);}
 // ==================== PWA Install & Service Worker ====================
 // تسجيل الـ Service Worker (بيشتغل بس لو الملف sw.js موجود فعلاً على نفس الاستضافة)
@@ -6258,7 +6336,7 @@ async function handleLogout() {
 function setAsViewOnly(){appContainer.classList.add('view-only');userInfoDiv.style.display='none';loginButton.style.display='block';document.querySelectorAll('.tab-button').forEach(tabButton=>{tabButton.style.setProperty('display','none','important')});const dashboardTabButton=document.querySelector('.tab-button[data-tab="dashboard"]');if(dashboardTabButton){dashboardTabButton.style.setProperty('display','flex','important');dashboardTabButton.style.setProperty('pointer-events','auto','important');dashboardTabButton.style.setProperty('opacity','1','important');dashboardTabButton.style.setProperty('cursor','pointer','important')}showTab('dashboard',true);}
 function applyPermissions(){if(!currentUser){setAsViewOnly();return}appContainer.classList.remove('view-only');loginButton.style.display='none';userInfoDiv.style.display='flex';userEmailDisplay.textContent=currentUser.email;const perms=currentUser.permissions;document.querySelectorAll('[data-permission]').forEach(el=>{const permKey=el.dataset.permission;const keys=permKey.split('_');let hasPermission=false;if(keys.length===2&&perms[keys[0]]&&typeof perms[keys[0]][keys[1]]!=='undefined'){hasPermission=perms[keys[0]][keys[1]]}el.style.display='';el.style.pointerEvents='';el.style.opacity='';el.style.cursor='';if(hasPermission){if(el.parentElement.classList.contains('buttons-group')||el.classList.contains('tab-button')){el.style.display='flex'}else{el.style.display=''}}else{el.style.display='none'}});if(document.getElementById('existingGroupsContainer'))displayExistingGroups();}
 function readPermissionsFromForm(form){const formData=new FormData(form);const perms=getDefaultPermissions(false);for(const pageName in perms){for(const permName in perms[pageName]){const key=`${pageName}_${permName}`;if(formData.has(key))perms[pageName][permName]=true}}perms.dashboard.visible=true;return perms}
-const permissionLabelsMap={dashboard:{label:'Dashboard',visible:'View Page',manageCompatibility:'Manage Compatibility',canBackup:'Full DB Export'},dataManagement:{label:'Data Management',visible:'View Page',canImport:'Can Import',canExport:'Can Export',canDelete:'Can Delete'},addEditLaptop:{label:'Add/Edit Laptop',visible:'View Page'},spareParts:{label:'Spare Parts',visible:'View Page',canAdd:'Can Add/Edit',canUse:'Can Use',canDeduct:'Can Deduct',canDelete:'Can Delete',canRollback:'Can Rollback Transfer',canLock:'Can Lock/Unlock Cards',canSetLocation:'Can Edit Site Location',canEditUsage:'Can Edit Usage Records'},incidents:{label:'Incidents',visible:'View Page'},logs:{label:'Logs',visible:'View Page',canClear:'Can Clear'},manageUsers:{label:'Manage Users',visible:'View Page'},liveUsers:{label:'Live Users',visible:'View Page',canTerminate:'Can Terminate Sessions'},warrantySheet:{label:'Warranty Sheet (Data Reports)',canManage:'Upload / Update sheet + Missing disks report'},qrSystem:{label:'QR System',access:'Access QR Scanner'},notifications:{label:'Notifications',receive:'Receive Log Notifications'},session:{label:'Session',keepAlive:'Stay Logged In (no idle logout)'},scanner:{label:'Serial Scanner',canSetOcrKey:'Set OCR Key'},emailRecipients:{label:'Email Recipients',canEdit:'Edit Email Recipients / CC'},itWorkspace:{label:'IT Workspace',visible:'View Page'},deviceLookup:{label:'Device Lookup',visible:'View Page',canUpload:'Can Upload Reports',canViewBitlocker:'Can View BitLocker Keys'},warrantyCheck:{label:'Warranty Records (inside Device Lookup)',canAdd:'Devices: Can Add',canEdit:'Devices: Can Edit',canDelete:'Devices: Can Delete',canAddVendor:'Vendors: Can Add',canEditVendor:'Vendors: Can Edit',canDeleteVendor:'Vendors: Can Delete'},printers:{label:'Printers',visible:'View Page',canAdd:'Can Add',canEdit:'Can Edit',canDelete:'Can Delete'},warrantyWidget:{label:'Warranty Widget (Dashboard)',visible:'View Widget'}};
+const permissionLabelsMap={dashboard:{label:'Dashboard',visible:'View Page',manageCompatibility:'Manage Compatibility',canBackup:'Full DB Export'},dataManagement:{label:'Data Management',visible:'View Page',canImport:'Can Import',canExport:'Can Export',canDelete:'Can Delete'},addEditLaptop:{label:'Add/Edit Laptop',visible:'View Page'},spareParts:{label:'Spare Parts',visible:'View Page',canAdd:'Can Add/Edit',canUse:'Can Use',canDeduct:'Can Deduct',canDelete:'Can Delete',canRollback:'Can Rollback Transfer',canLock:'Can Lock/Unlock Cards',canSetLocation:'Can Edit Site Location',canEditUsage:'Can Edit Usage Records'},incidents:{label:'Incidents',visible:'View Page'},logs:{label:'Logs',visible:'View Page',canClear:'Can Clear'},manageUsers:{label:'Manage Users',visible:'View Page'},liveUsers:{label:'Live Users',visible:'View Page',canTerminate:'Can Terminate Sessions'},warrantySheet:{label:'Warranty Sheet (Data Reports)',canManage:'Upload / Update sheet + Missing disks report'},qrSystem:{label:'QR System',access:'Access QR Scanner'},notifications:{label:'Notifications',receive:'Receive Log Notifications'},session:{label:'Session',keepAlive:'Stay Logged In (no idle logout)'},scanner:{label:'Serial Scanner',canSetOcrKey:'Set OCR Key'},emailRecipients:{label:'Email Recipients',canEdit:'Edit Email Recipients / CC'},itWorkspace:{label:'IT Workspace',visible:'View Page'},deviceLookup:{label:'Device Lookup',visible:'View Page',canUpload:'Can Upload Reports',canViewBitlocker:'Can View BitLocker Keys'},warrantyCheck:{label:'Warranty Records (inside Device Lookup)',canAdd:'Devices: Can Add',canEdit:'Devices: Can Edit',canDelete:'Devices: Can Delete',canAddVendor:'Vendors: Can Add',canEditVendor:'Vendors: Can Edit',canDeleteVendor:'Vendors: Can Delete'},printers:{label:'Printers',visible:'View Page',canAdd:'Can Add',canEdit:'Can Edit',canDelete:'Can Delete'},warrantyWidget:{label:'Warranty Widget (Dashboard)',visible:'View Widget'},maintenanceCentre:{label:'Maintenance Centre',visible:'View Page',canEditPrices:'Can Edit Price List',canManageRecords:'Can Manage Records (manual entries, re-price)',canExport:'Can Export Report'}};
 function renderPermissionsAccessReport(){
     const container=document.getElementById('permissionsAccessReportContainer');
     if(!container)return;
@@ -6269,6 +6347,7 @@ function renderPermissionsAccessReport(){
         {t:'Dashboard',i:'fa-chart-line',s:['dashboard','warrantyWidget']},
         {t:'Data Management',i:'fa-database',s:['dataManagement','addEditLaptop']},
         {t:'Spare Parts',i:'fa-boxes-stacked',s:['spareParts']},
+        {t:'Maintenance Centre',i:'fa-screwdriver-wrench',s:['maintenanceCentre']},
         {t:'Workspace',i:'fa-briefcase',s:['incidents','itWorkspace']},
         {t:'Device Lookup',i:'fa-magnifying-glass',s:['deviceLookup','warrantyCheck','warrantySheet']},
         {t:'Printers',i:'fa-print',s:['printers']},
@@ -10586,7 +10665,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261122140804';
+var APP_VERSION='20261122182501';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
@@ -10919,6 +10998,7 @@ var PAGES=[
 {t:'Dashboard',i:'fa-chart-line',s:[['dashboard','Dashboard'],['warrantyWidget','Warranty Widget']]},
 {t:'Data Management',i:'fa-database',s:[['dataManagement','Data Management'],['addEditLaptop','Add / Edit Laptop']]},
 {t:'Spare Parts',i:'fa-boxes-stacked',s:[['spareParts','Spare Parts']]},
+{t:'Maintenance Centre',i:'fa-screwdriver-wrench',s:[['maintenanceCentre','Maintenance Centre']]},
 {t:'Workspace',i:'fa-briefcase',s:[['incidents','Incidents'],['itWorkspace','IT Workspace']]},
 {t:'Device Lookup',i:'fa-magnifying-glass',s:[['deviceLookup','Device Lookup'],['warrantyCheck','Warranty Records'],['warrantySheet','Warranty Sheet (Data Reports)']]},
 {t:'Printers',i:'fa-print',s:[['printers','Printers']]},
@@ -10968,6 +11048,159 @@ function build(container,itemSel,stack){
 }
 build(document.getElementById('permissions-grid-container'),'.permission-item',false);
 var pg=document.querySelector('.perm-grid');if(pg){pg.style.maxHeight='none';pg.style.overflow='visible';build(pg,'.perm-toggle-item',true)}
+})();
+(function(){
+var root=document.getElementById('maintenance-centre');if(!root)return;
+var view='report',rep=null,prices=[],types=[],manual=[],unp=[],loaded={},busy=false,range={from:'',to:''},recQ='',priceQ='';
+function perm(k){var p=currentUser&&currentUser.permissions&&currentUser.permissions.maintenanceCentre;return !!(p&&p[k])}
+function cr(){var u=currentUser&&users[currentUser.email];return u&&u.password?{username:u.email,password:u.password}:null}
+async function rpc(fn,extra){var c=cr();if(!c)throw new Error('Please log in again.');var r=await supabaseClient.rpc(fn,{payload:Object.assign({},c,extra||{})});if(r.error)throw new Error(r.error.message);return r.data}
+function money(n){return Number(n||0).toLocaleString('en-US',{maximumFractionDigits:2})}
+function esc(v){return escapeHtml(v==null?'':String(v))}
+function dtp(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function err(e){showNotification((e&&e.message)||'Something went wrong','error')}
+root.innerHTML='<div class="mc-head"><h2 style="margin:0"><i class="fa-solid fa-screwdriver-wrench" style="color:var(--primary-accent-color)"></i> Maintenance Centre</h2><p style="margin:4px 0 0;font-size:.9em;color:var(--secondary-color)">Vendor price vs. our own repair cost for every part we install, and what that saved.</p></div><div class="mc-nav" id="mcNav"></div><div id="mcBody"></div>';
+var nav=root.querySelector('#mcNav'),body=root.querySelector('#mcBody');
+function renderNav(){
+var items=[['report','fa-chart-column','Report'],['prices','fa-tags','Price List'],['manual','fa-pen-to-square','Manual Records'],['unpriced','fa-circle-exclamation','Unpriced']];
+nav.innerHTML=items.map(function(x){var b=x[0]==='unpriced'&&loaded.unpriced&&unp.length?'<span class="mc-badge">'+unp.length+'</span>':(x[0]==='unpriced'&&rep&&rep.totals&&rep.totals.unpriced?'<span class="mc-badge">'+rep.totals.unpriced+'</span>':'');return '<button type="button" class="mc-tab'+(view===x[0]?' active':'')+'" data-v="'+x[0]+'"><i class="fa-solid '+x[1]+'"></i> '+x[2]+b+'</button>'}).join('')
+}
+function kpi(l,v,c,sub){return '<div class="mc-kpi"><div class="mc-kl">'+l+'</div><div class="mc-kv" style="'+(c?'color:'+c:'')+'">'+v+'</div>'+(sub?'<div class="mc-ks">'+sub+'</div>':'')+'</div>'}
+function brk(title,rows){
+if(!rows||!rows.length)return '';
+return '<div class="mc-card"><h4>'+title+'</h4><div class="mc-scroll"><table class="mc-table"><thead><tr><th>'+(title==='By month'?'Month':title==='By user'?'User':'Item')+'</th><th class="n">Records</th><th class="n">Qty</th><th class="n">Vendor</th><th class="n">Ours</th><th class="n">Saved</th></tr></thead><tbody>'+rows.map(function(r){var s=r.vendor-r.internal;return '<tr><td>'+esc(r.k||'-')+'</td><td class="n">'+r.n+'</td><td class="n">'+r.qty+'</td><td class="n">'+money(r.vendor)+'</td><td class="n">'+money(r.internal)+'</td><td class="n" style="color:'+(s>=0?'var(--success-color)':'var(--danger-color,#e5484d)')+';font-weight:700">'+money(s)+'</td></tr>'}).join('')+'</tbody></table></div></div>'
+}
+function recRows(){
+var q=recQ.trim().toLowerCase(),all=(rep&&rep.rows)||[];
+var f=q?all.filter(function(r){return [r[3],r[4],r[5],r[6],r[7],r[8],r[9]].join(' ').toLowerCase().indexOf(q)>-1}):all;
+return f
+}
+function recTable(){
+var f=recRows(),shown=f.slice(0,300),canE=perm('canManageRecords');
+var h='<div class="mc-scroll"><table class="mc-table"><thead><tr><th>Date</th><th>Item</th><th>Device</th><th>Incident</th><th>By</th><th class="n">Qty</th><th class="n">Vendor</th><th class="n">Ours</th><th class="n">Saved</th>'+(canE?'<th></th>':'')+'</tr></thead><tbody>';
+h+=shown.map(function(r,i){
+var pr=r[13],s=(r[11]-r[12])*r[10],item=esc(r[3])+(r[4]||r[5]?'<div class="mc-sub">'+esc([r[4],r[5]].filter(Boolean).join(' '))+'</div>':'');
+var dev=esc(r[6])+(r[7]?'<div class="mc-sub">'+esc(r[7])+'</div>':'');
+return '<tr><td>'+esc(r[2])+(r[0]==='manual'?'<div class="mc-sub">manual</div>':'')+'</td><td>'+item+'</td><td>'+dev+'</td><td>'+esc(r[8])+'</td><td>'+esc(r[9])+'</td><td class="n">'+r[10]+'</td>'+(pr?'<td class="n">'+money(r[11]*r[10])+'</td><td class="n">'+money(r[12]*r[10])+'</td><td class="n" style="color:'+(s>=0?'var(--success-color)':'var(--danger-color,#e5484d)')+';font-weight:700">'+money(s)+'</td>':'<td class="n" colspan="3"><span class="mc-np">No price</span></td>')+(canE?'<td class="n">'+(r[0]==='usage'?'<button type="button" class="mc-ib" data-a="costedit" data-r="'+esc(r[1])+'" title="Edit prices for this record"><i class="fa-solid fa-pen"></i></button>':'')+'</td>':'')+'</tr>'
+}).join('');
+h+='</tbody></table></div>';
+if(f.length>shown.length)h+='<div class="mc-note">Showing the latest 300 of '+f.length+'. Narrow the dates or search to see the rest. Export includes everything.</div>';
+if(!f.length)h+='<div class="mc-empty">No records in this range.</div>';
+return h
+}
+function renderReport(){
+if(!rep){body.innerHTML='<div class="mc-empty">Loading...</div>';return}
+var t=rep.totals,sav=t.savings;
+var h='<div class="mc-bar"><label>From <input type="date" id="mcFrom" value="'+esc(range.from)+'"></label><label>To <input type="date" id="mcTo" value="'+esc(range.to)+'"></label>'
++'<span class="mc-quick"><button type="button" data-q="month">This month</button><button type="button" data-q="30">Last 30 days</button><button type="button" data-q="year">This year</button><button type="button" data-q="all">All</button></span>'
++'<span style="flex:1"></span><button type="button" class="custom-btn mc-btn" data-a="refresh"><i class="fa-solid fa-rotate"></i> Refresh</button>'+(perm('canExport')?'<button type="button" class="custom-btn mc-btn mc-green" data-a="export"><i class="fa-solid fa-file-excel"></i> Export Excel</button>':'')+'</div>';
+if(t.unpriced>0)h+='<div class="mc-warn"><i class="fa-solid fa-triangle-exclamation"></i> '+t.unpriced+' record'+(t.unpriced>1?'s have':' has')+' no price yet and '+(t.unpriced>1?'are':'is')+' not counted in the totals. <a href="#" data-v="unpriced">See which items</a></div>';
+h+='<div class="mc-kpis">'+kpi('Records',t.records)+kpi('Vendor cost (if outsourced)','EGP '+money(t.vendor))+kpi('Our repair cost','EGP '+money(t.internal))+kpi('Net savings','EGP '+money(sav),sav>=0?'var(--success-color)':'var(--danger-color,#e5484d)',t.vendor>0?Math.round(sav/t.vendor*100)+'% of vendor cost':'')+'</div>';
+h+='<div class="mc-grid">'+brk('By item',rep.by_type)+brk('By month',rep.by_month)+brk('By user',rep.by_user)+'</div>';
+h+='<div class="mc-card"><div class="mc-rh"><h4 style="margin:0">Records</h4><input type="search" id="mcRecQ" placeholder="Search item, device, serial, incident, user..." value="'+esc(recQ)+'"></div><div id="mcRecs">'+recTable()+'</div></div>';
+body.innerHTML=h
+}
+function renderPrices(){
+var canE=perm('canEditPrices'),q=priceQ.trim().toLowerCase();
+var f=q?prices.filter(function(p){return [p.type,p.brand,p.model,p.notes].join(' ').toLowerCase().indexOf(q)>-1}):prices;
+var h='<div class="mc-bar"><input type="search" id="mcPriceQ" placeholder="Search price list..." value="'+esc(priceQ)+'" style="flex:1;min-width:160px">'+(canE?'<button type="button" class="custom-btn mc-btn mc-green" data-a="padd"><i class="fa-solid fa-plus"></i> Add Item</button>':'')+'</div>';
+h+='<div class="mc-note" style="margin-bottom:10px">Each price applies from the moment a part is used. Changing a price later never changes records that were already priced. Matching order: model of the part, then model of the device it was installed on, then brand, then item type only.</div>';
+h+='<div class="mc-card"><div class="mc-scroll"><table class="mc-table"><thead><tr><th>Item</th><th>Brand</th><th>Model / Device model</th><th class="n">Vendor price</th><th class="n">Our cost</th><th class="n">Saving / unit</th><th>Updated</th>'+(canE?'<th></th>':'')+'</tr></thead><tbody>';
+h+=f.map(function(p){var s=p.vendor-p.internal;return '<tr><td><b>'+esc(p.type)+'</b>'+(p.notes?'<div class="mc-sub">'+esc(p.notes)+'</div>':'')+'</td><td>'+esc(p.brand||'Any')+'</td><td>'+esc(p.model||'Any')+'</td><td class="n">'+money(p.vendor)+'</td><td class="n">'+money(p.internal)+'</td><td class="n" style="color:'+(s>=0?'var(--success-color)':'var(--danger-color,#e5484d)')+';font-weight:700">'+money(s)+'</td><td><span class="mc-sub">'+esc(String(p.at||'').slice(0,10))+(p.by?' - '+esc(p.by):'')+'</span></td>'+(canE?'<td class="n"><button type="button" class="mc-ib" data-a="pedit" data-id="'+p.id+'" title="Edit"><i class="fa-solid fa-pen"></i></button><button type="button" class="mc-ib mc-del" data-a="pdel" data-id="'+p.id+'" title="Delete"><i class="fa-solid fa-trash"></i></button></td>':'')+'</tr>'}).join('');
+h+='</tbody></table></div>'+(f.length?'':'<div class="mc-empty">'+(prices.length?'No match.':'No items yet. '+(canE?'Add the first one.':''))+'</div>')+'</div>';
+body.innerHTML=h
+}
+function renderManual(){
+var canE=perm('canManageRecords');
+var h='<div class="mc-bar"><span style="flex:1"></span>'+(canE?'<button type="button" class="custom-btn mc-btn mc-green" data-a="madd"><i class="fa-solid fa-plus"></i> Add Record</button>':'')+'</div>';
+h+='<div class="mc-note" style="margin-bottom:10px">Repairs that are not spare-part usage (soldering, cleaning, ...). They are included in the report totals.</div>';
+h+='<div class="mc-card"><div class="mc-scroll"><table class="mc-table"><thead><tr><th>Date</th><th>Component / Issue</th><th>Device</th><th>Incident</th><th>Technician</th><th class="n">Qty</th><th class="n">Vendor</th><th class="n">Ours</th><th class="n">Saved</th>'+(canE?'<th></th>':'')+'</tr></thead><tbody>';
+h+=manual.map(function(m){var s=(m.vendor-m.internal)*m.qty;return '<tr><td>'+esc(String(m.date||'').replace('T',' '))+'</td><td><b>'+esc(m.component)+'</b>'+(m.details?'<div class="mc-sub">'+esc(m.details)+'</div>':'')+'</td><td>'+esc(m.device_type)+(m.serial?'<div class="mc-sub">'+esc(m.serial)+'</div>':'')+'</td><td>'+esc(m.incident)+'</td><td>'+esc(m.technician)+'</td><td class="n">'+m.qty+'</td><td class="n">'+money(m.vendor*m.qty)+'</td><td class="n">'+money(m.internal*m.qty)+'</td><td class="n" style="color:'+(s>=0?'var(--success-color)':'var(--danger-color,#e5484d)')+';font-weight:700">'+money(s)+'</td>'+(canE?'<td class="n"><button type="button" class="mc-ib" data-a="medit" data-id="'+m.id+'" title="Edit"><i class="fa-solid fa-pen"></i></button><button type="button" class="mc-ib mc-del" data-a="mdel" data-id="'+m.id+'" title="Delete"><i class="fa-solid fa-trash"></i></button></td>':'')+'</tr>'}).join('');
+h+='</tbody></table></div>'+(manual.length?'':'<div class="mc-empty">No manual records yet.</div>')+'</div>';
+body.innerHTML=h
+}
+function renderUnpriced(){
+var canP=perm('canEditPrices'),canA=perm('canManageRecords');
+var h='<div class="mc-bar"><span style="flex:1"></span>'+(canA?'<button type="button" class="custom-btn mc-btn" data-a="apply"><i class="fa-solid fa-wand-magic-sparkles"></i> Price unpriced records with current prices</button>':'')+'</div>';
+h+='<div class="mc-note" style="margin-bottom:10px">Usage records that had no matching price when they were recorded. Add a price for an item, then use the button above to price the old records with today\'s prices. Records that already have a price are never changed.</div>';
+h+='<div class="mc-card"><div class="mc-scroll"><table class="mc-table"><thead><tr><th>Item</th><th>Brand</th><th>Model / Device model</th><th class="n">Uses</th><th class="n">Qty</th>'+(canP?'<th></th>':'')+'</tr></thead><tbody>';
+h+=unp.map(function(u,i){return '<tr><td><b>'+esc(u.type)+'</b></td><td>'+esc(u.brand||'-')+'</td><td>'+esc(u.model||'-')+'</td><td class="n">'+u.uses+'</td><td class="n">'+u.qty+'</td>'+(canP?'<td class="n"><button type="button" class="custom-btn mc-btn" data-a="uadd" data-i="'+i+'" style="padding:4px 10px"><i class="fa-solid fa-plus"></i> Add price</button></td>':'')+'</tr>'}).join('');
+h+='</tbody></table></div>'+(unp.length?'':'<div class="mc-empty"><i class="fa-solid fa-circle-check" style="color:var(--success-color)"></i> Every record has a price.</div>')+'</div>';
+body.innerHTML=h
+}
+function render(){renderNav();if(view==='report')renderReport();else if(view==='prices')renderPrices();else if(view==='manual')renderManual();else renderUnpriced()}
+async function ensure(v,force){
+try{
+if(v==='report'&&(force||!loaded.report)){rep=null;render();rep=await rpc('mc_report',{from:range.from,to:range.to});loaded.report=1}
+if(v==='prices'&&(force||!loaded.prices)){var d=await rpc('mc_prices_list');prices=d.prices||[];types=d.types||[];loaded.prices=1}
+if(v==='manual'&&(force||!loaded.manual)){manual=await rpc('mc_manual_list')||[];loaded.manual=1}
+if(v==='unpriced'&&(force||!loaded.unpriced)){unp=await rpc('mc_unpriced')||[];loaded.unpriced=1}
+if(v==='unpriced'&&!loaded.prices){var d2=await rpc('mc_prices_list');prices=d2.prices||[];types=d2.types||[];loaded.prices=1}
+if(v==='manual'&&!loaded.prices){var d3=await rpc('mc_prices_list');prices=d3.prices||[];types=d3.types||[];loaded.prices=1}
+}catch(e){err(e);if(v==='report'&&!rep)rep={totals:{records:0,priced:0,unpriced:0,vendor:0,internal:0,savings:0},by_type:[],by_month:[],by_user:[],rows:[]}}
+render()
+}
+function go(v){view=v;render();ensure(v)}
+function typeList(){return '<datalist id="mcTypes">'+types.map(function(t){return '<option value="'+esc(t)+'">'}).join('')+'</datalist>'}
+function fld(l,id,val,extra,hint){return '<div class="mc-f"><label for="'+id+'">'+l+'</label><input id="'+id+'" class="swal2-input mc-in" value="'+esc(val)+'" '+(extra||'')+' autocomplete="off">'+(hint?'<div class="mc-hint">'+hint+'</div>':'')+'</div>'}
+function priceForm(p,title){
+return Swal.fire({title:title,width:520,showCancelButton:true,confirmButtonText:'Save',html:'<div class="mc-form">'+typeList()+fld('Item type','mcPT',p.type,'list="mcTypes" placeholder="e.g. Keyboard"')+fld('Brand (optional)','mcPB',p.brand,'placeholder="e.g. HP"')+fld('Model / Device model (optional)','mcPM',p.model,'placeholder="e.g. 15-DA2001NE"','Leave brand and model empty for a default price for this item type.')+'<div class="mc-two">'+fld('Vendor price (EGP)','mcPV',p.vendor,'type="number" min="0" step="any"')+fld('Our repair cost (EGP)','mcPI',p.internal,'type="number" min="0" step="any"')+'</div>'+fld('Notes (optional)','mcPN',p.notes||'','')+'</div>',
+preConfirm:function(){var g=function(i){return document.getElementById(i).value};var o={id:p.id,type:g('mcPT').trim(),brand:g('mcPB').trim(),model:g('mcPM').trim(),vendor:g('mcPV'),internal:g('mcPI'),notes:g('mcPN').trim()};if(!o.type){Swal.showValidationMessage('Item type is required');return false}if(o.vendor===''||o.internal===''){Swal.showValidationMessage('Enter both prices');return false}return o}})
+}
+async function savePrice(o,fromUnpriced){
+try{await rpc('mc_price_save',o);try{logActivity(o.id?'Edit Price Item':'Add Price Item',[o.type,o.brand,o.model].filter(Boolean).join(' / ')+' - vendor '+o.vendor+', ours '+o.internal)}catch(e){}
+showNotification('Price saved.','success');loaded.prices=1;var d=await rpc('mc_prices_list');prices=d.prices||[];types=d.types||[];if(fromUnpriced){loaded.unpriced=0;await ensure('unpriced')}else render()}catch(e){err(e)}
+}
+function manualForm(m,title){
+var tech=m.technician!=null?m.technician:(currentUser&&currentUser.email)||'';
+var now=new Date(),dv=m.date||(now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+'T'+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0'));
+return Swal.fire({title:title,width:560,showCancelButton:true,confirmButtonText:'Save',html:'<div class="mc-form">'+typeList()+'<div class="mc-two">'+fld('Date','mcMD',dv,'type="datetime-local"')+fld('Incident No','mcMI',m.incident||'','')+'</div><div class="mc-two">'+fld('Device type','mcMT',m.device_type||'','placeholder="Laptop / PC"')+fld('Serial number','mcMS',m.serial||'','')+'</div>'+fld('Component / Issue','mcMC',m.component||'','list="mcTypes" placeholder="e.g. Charging socket"')+fld('Details','mcMDt',m.details||'','')+'<div class="mc-two">'+fld('Part condition','mcMPc',m.condition||'','placeholder="New / Used / Scrap"')+fld('Technician','mcMTe',tech,'')+'</div><div class="mc-two">'+fld('Qty','mcMQ',m.qty||1,'type="number" min="1" step="1"')+'<span></span></div><div class="mc-two">'+fld('Vendor price per unit (EGP)','mcMV',m.vendor!=null?m.vendor:'','type="number" min="0" step="any"')+fld('Our cost per unit (EGP)','mcMIc',m.internal!=null?m.internal:'','type="number" min="0" step="any"')+'</div></div>',
+didOpen:function(){var c=document.getElementById('mcMC');c.addEventListener('change',function(){var v=document.getElementById('mcMV'),i=document.getElementById('mcMIc');if(v.value===''&&i.value===''){var p=prices.filter(function(x){return x.type.toLowerCase()===c.value.trim().toLowerCase()&&!x.brand&&!x.model})[0];if(p){v.value=p.vendor;i.value=p.internal}}})},
+preConfirm:function(){var g=function(i){return document.getElementById(i).value};var o={id:m.id,date:g('mcMD'),incident:g('mcMI').trim(),device_type:g('mcMT').trim(),serial:g('mcMS').trim(),component:g('mcMC').trim(),details:g('mcMDt').trim(),condition:g('mcMPc').trim(),technician:g('mcMTe').trim(),qty:g('mcMQ'),vendor:g('mcMV'),internal:g('mcMIc')};if(!o.component){Swal.showValidationMessage('Component / Issue is required');return false}if(o.vendor===''||o.internal===''){Swal.showValidationMessage('Enter both prices');return false}return o}})
+}
+async function exportXlsx(){
+try{
+await window.__lib('xlsx');
+var t=rep.totals,wb=XLSX.utils.book_new();
+var sum=[['Maintenance Centre report'],['From',range.from||'All'],['To',range.to||'All'],[],['Records',t.records],['Priced records',t.priced],['Unpriced records',t.unpriced],['Vendor cost (EGP)',t.vendor],['Our repair cost (EGP)',t.internal],['Net savings (EGP)',t.savings]];
+XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(sum),'Summary');
+function sheet(name,rows,first){var a=[[first,'Records','Qty','Vendor cost','Our cost','Savings']].concat(rows.map(function(r){return [r.k,r.n,r.qty,r.vendor,r.internal,r.vendor-r.internal]}));XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(a),name)}
+sheet('By item',rep.by_type,'Item');sheet('By month',rep.by_month,'Month');sheet('By user',rep.by_user,'User');
+var recs=[['Date','Source','Item','Brand','Model','Device','Serial','Incident','User','Qty','Vendor price (unit)','Our cost (unit)','Vendor total','Our total','Savings','Priced']].concat(rep.rows.map(function(r){var p=r[13];return [r[2],r[0],r[3],r[4],r[5],r[6],r[7],r[8],r[9],r[10],p?r[11]:'',p?r[12]:'',p?r[11]*r[10]:'',p?r[12]*r[10]:'',p?(r[11]-r[12])*r[10]:'',p?'Yes':'No']}));
+XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(recs),'Records');
+XLSX.writeFile(wb,'Maintenance_Centre_'+dtp(new Date())+'.xlsx');
+try{logActivity('Export Maintenance Report',(range.from||'all')+' to '+(range.to||'all'))}catch(e){}
+}catch(e){err(e)}
+}
+root.addEventListener('click',async function(e){
+var a=e.target.closest&&e.target.closest('[data-v],[data-a],[data-q]');if(!a||!root.contains(a))return;
+if(a.tagName==='A')e.preventDefault();
+if(a.dataset.v){go(a.dataset.v);return}
+if(a.dataset.q){var n=new Date(),to=dtp(n);if(a.dataset.q==='month'){range={from:dtp(new Date(n.getFullYear(),n.getMonth(),1)),to:to}}else if(a.dataset.q==='30'){range={from:dtp(new Date(n.getTime()-30*864e5)),to:to}}else if(a.dataset.q==='year'){range={from:n.getFullYear()+'-01-01',to:to}}else range={from:'',to:''};loaded.report=0;ensure('report');return}
+var act=a.dataset.a;
+if(act==='refresh'){loaded.report=0;ensure('report',true);return}
+if(act==='export'){exportXlsx();return}
+if(act==='padd'){var r=await priceForm({type:'',brand:'',model:'',vendor:'',internal:'',notes:''},'Add Item');if(r.isConfirmed)savePrice(r.value);return}
+if(act==='uadd'){var u=unp[+a.dataset.i];var r2=await priceForm({type:u.type,brand:u.brand,model:u.model,vendor:'',internal:'',notes:''},'Add price');if(r2.isConfirmed)savePrice(r2.value,true);return}
+if(act==='pedit'){var p=prices.filter(function(x){return String(x.id)===a.dataset.id})[0];if(!p)return;var r3=await priceForm({id:p.id,type:p.type,brand:p.brand,model:p.model,vendor:p.vendor,internal:p.internal,notes:p.notes},'Edit Item');if(r3.isConfirmed)savePrice(r3.value);return}
+if(act==='pdel'){var p2=prices.filter(function(x){return String(x.id)===a.dataset.id})[0];if(!p2)return;var c=await Swal.fire({title:'Delete this item?',html:'<b>'+esc([p2.type,p2.brand,p2.model].filter(Boolean).join(' / '))+'</b><br>Records already priced with it keep their saved prices.',icon:'warning',showCancelButton:true,confirmButtonText:'Delete'});if(!c.isConfirmed)return;try{await rpc('mc_price_delete',{id:p2.id});try{logActivity('Delete Price Item',[p2.type,p2.brand,p2.model].filter(Boolean).join(' / '))}catch(e2){}showNotification('Item deleted.','success');var d=await rpc('mc_prices_list');prices=d.prices||[];types=d.types||[];render()}catch(e3){err(e3)}return}
+if(act==='madd'){var r4=await manualForm({},'Add Record');if(r4.isConfirmed)try{await rpc('mc_manual_save',r4.value);try{logActivity('Add Maintenance Record',r4.value.component+(r4.value.incident?' - '+r4.value.incident:''))}catch(e4){}showNotification('Record added.','success');loaded.report=0;loaded.manual=0;await ensure('manual')}catch(e5){err(e5)}return}
+if(act==='medit'){var m=manual.filter(function(x){return String(x.id)===a.dataset.id})[0];if(!m)return;var r5=await manualForm(m,'Edit Record');if(r5.isConfirmed)try{await rpc('mc_manual_save',r5.value);try{logActivity('Edit Maintenance Record',r5.value.component)}catch(e6){}showNotification('Record saved.','success');loaded.report=0;loaded.manual=0;await ensure('manual')}catch(e7){err(e7)}return}
+if(act==='mdel'){var m2=manual.filter(function(x){return String(x.id)===a.dataset.id})[0];if(!m2)return;var c2=await Swal.fire({title:'Delete this record?',text:m2.component,icon:'warning',showCancelButton:true,confirmButtonText:'Delete'});if(!c2.isConfirmed)return;try{await rpc('mc_manual_delete',{id:m2.id});try{logActivity('Delete Maintenance Record',m2.component)}catch(e8){}showNotification('Record deleted.','success');loaded.report=0;loaded.manual=0;await ensure('manual')}catch(e9){err(e9)}return}
+if(act==='apply'){var c3=await Swal.fire({title:'Price unpriced records?',html:'Records with no price will be priced with <b>today\'s</b> price list. Records that already have a price are not touched.',icon:'question',showCancelButton:true,confirmButtonText:'Price them'});if(!c3.isConfirmed)return;try{var rs=await rpc('mc_price_unpriced');try{logActivity('Price Unpriced Records',rs.priced+' priced, '+rs.remaining+' still without a price')}catch(e10){}showNotification(rs.priced+' records priced. '+rs.remaining+' still have no matching price.','success');loaded.report=0;loaded.unpriced=0;await ensure('unpriced')}catch(e11){err(e11)}return}
+if(act==='costedit'){var row=((rep&&rep.rows)||[]).filter(function(x){return x[0]==='usage'&&String(x[1])===a.dataset.r})[0];if(!row)return;var cur=row[13]?{v:row[11],i:row[12]}:{v:'',i:''};var r6=await Swal.fire({title:'Prices for this record',width:460,showCancelButton:true,confirmButtonText:'Save',html:'<div class="mc-form"><div class="mc-hint" style="margin-bottom:8px">'+esc(row[3]+' - '+(row[6]||''))+' (qty '+row[10]+'). Prices are per unit.</div><div class="mc-two">'+fld('Vendor price','mcCV',cur.v,'type="number" min="0" step="any"')+fld('Our cost','mcCI',cur.i,'type="number" min="0" step="any"')+'</div></div>',preConfirm:function(){var v=document.getElementById('mcCV').value,i=document.getElementById('mcCI').value;if(v===''||i===''){Swal.showValidationMessage('Enter both prices');return false}return{vendor:v,internal:i}}});if(r6.isConfirmed)try{await rpc('mc_cost_edit',{usage_id:a.dataset.r,vendor:r6.value.vendor,internal:r6.value.internal});try{logActivity('Edit Record Prices','Usage #'+a.dataset.r+' - vendor '+r6.value.vendor+', ours '+r6.value.internal)}catch(e12){}showNotification('Prices saved.','success');loaded.unpriced=0;loaded.report=0;await ensure('report')}catch(e13){err(e13)}return}
+});
+root.addEventListener('input',function(e){
+var t=e.target;
+if(t.id==='mcRecQ'){recQ=t.value;var d=root.querySelector('#mcRecs');if(d)d.innerHTML=recTable()}
+else if(t.id==='mcPriceQ'){priceQ=t.value;var pos=t.selectionStart;renderPrices();var n=root.querySelector('#mcPriceQ');if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e2){}}}
+});
+root.addEventListener('change',function(e){
+var t=e.target;if(t.id==='mcFrom'||t.id==='mcTo'){range={from:(root.querySelector('#mcFrom')||{}).value||'',to:(root.querySelector('#mcTo')||{}).value||''};loaded.report=0;ensure('report')}
+});
+function activate(){if(!currentUser||!perm('visible'))return;var first=!loaded.report&&!rep;if(first){render();ensure(view)}else ensure(view,true)}
+document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.tab-button[data-tab="maintenance-centre"]');if(b)setTimeout(activate,60)});
+render()
 })();
 window.loadLaptops=refreshAllDataAndViews;resetFormForAdd()});
       </script>
