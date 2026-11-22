@@ -10011,24 +10011,22 @@ var nm=d.in_main===false?'<div style="color:var(--warning-color);font-size:.85em
 inp.value=m.name;
 var h='<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;"><h3 style="margin:0;"><i class="fa-solid fa-desktop" style="color:var(--primary-accent-color);"></i> '+escapeHtml(m.name)+'</h3></div>';
 h+=nm;
-h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;background:var(--secondary-bg-color);padding:16px;border-radius:12px;border:1px solid var(--border-color);">';
-h+=cell('Computer Name',escapeHtml(dash(m.name)));
-h+=cell('Serial Number',escapeHtml(dash(m.serial)));
-h+=cell('OU',escapeHtml(dash(m.ou)),true);
-h+=cell('User',escapeHtml(dash(String(m.user||'').replace(/\s*\(locked\)\s*$/i,''))));
-h+=cell('Display Name',escapeHtml(dash(m.display_name)));
-h+=cell('Windows',escapeHtml(dash(m.os)));
-h+=cell('SP / Release',escapeHtml(dash(m.release)));
-h+=cell('O/S Architecture',escapeHtml(dash(k.arch)));
-h+=cell('RAM',escapeHtml(dash(m.memory)));
-h+=cell('Activation Key',k.key?'<span style="font-family:monospace;user-select:all;">'+escapeHtml(k.key)+'</span> <button type="button" class="custom-btn dl-copy" data-v="'+escapeHtml(k.key)+'" title="Copy" style="padding:2px 8px;"><i class="fa-regular fa-copy"></i></button>':'-',true);
-h+=cell('MAC',escapeHtml(dash(m.mac)));
-h+=cell('IP Address',escapeHtml(dash(m.ip)));
-h+=cell('Last Scanned',escapeHtml(fd(m.scan)),true);
+var sec=function(ic,title,inner,first){return '<div style="margin-top:'+(first?'12':'18')+'px;"><div style="display:flex;align-items:center;gap:7px;font-size:.74em;letter-spacing:.06em;text-transform:uppercase;color:var(--secondary-color);font-weight:700;padding-bottom:6px;margin-bottom:10px;border-bottom:1px solid var(--border-color);"><i class="fa-solid '+ic+'" style="color:var(--primary-accent-color);"></i>'+title+'</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:12px 16px;">'+inner+'</div></div>'};
+h+='<div style="background:var(--secondary-bg-color);padding:2px 16px 16px;border-radius:12px;border:1px solid var(--border-color);">';
+h+=sec('fa-id-card','Identity',cell('Computer Name',escapeHtml(dash(m.name)))+cell('Serial Number',escapeHtml(dash(m.serial)))+cell('OU',escapeHtml(dash(m.ou)),true),true);
+h+=sec('fa-user','User',cell('User',escapeHtml(dash(String(m.user||'').replace(/\s*\(locked\)\s*$/i,''))))+cell('Display Name',escapeHtml(dash(m.display_name))));
+h+=sec('fa-microchip','System',cell('Windows',escapeHtml(dash(m.os)))+cell('SP / Release',escapeHtml(dash(m.release)))+cell('O/S Architecture',escapeHtml(dash(k.arch)))+cell('RAM',escapeHtml(dash(m.memory)))+cell('Activation Key',k.key?'<span style="font-family:monospace;user-select:all;">'+escapeHtml(k.key)+'</span> <button type="button" class="custom-btn dl-copy" data-v="'+escapeHtml(k.key)+'" title="Copy" style="padding:2px 8px;"><i class="fa-regular fa-copy"></i></button>':'-',true));
+h+=sec('fa-network-wired','Network & Scan',cell('MAC',escapeHtml(dash(m.mac)))+cell('IP Address',escapeHtml(dash(m.ip)))+cell('Last Scanned',escapeHtml(fd(m.scan))));
 h+='</div>';
 h+='<h4 style="margin:18px 0 8px;"><i class="fa-solid fa-hard-drive" style="color:var(--primary-accent-color);"></i> Disks</h4>';
 if(d.disks&&d.disks.length){
-h+=d.disks.map(function(x,i){var ok=String(x.smart||'').toUpperCase()==='OK';var row=function(l,v,st){return '<div style="display:flex;gap:10px;padding:3px 0;"><span style="flex:0 0 90px;color:var(--secondary-color);font-size:.85em;">'+l+'</span><span style="flex:1;min-width:0;word-break:break-word;font-weight:600;'+(st||'')+'">'+v+'</span></div>'};return '<div style="background:var(--secondary-bg-color);border:1px solid var(--border-color);border-radius:10px;padding:10px 14px;margin-bottom:10px;">'+(d.disks.length>1?'<div style="font-size:.8em;color:var(--secondary-color);margin-bottom:4px;">Disk '+(i+1)+'</div>':'')+row('Type',escapeHtml(dash(x.type)))+row('Model',escapeHtml(dash(x.model)))+row('Serial Number',escapeHtml(dash(x.serial)))+row('Capacity',x.size!=null?escapeHtml(String(x.size))+' GB':'-')+row('Health',escapeHtml(dash(x.smart)),x.smart?'color:'+(ok?'var(--success-color)':'var(--danger-color,#e5484d)')+';':'')+(x.pct!=null?row('Health %',x.pct+' %','color:'+(x.pct>=70?'var(--success-color)':x.pct>=40?'#f59e0b':'var(--danger-color,#e5484d)')+';'):'')+(x.temp!=null?row('Temperature',x.temp+' \u00b0C'):'')+(x.letters?row('Letters',escapeHtml(x.letters)):'')+'</div>'}).join('')
+var stCol=function(st){st=String(st||'').toLowerCase();return st==='good'?'var(--success-color)':st==='caution'?'#f59e0b':st==='bad'?'var(--danger-color,#e5484d)':'var(--secondary-color)'};
+var pill=function(tx,c){return '<span style="display:inline-block;padding:2px 10px;border-radius:999px;font-size:.78em;font-weight:700;color:'+c+';border:1px solid '+c+';white-space:nowrap;">'+escapeHtml(tx)+'</span>'};
+h+=d.disks.map(function(x,i){var ok=String(x.smart||'').toUpperCase()==='OK';var tp=String(x.type||'').toUpperCase();
+var pc=x.pct!=null?(x.pct>=70?'var(--success-color)':x.pct>=40?'#f59e0b':'var(--danger-color,#e5484d)'):'';
+var head='<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;">'+(x.type?pill(x.type,tp==='SSD'?'var(--primary-accent-color)':'var(--secondary-color)'):'')+'<span style="font-weight:700;word-break:break-word;flex:1 1 150px;min-width:0;">'+escapeHtml(dash(x.model))+'</span><span style="display:flex;gap:6px;flex-wrap:wrap;">'+(x.status?pill(x.status,stCol(x.status)):'')+(x.smart?pill(x.smart,ok?'var(--success-color)':'var(--danger-color,#e5484d)'):'')+'</span></div>';
+var body=cell('Serial Number','<span style="font-family:monospace;user-select:all;">'+escapeHtml(dash(x.serial))+'</span>',true)+cell('Capacity',x.size!=null?escapeHtml(String(x.size))+' GB':'-')+cell('Temperature',x.temp!=null?x.temp+' °C':'-')+cell('Letters',escapeHtml(dash(x.letters)))+(x.pct!=null?cell('Health %','<span style="color:'+pc+';">'+x.pct+' %</span><div style="height:5px;border-radius:3px;background:var(--border-color);margin-top:5px;overflow:hidden;"><div style="width:'+Math.max(0,Math.min(100,x.pct))+'%;height:100%;background:'+pc+';"></div></div>'):cell('Health %','-'));
+return '<div style="background:var(--secondary-bg-color);border:1px solid var(--border-color);border-radius:12px;padding:12px 16px 14px;margin-bottom:12px;">'+(d.disks.length>1?'<div style="font-size:.74em;letter-spacing:.06em;text-transform:uppercase;color:var(--secondary-color);font-weight:700;margin-bottom:6px;">Disk '+(i+1)+'</div>':'')+head+'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px 16px;">'+body+'</div></div>'}).join('')
 }else h+='<div style="color:var(--secondary-color);">-</div>';
 if(d.bitlocker!==null&&d.bitlocker!==undefined){
 h+='<h4 style="margin:18px 0 8px;"><i class="fa-solid fa-lock" style="color:var(--primary-accent-color);"></i> BitLocker</h4>';
@@ -10078,7 +10076,7 @@ var m=h.m,out=[],P='PowerShell (Disk Health Percentage) ';
 for(var j=h.i+1;j<rows.length;j++){var r=rows[j];if(!r)continue;var n=s(r[m['Computer Name']]);if(!n)continue;
 var sn=s(r[m[P+'Serial']]);if(!sn)continue;
 var pm=/\(\s*(\d+)\s*%\s*\)/.exec(s(r[m[P+'Health']])),tm=/(-?\d+)\s*C/i.exec(s(r[m[P+'Temp']]));
-out.push([n,s(r[m[P+'Model']]),sn,pm?pm[1]:'',tm?tm[1]:'',s(r[m[P+'Letter']])])}
+var sm=/^[A-Za-z]+/.exec(s(r[m[P+'Health']]));out.push([n,s(r[m[P+'Model']]),sn,pm?pm[1]:'',tm?tm[1]:'',s(r[m[P+'Letter']]),sm?sm[0]:''])}
 return out}
 function parseKeys(rows){
 var h=hdrIdx(rows,['Computer Name','Computer O/S Architecture','PowerShell (Get insatlled windows key) String']);
@@ -10588,7 +10586,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261122133103';
+var APP_VERSION='20261122134808';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
