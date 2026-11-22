@@ -4055,6 +4055,9 @@ button.pa-user-chip:hover i{opacity:1;color:#ef4444}
           <div class="form-group"><label>Incident:</label><input type="text" id="editUsageIncident"></div>
         </div>
         <div class="form-row">
+          <div class="form-group full-span-group"><label>Date:</label><input type="datetime-local" id="editUsageDate" step="1"></div>
+        </div>
+        <div class="form-row">
           <div class="form-group full-span-group">
             <label>Upgrade Plan:</label>
             <select id="editUsageUpgradePlan">
@@ -7178,6 +7181,7 @@ window.openEditUsageModal=function(usageId){
     document.getElementById('editUsageAsset').value=rec.asset||'';
     document.getElementById('editUsageChange').value=rec.change||'';
     document.getElementById('editUsageIncident').value=rec.incident||'';
+    (function(){const el=document.getElementById('editUsageDate');const m=String(rec.date||'').trim().match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T ](\d{1,2}):(\d{2})(?::(\d{2}))?)?/);const p=n=>String(n).padStart(2,'0');el.value=m?(m[1]+'-'+p(m[2])+'-'+p(m[3])+'T'+p(m[4]||0)+':'+m[5]+':'+p(m[6]||0)).replace(/:undefined/,':00'):'';el.dataset.orig=el.value}());
     document.getElementById('editUsageUpgradePlan').value=(rec.upgradePlan||rec.upgrade_plan||'No');
     showModal(document.getElementById('editUsageOverlay'));
 };
@@ -7209,6 +7213,14 @@ async function handleEditUsageFormSubmit(e){
             upgradePlan:document.getElementById('editUsageUpgradePlan').value
         };
         const{error:uuErr}=await supabaseClient.rpc('update_usage_record',{payload:{data:data}});if(uuErr)throw new Error(uuErr.message);
+        const dEl=document.getElementById('editUsageDate');
+        if(dEl&&dEl.value&&dEl.value!==dEl.dataset.orig){
+            const nd=dEl.value.length===16?dEl.value+':00':dEl.value;
+            const u0=(typeof users!=='undefined'&&users[currentUser.email])||{};
+            const{error:dErr}=await supabaseClient.rpc('update_usage_date',{payload:{id:String(id),date:nd,username:currentUser.email,password:u0.password}});
+            if(dErr)throw new Error('Date not saved: '+dErr.message);
+            data.date=nd.replace('T',' ');
+        }
         const idx=allUsageHistory.findIndex(u=>String(u.id)===String(id));
         if(idx!==-1)allUsageHistory[idx]={...allUsageHistory[idx],...data};
         await logActivity('Edit Usage Record',`Usage ID: ${id} | Part SN: ${data.partSN} | Device SN: ${data.destSN||data.sourceSN} | Qty: ${data.quantity}`);
@@ -10531,7 +10543,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261122081241';
+var APP_VERSION='20261122083814';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
