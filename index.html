@@ -649,7 +649,9 @@ button.pa-user-chip:hover i{opacity:1;color:#ef4444}
 #maintenance-centre .mc-card{min-width:0;background:var(--secondary-bg-color);border:1px solid var(--border-color);border-radius:12px;padding:14px;margin-bottom:14px}
 #maintenance-centre .mc-grid .mc-card{margin-bottom:0}
 #maintenance-centre .mc-card h4{margin:0 0 10px}
-#maintenance-centre .mc-scroll{overflow-x:auto}
+#maintenance-centre .mc-scroll{overflow:auto;max-height:420px;border-radius:8px}
+#maintenance-centre .mc-scroll .mc-table thead th{position:sticky;top:0;background:var(--secondary-bg-color);z-index:1;box-shadow:0 1px 0 var(--border-color)}
+#maintenance-centre #mcRecs .mc-scroll{max-height:560px}
 #maintenance-centre .mc-table{width:100%;border-collapse:collapse;font-size:.9em}
 #maintenance-centre .mc-table th,#maintenance-centre .mc-table td{padding:8px 10px;border-bottom:1px solid var(--border-color);text-align:left;vertical-align:top}
 #maintenance-centre .mc-table th{font-size:.76em;text-transform:uppercase;letter-spacing:.04em;color:var(--secondary-color)}
@@ -10665,7 +10667,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261122182501';
+var APP_VERSION='20261122183730';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
