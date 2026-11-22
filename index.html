@@ -9942,7 +9942,7 @@ var $=function(i){return document.getElementById(i)};
 var inp=$('dlSearchInput'),sug=$('dlSuggestions'),res=$('dlResult'),appsCard=$('dlAppsCard'),prog=$('dlProgress'),pt=$('dlProgressText'),pb=$('dlProgressBar'),upList=$('dlUploadList');
 if(!inp)return;
 var seq=0,tm=null,uploading=false,info={};
-var DS=[{k:'main',t:'All Xceed Computers main report',i:'fa-desktop'},{k:'keys',t:'Windows 10 installed key',i:'fa-key'},{k:'disks',t:'Hard Disk serial number reports',i:'fa-hard-drive'},{k:'bitlocker',t:'BitLocker Recovery Password report',i:'fa-lock'},{k:'apps',t:'All Installed Applications',i:'fa-boxes-stacked'},{k:'warranty',t:'Warranty sheet',i:'fa-shield-alt'}];
+var DS=[{k:'main',t:'All Xceed Computers main report',i:'fa-desktop'},{k:'keys',t:'Windows 10 installed key',i:'fa-key'},{k:'disks',t:'Hard Disk serial number reports',i:'fa-hard-drive'},{k:'health',t:'Disk Health Percentage (CrystalDiskInfo)',i:'fa-heartbeat'},{k:'bitlocker',t:'BitLocker Recovery Password report',i:'fa-lock'},{k:'apps',t:'All Installed Applications',i:'fa-boxes-stacked'},{k:'warranty',t:'Warranty sheet',i:'fa-shield-alt'}];
 function cr(){var u=currentUser&&users[currentUser.email];return u&&u.password?{username:u.email,password:u.password}:null}
 function can(k){var p=currentUser&&currentUser.permissions&&currentUser.permissions.deviceLookup;return !!(p&&p[k])}
 function canW(){var p=currentUser&&currentUser.permissions&&currentUser.permissions.warrantySheet;return !!(p&&p.canManage)}
@@ -9950,7 +9950,7 @@ function fd(v){return v?String(v).replace('T',' ').slice(0,16):'-'}
 function dash(v){return v==null||String(v).trim()===''?'-':String(v)}
 async function rpc(fn,extra){var c=cr();if(!c)throw new Error('Please log in again.');var r=await supabaseClient.rpc(fn,{payload:Object.assign({},c,extra||{})});if(r.error)throw new Error(r.error.message);return r.data}
 function hideSug(){sug.style.display='none';sug.innerHTML=''}
-function stText(k){var d=info[k];if(!d)return 'No report uploaded yet.';if(k==='warranty')return d.rows+' records - '+new Date(d.at).toLocaleString('en-GB',{timeZone:'Africa/Cairo'})+' by '+d.by;var n=k==='apps'?(d.rows+' computers, '+d.apps+' apps'):(k==='disks'||k==='bitlocker')?(d.computers!=null?(d.computers+' computers, '+d.rows+(k==='disks'?' disks':' keys')):(d.rows+' rows')):(d.rows+' computers');return n+' - '+new Date(d.at).toLocaleString('en-GB',{timeZone:'Africa/Cairo'})+' by '+d.by}
+function stText(k){var d=info[k];if(!d)return 'No report uploaded yet.';if(k==='health')return d.rows+' disks with health data - '+new Date(d.at).toLocaleString('en-GB',{timeZone:'Africa/Cairo'})+' by '+d.by;if(k==='warranty')return d.rows+' records - '+new Date(d.at).toLocaleString('en-GB',{timeZone:'Africa/Cairo'})+' by '+d.by;var n=k==='apps'?(d.rows+' computers, '+d.apps+' apps'):(k==='disks'||k==='bitlocker')?(d.computers!=null?(d.computers+' computers, '+d.rows+(k==='disks'?' disks':' keys')):(d.rows+' rows')):(d.rows+' computers');return n+' - '+new Date(d.at).toLocaleString('en-GB',{timeZone:'Africa/Cairo'})+' by '+d.by}
 function renderUploads(){
 if(!upList)return;
 var boxEl=$('dlUploadBox');if(boxEl)boxEl.style.display=(can('canUpload')||canW())?'':'none';
@@ -10016,18 +10016,19 @@ h+=cell('Computer Name',escapeHtml(dash(m.name)));
 h+=cell('Serial Number',escapeHtml(dash(m.serial)));
 h+=cell('OU',escapeHtml(dash(m.ou)),true);
 h+=cell('User',escapeHtml(dash(String(m.user||'').replace(/\s*\(locked\)\s*$/i,''))));
+h+=cell('Display Name',escapeHtml(dash(m.display_name)));
 h+=cell('Windows',escapeHtml(dash(m.os)));
 h+=cell('SP / Release',escapeHtml(dash(m.release)));
 h+=cell('O/S Architecture',escapeHtml(dash(k.arch)));
+h+=cell('RAM',escapeHtml(dash(m.memory)));
 h+=cell('Activation Key',k.key?'<span style="font-family:monospace;user-select:all;">'+escapeHtml(k.key)+'</span> <button type="button" class="custom-btn dl-copy" data-v="'+escapeHtml(k.key)+'" title="Copy" style="padding:2px 8px;"><i class="fa-regular fa-copy"></i></button>':'-',true);
 h+=cell('MAC',escapeHtml(dash(m.mac)));
 h+=cell('IP Address',escapeHtml(dash(m.ip)));
-h+=cell('RAM',escapeHtml(dash(m.memory)));
-h+=cell('Last Scanned',escapeHtml(fd(m.scan)));
+h+=cell('Last Scanned',escapeHtml(fd(m.scan)),true);
 h+='</div>';
 h+='<h4 style="margin:18px 0 8px;"><i class="fa-solid fa-hard-drive" style="color:var(--primary-accent-color);"></i> Disks</h4>';
 if(d.disks&&d.disks.length){
-h+=d.disks.map(function(x,i){var ok=String(x.smart||'').toUpperCase()==='OK';var row=function(l,v,st){return '<div style="display:flex;gap:10px;padding:3px 0;"><span style="flex:0 0 90px;color:var(--secondary-color);font-size:.85em;">'+l+'</span><span style="flex:1;min-width:0;word-break:break-word;font-weight:600;'+(st||'')+'">'+v+'</span></div>'};return '<div style="background:var(--secondary-bg-color);border:1px solid var(--border-color);border-radius:10px;padding:10px 14px;margin-bottom:10px;">'+(d.disks.length>1?'<div style="font-size:.8em;color:var(--secondary-color);margin-bottom:4px;">Disk '+(i+1)+'</div>':'')+row('Type',escapeHtml(dash(x.type)))+row('Model',escapeHtml(dash(x.model)))+row('Serial Number',escapeHtml(dash(x.serial)))+row('Capacity',x.size!=null?escapeHtml(String(x.size))+' GB':'-')+row('Health',escapeHtml(dash(x.smart)),x.smart?'color:'+(ok?'var(--success-color)':'var(--danger-color,#e5484d)')+';':'')+'</div>'}).join('')
+h+=d.disks.map(function(x,i){var ok=String(x.smart||'').toUpperCase()==='OK';var row=function(l,v,st){return '<div style="display:flex;gap:10px;padding:3px 0;"><span style="flex:0 0 90px;color:var(--secondary-color);font-size:.85em;">'+l+'</span><span style="flex:1;min-width:0;word-break:break-word;font-weight:600;'+(st||'')+'">'+v+'</span></div>'};return '<div style="background:var(--secondary-bg-color);border:1px solid var(--border-color);border-radius:10px;padding:10px 14px;margin-bottom:10px;">'+(d.disks.length>1?'<div style="font-size:.8em;color:var(--secondary-color);margin-bottom:4px;">Disk '+(i+1)+'</div>':'')+row('Type',escapeHtml(dash(x.type)))+row('Model',escapeHtml(dash(x.model)))+row('Serial Number',escapeHtml(dash(x.serial)))+row('Capacity',x.size!=null?escapeHtml(String(x.size))+' GB':'-')+row('Health',escapeHtml(dash(x.smart)),x.smart?'color:'+(ok?'var(--success-color)':'var(--danger-color,#e5484d)')+';':'')+(x.pct!=null?row('Health %',x.pct+' %','color:'+(x.pct>=70?'var(--success-color)':x.pct>=40?'#f59e0b':'var(--danger-color,#e5484d)')+';'):'')+(x.temp!=null?row('Temperature',x.temp+' \u00b0C'):'')+(x.letters?row('Letters',escapeHtml(x.letters)):'')+'</div>'}).join('')
 }else h+='<div style="color:var(--secondary-color);">-</div>';
 if(d.bitlocker!==null&&d.bitlocker!==undefined){
 h+='<h4 style="margin:18px 0 8px;"><i class="fa-solid fa-lock" style="color:var(--primary-accent-color);"></i> BitLocker</h4>';
@@ -10068,7 +10069,16 @@ var h=hdrIdx(rows,['Computer Name','Computer Serial Number','Computer AD Path','
 if(!h)throw new Error('This is not the "All Xceed Computers main report" file.');
 var m=h.m,out=[];
 for(var j=h.i+1;j<rows.length;j++){var r=rows[j];if(!r)continue;var n=s(r[m['Computer Name']]);if(!n)continue;
-out.push([n,s(r[m['Computer Serial Number']]),s(r[m['Computer AD Path']]),s(r[m['Computer Current User Name']]).replace(/\s*\(locked\)\s*$/i,''),s(r[m['Computer O/S Name']]),s(r[m['Computer SP / Release']]),s(r[m['Computer MAC Address']]),s(r[m['Computer IP Address']]),ser(r[m['Computer Successful Scan Date']]),s(r[m['Computer Memory']])])}
+out.push([n,s(r[m['Computer Serial Number']]),s(r[m['Computer AD Path']]),s(r[m['Computer Current User Name']]).replace(/\s*\(locked\)\s*$/i,''),s(r[m['Computer O/S Name']]),s(r[m['Computer SP / Release']]),s(r[m['Computer MAC Address']]),s(r[m['Computer IP Address']]),ser(r[m['Computer Successful Scan Date']]),s(r[m['Computer Memory']]),('Computer Current User Display Name' in m)?s(r[m['Computer Current User Display Name']]):''])}
+return out}
+function parseHealth(rows){
+var h=hdrIdx(rows,['Computer Name','Computer Serial Number','PowerShell (Disk Health Percentage) Model','PowerShell (Disk Health Percentage) Serial','PowerShell (Disk Health Percentage) Health','PowerShell (Disk Health Percentage) Temp','PowerShell (Disk Health Percentage) Letter']);
+if(!h)throw new Error('This is not the "Disk Health Percentage" file.');
+var m=h.m,out=[],P='PowerShell (Disk Health Percentage) ';
+for(var j=h.i+1;j<rows.length;j++){var r=rows[j];if(!r)continue;var n=s(r[m['Computer Name']]);if(!n)continue;
+var sn=s(r[m[P+'Serial']]);if(!sn)continue;
+var pm=/\(\s*(\d+)\s*%\s*\)/.exec(s(r[m[P+'Health']])),tm=/(-?\d+)\s*C/i.exec(s(r[m[P+'Temp']]));
+out.push([n,s(r[m[P+'Model']]),sn,pm?pm[1]:'',tm?tm[1]:'',s(r[m[P+'Letter']])])}
 return out}
 function parseKeys(rows){
 var h=hdrIdx(rows,['Computer Name','Computer O/S Architecture','PowerShell (Get insatlled windows key) String']);
@@ -10223,8 +10233,43 @@ async function missingDisksReport(btn){
     }});
   if(res.isConfirmed)await mdGenerate();
 }
+async function uploadHealth(f,upd){
+var def=DS.filter(function(x){return x.k==='health'})[0];
+uploading=true;document.querySelectorAll('.dl-up-btn').forEach(function(b){b.style.opacity='.5';b.style.pointerEvents='none'});
+try{
+setProg('Loading Excel library...',2);
+await window.__lib('xlsx');
+setProg('Reading file...',5);
+await new Promise(function(r){setTimeout(r,30)});
+var wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+var rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:true,defval:null,blankrows:true});
+setProg('Analyzing report...',12);
+await new Promise(function(r){setTimeout(r,30)});
+var data=parseHealth(rows);rows=null;wb=null;
+if(!data.length)throw new Error('No data found in this file.');
+var ok=await Swal.fire({title:(upd?'Update':'Replace')+' disk health data?',html:'This file has <b>'+data.length+'</b> disks.<br>'+(upd?'Matching disks get their serial, temperature, health % and drive letters updated. Nothing else changes.':'Serial, temperature, health % and drive letters of all existing disks are cleared first, then filled from this file.'),icon:'question',showCancelButton:true,confirmButtonText:upd?'Update':'Upload'});
+if(!ok.isConfirmed){prog.style.display='none';return}
+var gm=new Map();data.forEach(function(r){var g=String(r[0]).toLowerCase();if(!gm.has(g))gm.set(g,[]);gm.get(g).push(r)});
+var chunks=[],cur=[];gm.forEach(function(g){if(cur.length&&cur.length+g.length>1500){chunks.push(cur);cur=[]}cur=cur.concat(g)});if(cur.length)chunks.push(cur);
+var tot={total:0,matched:0,no_computer:0,unmatched:0};
+for(var i=0;i<chunks.length;i++){
+setProg((upd?'Updating ':'Uploading ')+(i+1)+' / '+chunks.length+'...',10+Math.round(i/chunks.length*85));
+var r1=await send('dl_health_chunk',{mode:upd?'update':'upload',first:i===0,rows:chunks[i]});
+tot.total+=r1.total;tot.matched+=r1.matched;tot.no_computer+=r1.no_computer;tot.unmatched+=r1.unmatched}
+setProg('Finalizing...',97);
+await send('dl_health_finish',{fileName:f.name,mode:upd?'update':'upload'});
+setProg('Done',100);
+try{logActivity((upd?'Update':'Upload')+' Device Data',def.t+' ('+f.name+') - '+tot.matched+' of '+tot.total+' matched')}catch(e){}
+showNotification(def.t+(upd?' updated: ':' uploaded: ')+tot.matched+' of '+tot.total+' disks matched.','success');
+inp.value='';loadInfo();
+setTimeout(function(){prog.style.display='none'},1500);
+Swal.fire({title:'Disk health import',icon:tot.unmatched?'warning':'success',html:'<div style="text-align:left;line-height:1.9;"><b>'+tot.matched+'</b> disks matched and updated<br><b>'+tot.no_computer+'</b> disks skipped (computer not in the Hard Disk report)<br><b>'+tot.unmatched+'</b> disks could not be matched</div>'})
+}catch(e){showNotification(e.message||'Upload failed','error');setProg('Failed: '+(e.message||'error')+(upd?' (some rows may already be updated - run Update again to complete)':''),0)}
+finally{uploading=false;document.querySelectorAll('.dl-up-btn').forEach(function(b){b.style.opacity='';b.style.pointerEvents=''});document.querySelectorAll('#dlUploadList input[type=file]').forEach(function(i){i.value=''})}
+}
 async function upload(k,f,upd){
 if(k==='warranty')return uploadWarranty(f,upd);
+if(k==='health')return uploadHealth(f,upd);
 var def=DS.filter(function(x){return x.k===k})[0];
 uploading=true;document.querySelectorAll('.dl-up-btn').forEach(function(b){b.style.opacity='.5';b.style.pointerEvents='none'});
 try{
@@ -10543,7 +10588,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261122083814';
+var APP_VERSION='20261122133103';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
