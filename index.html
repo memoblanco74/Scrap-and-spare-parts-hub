@@ -10670,7 +10670,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261123011513';
+var APP_VERSION='20261123012033';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
@@ -11056,7 +11056,7 @@ var pg=document.querySelector('.perm-grid');if(pg){pg.style.maxHeight='none';pg.
 })();
 (function(){
 var root=document.getElementById('maintenance-centre');if(!root)return;
-var view='report',rep=null,prices=[],types=[],manual=[],unp=[],loaded={},busy=false,range={from:'',to:''},recQ='',priceQ='',srcMode=(function(){try{return localStorage.getItem('mcSrc')==='manual'?'manual':'all'}catch(e){return 'all'}})();
+var view='report',rep=null,prices=[],types=[],manual=[],unp=[],loaded={},busy=false,range={from:'',to:''},recQ='',priceQ='',unpQ='',srcMode=(function(){try{return localStorage.getItem('mcSrc')==='manual'?'manual':'all'}catch(e){return 'all'}})();
 function perm(k){var p=currentUser&&currentUser.permissions&&currentUser.permissions.maintenanceCentre;return !!(p&&p[k])}
 function cr(){var u=currentUser&&users[currentUser.email];return u&&u.password?{username:u.email,password:u.password}:null}
 async function rpc(fn,extra){var c=cr();if(!c)throw new Error('Please log in again.');var r=await supabaseClient.rpc(fn,{payload:Object.assign({},c,extra||{})});if(r.error)throw new Error(r.error.message);return r.data}
@@ -11126,11 +11126,11 @@ body.innerHTML=h
 }
 function renderUnpriced(){
 var canP=perm('canEditPrices'),canA=perm('canManageRecords');
-var h='<div class="mc-bar"><span style="flex:1"></span>'+(canA?'<button type="button" class="custom-btn mc-btn" data-a="apply"><i class="fa-solid fa-wand-magic-sparkles"></i> Price unpriced records with current prices</button>':'')+'</div>';
+var uq=unpQ.trim().toLowerCase();var h='<div class="mc-bar"><input type="search" id="mcUnpQ" placeholder="Search unpriced items..." value="'+esc(unpQ)+'" style="flex:1;min-width:160px">'+(canA?'<button type="button" class="custom-btn mc-btn" data-a="apply"><i class="fa-solid fa-wand-magic-sparkles"></i> Price unpriced records with current prices</button>':'')+'</div>';
 h+='<div class="mc-note" style="margin-bottom:10px">Usage records that had no matching price when they were recorded. Add a price for an item, then use the button above to price the old records with today\'s prices. Records that already have a price are never changed.</div>';
 h+='<div class="mc-card"><div class="mc-scroll"><table class="mc-table"><thead><tr><th>Item</th><th>Brand</th><th>Model / Device model</th><th class="n">Uses</th><th class="n">Qty</th>'+(canP?'<th></th>':'')+'</tr></thead><tbody>';
-h+=unp.map(function(u,i){return '<tr><td><b>'+esc(u.type)+'</b></td><td>'+esc(u.brand||'-')+'</td><td>'+esc(u.model||'-')+'</td><td class="n">'+u.uses+'</td><td class="n">'+u.qty+'</td>'+(canP?'<td class="n"><button type="button" class="custom-btn mc-btn" data-a="uadd" data-i="'+i+'" style="padding:4px 10px"><i class="fa-solid fa-plus"></i> Add price</button></td>':'')+'</tr>'}).join('');
-h+='</tbody></table></div>'+(unp.length?'':'<div class="mc-empty"><i class="fa-solid fa-circle-check" style="color:var(--success-color)"></i> Every record has a price.</div>')+'</div>';
+h+=unp.map(function(u,i){if(uq&&[u.type,u.brand,u.model].join(' ').toLowerCase().indexOf(uq)<0)return '';return '<tr><td><b>'+esc(u.type)+'</b></td><td>'+esc(u.brand||'-')+'</td><td>'+esc(u.model||'-')+'</td><td class="n">'+u.uses+'</td><td class="n">'+u.qty+'</td>'+(canP?'<td class="n"><button type="button" class="custom-btn mc-btn" data-a="uadd" data-i="'+i+'" style="padding:4px 10px"><i class="fa-solid fa-plus"></i> Add price</button></td>':'')+'</tr>'}).join('');
+h+='</tbody></table></div>'+(unp.length?(uq&&!unp.some(function(u){return [u.type,u.brand,u.model].join(' ').toLowerCase().indexOf(uq)>-1})?'<div class="mc-empty">No match.</div>':''):'<div class="mc-empty"><i class="fa-solid fa-circle-check" style="color:var(--success-color)"></i> Every record has a price.</div>')+'</div>';
 body.innerHTML=h
 }
 function render(){renderNav();if(view==='report')renderReport();else if(view==='prices')renderPrices();else if(view==='manual')renderManual();else renderUnpriced()}
@@ -11202,6 +11202,7 @@ if(act==='costedit'){var row=((rep&&rep.rows)||[]).filter(function(x){return x[0
 root.addEventListener('input',function(e){
 var t=e.target;
 if(t.id==='mcRecQ'){recQ=t.value;var d=root.querySelector('#mcRecs');if(d)d.innerHTML=recTable()}
+else if(t.id==='mcUnpQ'){unpQ=t.value;var pu=t.selectionStart;renderUnpriced();var nu=root.querySelector('#mcUnpQ');if(nu){nu.focus();try{nu.setSelectionRange(pu,pu)}catch(e3){}}}
 else if(t.id==='mcPriceQ'){priceQ=t.value;var pos=t.selectionStart;renderPrices();var n=root.querySelector('#mcPriceQ');if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e2){}}}
 });
 root.addEventListener('change',function(e){
