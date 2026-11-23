@@ -8602,6 +8602,48 @@ async function exportFullDatabase() {
 }
 function populateIncidentDatalists(){const locationList=document.getElementById('location-list');const uniqueLocations=[...new Set(allLaptops.map(l=>l.current_location).filter(Boolean))].sort();locationList.innerHTML=uniqueLocations.map(val=>`<option value="${val}"></option>`).join('')}
 (function(){var c=document.getElementById('i6_chips');if(!c)return;['keyboard','screen','touchpad','hinges','frame','fan','battery','charger','SSD','RAM','motherboard','charging port'].forEach(function(v){var b=document.createElement('button');b.type='button';b.className='custom-btn';b.style.cssText='padding:4px 10px;font-size:.82em;margin:0';b.textContent=v;b.addEventListener('click',function(){var i=document.getElementById('i6_issue');i.value=v;i.dispatchEvent(new Event('input',{bubbles:true}))});c.appendChild(b)})})();
+(function(){
+var sn=document.getElementById('i6_sn');if(!sn)return;
+var hint=document.createElement('div');hint.style.cssText='font-size:.8em;margin-top:4px;color:var(--secondary-color)';sn.parentNode.appendChild(hint);
+var cache={t:0,rows:[]};
+function up(v){return String(v||'').trim().toUpperCase()}
+async function manualRows(){
+ var p=currentUser&&currentUser.permissions&&currentUser.permissions.maintenanceCentre;if(!(p&&p.visible))return [];
+ if(Date.now()-cache.t<60000)return cache.rows;
+ try{var u=users[currentUser.email];if(!u||!u.password)return [];var r=await supabaseClient.rpc('mc_manual_list',{payload:{username:u.email,password:u.password}});if(!r.error&&Array.isArray(r.data)){cache={t:Date.now(),rows:r.data}}}catch(e){}
+ return cache.rows
+}
+function setAuto(id,v){var el=document.getElementById(id);if(!el)return;if(el.value.trim()===''||el.dataset.auto==='1'){el.value=v;el.dataset.auto='1';el.dispatchEvent(new Event('input',{bubbles:true}))}}
+['i6_issue','i6_fix','i6_src'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('input',function(e){if(e.isTrusted)el.dataset.auto=''})});
+async function lookup(q){
+ var c=[];
+ (typeof allUsageHistory!=='undefined'?allUsageHistory:[]).forEach(function(r){if(up(r.destSN||r.dest_sn)===q){var d=parseCustomDate(r.date);if(d&&!isNaN(d))c.push({k:'u',d:d,r:r})}});
+ (await manualRows()).forEach(function(m){if(up(m.serial)===q){var d=new Date(m.date);if(!isNaN(d))c.push({k:'m',d:d,r:m})}});
+ if(!c.length)return null;
+ c.sort(function(a,b){return b.d-a.d});
+ var top=c[0];
+ if(top.k==='m'){var m=top.r,ac=String(m.condition||'').trim(),al=ac.toLowerCase(),fix;
+  if(al==='new')fix='replacing it with a new part';else if(al==='used')fix='replacing it with a used part';else fix=ac?al:String(m.details||'').trim();
+  return {issue:String(m.component||'').trim().toLowerCase(),fix:fix,src:'',from:'manual record',date:top.d}}
+ var g=c.filter(function(x){return x.k==='u'&&top.d-x.d<=300000});
+ var types=[],st={},src='';
+ g.forEach(function(x){var t=String(x.r.type||'').trim().toLowerCase();if(t&&types.indexOf(t)<0)types.push(t);var pid=Number(x.r.partId||x.r.part_id);var part=(typeof allSpareParts!=='undefined'?allSpareParts:[]).find(function(p){return Number(p.id)===pid});var cat=part?String(part.category||'').toLowerCase():'';st[cat.startsWith('new')?'new':(cat?'used':'unk')]=1;var s2=x.r.sourceSN||x.r.source_sn;if(!src&&s2)src=String(s2)});
+ var kinds=Object.keys(st),kind=kinds.length===1&&kinds[0]!=='unk'?kinds[0]+' ':'';
+ var many=types.length>1;
+ var fx=many?('replacing them with '+(kind?kind+'parts':'parts')):('replacing it with a '+kind+'part');
+ return {issue:types.join(' and '),fix:fx,src:src,from:'usage record',date:top.d}
+}
+function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+sn.addEventListener('change',async function(){
+ var q=up(sn.value);hint.textContent='';if(!q)return;
+ hint.textContent='Looking for the latest record...';
+ var r=null;try{r=await lookup(q)}catch(e){}
+ if(up(sn.value)!==q)return;
+ if(!r){hint.textContent='No usage or manual record found for this serial.';return}
+ setAuto('i6_issue',r.issue);setAuto('i6_fix',r.fix);if(r.src)setAuto('i6_src',r.src);
+ hint.textContent='Filled from the latest '+r.from+' ('+fmt(r.date)+'). You can edit it.';
+});
+})();
 function handleIncidentTypeChange(){const selectedType=incidentTypeSelector.value;incidentFormsContainer.querySelectorAll('.incident-form').forEach(form=>form.style.display='none');incidentOutputContainer.style.display='none';incidentOutput.value='';if(selectedType){document.getElementById(`form${selectedType.charAt(0).toUpperCase()+selectedType.slice(1)}`).style.display='block';incidentOutputContainer.style.display='block';updateIncidentText()}}
 function getSparePartsText(listElement){let partsText=[];listElement.querySelectorAll('.spare-part-item').forEach(item=>{const qty=item.querySelector('.part-qty').value||'.....';const type=item.querySelector('.part-type').value;let typeDetails='';if(type==='RAM'){const ramModel=item.querySelector('.part-ram-model').value||'...';const ramPath=item.querySelector('.part-ram-path').value||'...';typeDetails=`RAM ${ramModel} ... path ${ramPath}`}else if(type==='Fan'||type==='Battery'){const laptopModel=item.querySelector('.part-laptop-model').value||'...';typeDetails=`${type} for ${laptopModel}`}else{typeDetails=type}partsText.push(`${qty} ${typeDetails}`)});return partsText.join(' and ')}
 function updateIncidentText(){const type=incidentTypeSelector.value;let text='';switch(type){case 'scrapToRoom':text=`Need to move laptop with SN: ${document.getElementById('i1_sn').value||'......'} from Smart Village scrap to Site ${document.getElementById('i1_site').value||'......'} room ${document.getElementById('i1_room').value||'....'}.`;break;case 'roomToScrap':text=`Need to move laptop with SN: ${document.getElementById('i2_sn').value||'......'} from Site ${document.getElementById('i2_site').value||'......'} room ${document.getElementById('i2_room').value||'....'} to Smart Village scrap.`;break;case 'storeToRoom':text=`Need to move spare parts ${getSparePartsText(sparePartsList_form3)} from Smart Village store to site ${document.getElementById('i3_site').value||'.....'} room ${document.getElementById('i3_room').value||'....'}.`;break;case 'partsToStore':text=`need to move working spare parts related to damaged laptop with SN: ${document.getElementById('i4_sn').value||'........'} from IT Support room S74 to smart village store. "Spare Parts to Move" ${getSparePartsText(sparePartsList_form4)}`;break;case 'maintenanceFix':{const _is=document.getElementById('i6_issue').value.trim(),_need=/keyboard|screen|touch\s*pad|hing|frame/i.test(_is);document.getElementById('i6_srcRow').style.display=_need?'':'none';text=`${document.getElementById('i6_type').value} with serial number ${document.getElementById('i6_sn').value||'......'} has issue in ${_is||'......'} and fixed after ${document.getElementById('i6_fix').value||'......'}`+(_need?` using a part taken from device with serial number ${document.getElementById('i6_src').value||'......'}`:'')+'.';break}case 'roomToRoom':text=`Need to move laptop with SN: ${document.getElementById('i5_sn').value||'......'} from room ${document.getElementById('i5_from_room').value||'.....'} at site ${document.getElementById('i5_from_site').value||'......'} to room ${document.getElementById('i5_to_room').value||'....'} at site ${document.getElementById('i5_to_site').value||'......'}.`;break;}incidentOutput.value=text}
@@ -10685,7 +10727,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261123022913';
+var APP_VERSION='20261123023126';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
