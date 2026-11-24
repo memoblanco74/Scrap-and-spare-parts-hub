@@ -7052,6 +7052,17 @@ function classifyHwUpgradeItem(rawType){
     if(['ram','memory'].some(k=>t.includes(k)))return 'ram';
     return null;
 }
+async function lookupDlBySerials(sns){
+    const out={};
+    try{
+        const list=sns.filter(x=>x&&x!=='UNKNOWN-SN');
+        const u=currentUser&&users[currentUser.email];
+        if(!list.length||!u||!u.password)return out;
+        const r=await supabaseClient.rpc('dl_by_serials',{payload:{username:u.email,password:u.password,serials:list}});
+        if(!r.error&&Array.isArray(r.data))r.data.forEach(x=>{out[String(x.serial||'').trim().toLowerCase()]=x});
+    }catch(e){console.error('Device Lookup serial fetch failed',e)}
+    return out;
+}
 async function buildHardwareUpgradeEmailData(selectedRows){
     const groups={};
     const order=[];
@@ -7068,6 +7079,7 @@ async function buildHardwareUpgradeEmailData(selectedRows){
     }catch(e){
         console.error('Batched device type lookup failed',e);
     }
+    const dlMap=await lookupDlBySerials(order);
     for(const sn of order){
         const grp=groups[sn];
         const ssdItems={},ramItems={};
@@ -7121,7 +7133,19 @@ async function buildHardwareUpgradeEmailData(selectedRows){
             return (it.qty+(st?' '+st:'')+' '+it.label).trim();
         }).join(' + ');
         const hasRamUsage=ramItemKeys.length>0;
-        const ramColumnText=hasRamUsage?'Ram Upgraded To () GB':'-';
+        const dlInfo=dlMap[String(sn).trim().toLowerCase()]||null;
+        let ramUpTo='',ramStd='';
+        if(hasRamUsage&&dlInfo){
+            const totalGb=parseFloat(String(dlInfo.memory||'').replace(/[^0-9.]/g,''));
+            if(totalGb>0){
+                let addedGb=0;
+                ramItemKeys.forEach(k=>{const m=ramItems[k].label.match(/(\d+)\s*GB/i);if(m)addedGb+=Number(m[1])*ramItems[k].qty});
+                const scanD=dlInfo.scan?parseCustomDate(dlInfo.scan):null;
+                if(scanD&&latestDate&&scanD<latestDate){ramStd=String(totalGb);ramUpTo=String(totalGb+addedGb)}
+                else{ramUpTo=String(totalGb);if(totalGb-addedGb>0)ramStd=String(totalGb-addedGb)}
+            }
+        }
+        const ramColumnText=hasRamUsage?'Ram Upgraded To ('+ramUpTo+') GB':'-';
         const ssdItemKeys=Object.keys(ssdItems);
         const ssdNoteText=ssdItemKeys.map(k=>{
             const it=ssdItems[k];
@@ -7129,7 +7153,7 @@ async function buildHardwareUpgradeEmailData(selectedRows){
             const qtyPrefix=it.qty>1?(it.qty+'* '):'';
             return (qtyPrefix+(st?st+' ':'')+it.label).trim();
         }).join(' + ');
-        const noteText=[ramNoteText,hasRamUsage?'1 () GB standard':'',ssdNoteText].filter(Boolean).join(' , ');
+        const noteText=[ramNoteText,hasRamUsage?'1 ('+ramStd+') GB standard':'',ssdNoteText].filter(Boolean).join(' , ');
         const techUser=techEmail?Object.keys(users).find(e=>e.toLowerCase()===techEmail.toLowerCase()):null;
         const techDisplayName=techUser&&users[techUser]&&users[techUser].comment?users[techUser].comment:(techEmail||'-');
         const incChangeParts=[];
@@ -7143,7 +7167,7 @@ async function buildHardwareUpgradeEmailData(selectedRows){
             ramColumnText,
             grp.model||'-',
             grp.sn,
-            '',
+            dlInfo&&dlInfo.name?String(dlInfo.name):'',
             noteText,
             incChangeParts.length?incChangeParts.join(' | '):'-',
             noteText,
@@ -10727,7 +10751,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261124192225';
+var APP_VERSION='20261124192923';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
