@@ -5814,7 +5814,7 @@ function setupRealtimeSubscriptions() {
                     refreshBtn.title = "Realtime: Connected";
                 }
             } else if (status === 'CHANNEL_ERROR' || status === 'CLOSED' || status === 'TIMED_OUT') {
-                window.__rtOk = false; window.__rtDown = true;
+                window.__rtOk = false; window.__rtDown = true; window.__rtLostAt = window.__rtLostAt || Date.now();
                 realtimeRetryCount++; 
                 
                 supabaseClient.removeAllChannels(); 
@@ -5848,9 +5848,27 @@ function setupRealtimeSubscriptions() {
         var sock = supabaseClient.realtime;
         var live = window.__rtOk === true && (!sock || typeof sock.isConnected !== 'function' || sock.isConnected());
         if (live) return;
+        if (!window.__rtDown) { window.__rtDown = true; window.__rtLostAt = window.__rtLostAt || Date.now(); }
+        if (navigator.onLine === false) return;
         realtimeRetryCount = 0;
         setupRealtimeSubscriptions();
     }
+    window.addEventListener('offline', function(){
+        if (!window.realtimeChannel && !window.__rtDown) return;
+        window.__rtOk = false; window.__rtDown = true; window.__rtLostAt = window.__rtLostAt || Date.now();
+        var i = document.getElementById('realtimeStatusIcon'), b = document.getElementById('refreshDataBtn');
+        if (i) { i.classList.remove('realtime-connected'); i.classList.add('realtime-disconnected'); }
+        if (b) { b.classList.remove('is-connected'); b.classList.add('is-disconnected'); b.title = 'Realtime: Offline'; }
+    });
+    var lastAct = 0;
+    ['mousemove', 'mousedown', 'keydown', 'touchstart', 'click', 'wheel'].forEach(function(ev){
+        window.addEventListener(ev, function(){
+            var n = Date.now();
+            if (n - lastAct < 3000) return;
+            lastAct = n;
+            if (window.__rtOk !== true || window.__rtDown) kick();
+        }, { passive: true, capture: true });
+    });
     window.addEventListener('online', kick);
     document.addEventListener('visibilitychange', function(){ if (!document.hidden) kick(); });
     window.addEventListener('focus', kick);
@@ -10044,7 +10062,7 @@ window.queueDisplayName=function(a){if(tried[a]||queue[a])return;queue[a]=1;clea
 (function(){
 var o=refreshAllDataAndViews,inflight=null;
 refreshAllDataAndViews=function(){if(inflight)return inflight;window.__dataFailed=false;inflight=Promise.resolve(o.apply(this,arguments)).then(function(r){if(!window.__dataFailed){window.__dataLoadedAt=Date.now();window.__dataStale=false}return r}).finally(function(){inflight=null});return inflight};
-window.__onRtRecovered=function(){if(currentUser&&window.__dataLoadedAt)refreshAllDataAndViews()};
+window.__onRtRecovered=function(){var g=window.__rtLostAt?Date.now()-window.__rtLostAt:0;window.__rtLostAt=0;if(currentUser&&window.__dataLoadedAt){var pr=refreshAllDataAndViews();if(g>60000&&pr&&pr.then)pr.then(function(){if(!window.__dataFailed)showNotification('Connection restored. Data refreshed.','success')})}};
 window.ensureFreshData=function(){if(inflight)return inflight;var ok=window.__dataLoadedAt&&!window.__dataFailed&&!window.__dataStale&&window.__rtOk&&window.realtimeChannel&&!window.isIdleDisconnected&&(Date.now()-window.__dataLoadedAt<300000);if(ok)return Promise.resolve(false);return refreshAllDataAndViews()};
 window.afterLoginData=function(){return window.ensureFreshData().then(function(r){if(r===false&&currentUser&&currentUser.permissions.warrantyWidget&&currentUser.permissions.warrantyWidget.visible)loadWarrantyWidget()})};
 var hid=0;document.addEventListener('visibilitychange',function(){if(document.hidden)hid=Date.now();else if(hid&&Date.now()-hid>120000)window.__dataStale=true});
@@ -10751,7 +10769,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261124193333';
+var APP_VERSION='20261124193954';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
