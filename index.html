@@ -10106,7 +10106,7 @@ displayUsersInTable=function(){if(!window.__adminLoaded){window.loadAdminUsers()
 renderPermissionsAccessReport=function(){if(!window.__adminLoaded){window.loadAdminUsers();return}innerRep()};
 })();
 (function(){
-var libs={xlsx:['https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',function(){return typeof XLSX!=='undefined'}],qr:['https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',function(){return typeof QRCode!=='undefined'}],h5:['https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js',function(){return typeof Html5Qrcode!=='undefined'}]};
+var libs={xlsx:['https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',function(){return typeof XLSX!=='undefined'}],exceljs:['https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js',function(){return typeof ExcelJS!=='undefined'}],qr:['https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',function(){return typeof QRCode!=='undefined'}],h5:['https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js',function(){return typeof Html5Qrcode!=='undefined'}]};
 var pr={};
 window.__lib=function(k){var d=libs[k];if(d[1]())return Promise.resolve();if(pr[k])return pr[k];pr[k]=new Promise(function(res,rej){var s=document.createElement('script');s.src=d[0];s.onload=res;s.onerror=function(){delete pr[k];rej(new Error('lib '+k))};document.head.appendChild(s)});return pr[k]};
 document.addEventListener('click',function(e){
@@ -10769,7 +10769,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261124193954';
+var APP_VERSION='20261124195525';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
@@ -11267,15 +11267,102 @@ preConfirm:function(){var g=function(i){return document.getElementById(i).value}
 }
 async function exportXlsx(){
 try{
-await window.__lib('xlsx');
-var t=rep.totals,wb=XLSX.utils.book_new();
-var sum=[['Maintenance Centre report'],['Scope',srcMode==='manual'?'Manual records only':'Spare-parts usage + manual records'],['From',range.from||'All'],['To',range.to||'All'],[],['Records',t.records],['Priced records',t.priced],['Unpriced records',t.unpriced],['Vendor cost (EGP)',t.vendor],['Our repair cost (EGP)',t.internal],['Net savings (EGP)',t.savings]];
-XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(sum),'Summary');
-function sheet(name,rows,first){var a=[[first,'Records','Qty','Vendor cost','Our cost','Savings']].concat(rows.map(function(r){return [r.k,r.n,r.qty,r.vendor,r.internal,r.vendor-r.internal]}));XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(a),name)}
-sheet('By item',rep.by_type,'Item');sheet('By month',rep.by_month,'Month');sheet('By user',rep.by_user,'User');
-var recs=[['Date','Source','Item','Action','Brand','Model','Device','Serial','Incident','User','Qty','Vendor price (unit)','Our cost (unit)','Vendor total','Our total','Savings','Priced']].concat(rep.rows.map(function(r){var p=r[13];var mn=r[0]==='manual';return [r[2],r[0],r[3],mn?r[4]:'',mn?'':r[4],r[5],r[6],r[7],r[8],r[9],r[10],p?r[11]:'',p?r[12]:'',p?r[11]*r[10]:'',p?r[12]*r[10]:'',p?(r[11]-r[12])*r[10]:'',p?'Yes':'No']}));
-XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(recs),'Records');
-XLSX.writeFile(wb,'Maintenance_Centre_'+dtp(new Date())+'.xlsx');
+await window.__lib('exceljs');
+var t=rep.totals,wb=new ExcelJS.Workbook();
+wb.creator='Scrap & Spare Parts Hub';wb.created=new Date();
+var NAVY='FF0F2438',BLUE='FF1F6FEB',GREEN='FF1B7F3B',LGREEN='FFC6EFCE',GREY='FFF3F6FA',LINE='FFD5DCE6',TXT='FF1F2A37',MUTED='FF6B7787',WHITE='FFFFFFFF',RED='FFC0392B';
+var thin={style:'thin',color:{argb:LINE}},box={top:thin,left:thin,bottom:thin,right:thin};
+var FONT='Calibri';
+var EGP='#,##0" EGP";[Red]-#,##0" EGP"',NUM='#,##0.00',SAV='[Color10]#,##0.00;[Red]-#,##0.00';
+function paint(c,argb){c.fill={type:'pattern',pattern:'solid',fgColor:{argb:argb}}}
+function put(ws,r,c,v,o){var cell=ws.getCell(r,c);cell.value=v;o=o||{};cell.font={name:FONT,size:o.size||11,bold:!!o.bold,italic:!!o.italic,color:{argb:o.color||TXT}};cell.alignment={horizontal:o.h||'left',vertical:'middle',wrapText:!!o.wrap};if(o.fill)paint(cell,o.fill);if(o.fmt)cell.numFmt=o.fmt;if(o.border)cell.border=box;return cell}
+function merge(ws,r1,c1,r2,c2,v,o){ws.mergeCells(r1,c1,r2,c2);for(var r=r1;r<=r2;r++)for(var c=c1;c<=c2;c++){if(o&&o.fill)paint(ws.getCell(r,c),o.fill);if(o&&o.border)ws.getCell(r,c).border=box}return put(ws,r1,c1,v,o)}
+function sav(r){return (r.vendor||0)-(r.internal||0)}
+var scope=srcMode==='manual'?'Manual records + selected usage records':'Spare-parts usage + manual records';
+var period=(range.from||'Beginning')+'  to  '+(range.to||'Today');
+var ws=wb.addWorksheet('Dashboard',{views:[{showGridLines:false}],properties:{tabColor:{argb:NAVY}}});
+var rs=wb.addWorksheet('Records',{views:[{state:'frozen',ySplit:1}],properties:{tabColor:{argb:BLUE}}});
+var rows=rep.rows||[],n=rows.length,last=Math.max(n+1,2);
+var rh=['Date','Source','Item','Action','Brand','Model','Device','Serial','Incident','User','Qty','Vendor price (unit)','Our cost (unit)','Vendor total','Our total','Savings','Priced'];
+var rw=[13,10,16,14,12,22,26,20,12,14,7,16,14,14,14,14,9];
+rh.forEach(function(h,i){var c=put(rs,1,i+1,h,{bold:true,color:WHITE,fill:NAVY,h:'center',size:11});c.border=box;rs.getColumn(i+1).width=rw[i]});
+rs.getRow(1).height=26;
+var vTot=0,oTot=0;
+rows.forEach(function(r,i){
+var x=i+2,p=r[13],mn=r[0]==='manual',q=r[10];
+var vals=[r[2],r[0],r[3],mn?r[4]:'',mn?'':r[4],r[5],r[6],r[7],r[8],r[9],q,p?r[11]:null,p?r[12]:null];
+vals.forEach(function(v,ci){var c=put(rs,x,ci+1,v===null?'':v,{border:true,h:ci===10?'center':'left',fmt:(ci===11||ci===12)?NUM:null});if(i%2===1)paint(c,GREY)});
+var vt=p?r[11]*q:0,ot=p?r[12]*q:0;if(p){vTot+=vt;oTot+=ot}
+put(rs,x,14,p?{formula:'L'+x+'*K'+x,result:vt}:'',{border:true,fmt:NUM});
+put(rs,x,15,p?{formula:'M'+x+'*K'+x,result:ot}:'',{border:true,fmt:NUM});
+put(rs,x,16,p?{formula:'N'+x+'-O'+x,result:vt-ot}:'',{border:true,fmt:SAV,bold:true});
+put(rs,x,17,p?'Yes':'No',{border:true,h:'center',color:p?GREEN:RED,bold:!p});
+if(i%2===1)[14,15,16,17].forEach(function(ci){paint(rs.getCell(x,ci),GREY)})
+});
+rs.autoFilter={from:{row:1,column:1},to:{row:last,column:17}};
+function bd(name,first,list,tc){
+var w=wb.addWorksheet(name,{views:[{state:'frozen',ySplit:1}],properties:{tabColor:{argb:tc}}});
+[first,'Records','Qty','Vendor cost','Our cost','Savings'].forEach(function(h,i){var c=put(w,1,i+1,h,{bold:true,color:WHITE,fill:NAVY,h:'center'});c.border=box;w.getColumn(i+1).width=i===0?26:15});
+w.getRow(1).height=26;
+list.forEach(function(r,i){var x=i+2;var vals=[r.k,r.n,r.qty,r.vendor,r.internal];vals.forEach(function(v,ci){var c=put(w,x,ci+1,v,{border:true,h:ci===0?'left':'right',fmt:ci>=3?NUM:null});if(i%2===1)paint(c,GREY)});var c6=put(w,x,6,{formula:'D'+x+'-E'+x,result:(r.vendor||0)-(r.internal||0)},{border:true,fmt:SAV,bold:true,h:'right'});if(i%2===1)paint(c6,GREY)});
+return w}
+var bi=bd('By item','Item',rep.by_type||[],'FF16A34A'),bm=bd('By month','Month',rep.by_month||[],'FFD97706'),bu=bd('By user','User',rep.by_user||[],'FF7C3AED');
+ws.columns=[];for(var ci=1;ci<=12;ci++)ws.getColumn(ci).width=14;
+ws.getRow(1).height=30;ws.getRow(2).height=30;
+merge(ws,1,1,2,12,'IT Maintenance & Cost Savings Dashboard',{bold:true,size:22,color:WHITE,fill:NAVY,h:'center'});
+merge(ws,3,1,3,12,'Period: '+period+'    |    Scope: '+scope+'    |    Generated: '+dtp(new Date()),{italic:true,size:10,color:MUTED,h:'center'});
+ws.getRow(3).height=20;
+var R='Records!',rg=function(col){return R+col+'2:'+col+last};
+function card(c1,label,fm,res,fmt,sub,color){
+ws.mergeCells(5,c1,5,c1+2);ws.mergeCells(6,c1,7,c1+2);ws.mergeCells(8,c1,8,c1+2);
+for(var rr=5;rr<=8;rr++)for(var cc=c1;cc<=c1+2;cc++)paint(ws.getCell(rr,cc),GREY);
+for(var cc2=c1;cc2<=c1+2;cc2++)ws.getCell(5,cc2).border={top:{style:'medium',color:{argb:color}}};
+put(ws,5,c1,label.toUpperCase(),{bold:true,size:9,color:MUTED,h:'center',fill:GREY});
+var vc=put(ws,6,c1,fm?{formula:fm,result:res}:res,{bold:true,size:24,color:color,h:'center',fill:GREY,fmt:fmt});
+put(ws,8,c1,sub,{size:9,color:MUTED,h:'center',fill:GREY})}
+ws.getRow(5).height=20;ws.getRow(6).height=24;ws.getRow(7).height=24;ws.getRow(8).height=20;
+var savings=vTot-oTot;
+card(1,'Records','COUNTA('+rg('A')+')',n,'#,##0',(t.unpriced||0)+' without a price (not counted)',BLUE);
+card(4,'Vendor cost (if outsourced)','SUM('+rg('N')+')',vTot,EGP,'What the vendor would have charged',NAVY);
+card(7,'Our repair cost','SUM('+rg('O')+')',oTot,EGP,'What we actually spent',NAVY);
+card(10,'Savings rate','IFERROR(('+'SUM('+rg('N')+')-SUM('+rg('O')+'))/SUM('+rg('N')+'),0)',vTot>0?savings/vTot:0,'0%','of the vendor cost',GREEN);
+ws.getRow(9).height=10;
+ws.mergeCells(10,1,10,12);ws.mergeCells(11,1,12,12);
+for(var rr2=10;rr2<=12;rr2++)for(var cc3=1;cc3<=12;cc3++)paint(ws.getCell(rr2,cc3),LGREEN);
+put(ws,10,1,'Total Net Savings Achieved',{bold:true,size:12,color:GREEN,h:'center',fill:LGREEN});
+put(ws,11,1,{formula:'SUM('+rg('N')+')-SUM('+rg('O')+')',result:savings},{bold:true,size:28,color:GREEN,h:'center',fill:LGREEN,fmt:EGP});
+ws.getRow(10).height=22;ws.getRow(11).height=26;ws.getRow(12).height=26;
+function title(r,c1,c2,txt){ws.mergeCells(r,c1,r,c2);for(var cc=c1;cc<=c2;cc++)ws.getCell(r,cc).border={bottom:{style:'medium',color:{argb:BLUE}}};put(ws,r,c1,txt,{bold:true,size:13,color:NAVY});ws.getRow(r).height=24}
+function head(r,c1,c2,labels){labels.forEach(function(l){ws.mergeCells(r,l[0],r,l[1]);for(var cc=l[0];cc<=l[1];cc++){paint(ws.getCell(r,cc),NAVY);ws.getCell(r,cc).border=box}put(ws,r,l[0],l[2],{bold:true,size:10,color:WHITE,fill:NAVY,h:'center'})})}
+function bars(r0,list,cLab1,cLab2,cVal,cBar1,cBar2,maxLen){
+var vals=list.map(sav),mx=Math.max.apply(null,vals.concat([0]));
+var a=r0,b=r0+list.length-1,vc=String.fromCharCode(64+cVal);
+list.forEach(function(r,i){var x=r0+i,odd=i%2===1;
+ws.mergeCells(x,cLab1,x,cLab2);ws.mergeCells(x,cBar1,x,cBar2);
+for(var cc=cLab1;cc<=cBar2;cc++){ws.getCell(x,cc).border=box;if(odd)paint(ws.getCell(x,cc),GREY)}
+put(ws,x,cLab1,r.k,{size:10,fill:odd?GREY:null});
+var s=vals[i];put(ws,x,cVal,s,{size:10,bold:true,fmt:EGP,h:'right',color:s<0?RED:TXT,fill:odd?GREY:null});
+var len=mx>0?Math.max(0,Math.round(s/mx*maxLen)):0;
+put(ws,x,cBar1,{formula:'REPT("█",IFERROR(MAX(0,ROUND('+vc+x+'/MAX('+vc+'$'+a+':'+vc+'$'+b+')*'+maxLen+',0)),0))',result:new Array(len+1).join('█')},{size:10,color:GREEN,fill:odd?GREY:null})})}
+title(14,1,6,'Savings by month (last 12)');title(14,7,12,'Top items by savings');
+var months=(rep.by_month||[]).slice(-12);
+head(15,1,6,[[1,1,'Month'],[2,2,'Savings'],[3,6,'Trend']]);
+head(15,7,12,[[7,8,'Item'],[9,9,'Savings'],[10,12,'Share']]);
+if(months.length)bars(16,months,1,1,2,3,6,22);
+var items=(rep.by_type||[]).slice().sort(function(a,b){return sav(b)-sav(a)}).slice(0,8);
+if(items.length)bars(16,items,7,8,9,10,12,16);
+var next=16+Math.max(months.length,items.length)+2;
+title(next,1,6,'Top users by savings');title(next,7,12,'Notes');
+head(next+1,1,6,[[1,2,'User'],[3,3,'Savings'],[4,6,'Share']]);
+var users2=(rep.by_user||[]).slice().sort(function(a,b){return sav(b)-sav(a)}).slice(0,8);
+if(users2.length)bars(next+2,users2,1,2,3,4,6,16);
+var notes=['Prices are snapshotted at the time each record was created, so later price changes do not affect old records.','Vendor cost = vendor price x qty. Our cost = internal repair cost x qty. Savings = vendor cost - our cost.',(t.unpriced||0)+' record'+((t.unpriced||0)===1?'':'s')+' have no price and are not included in the totals.','Totals above are formulas over the Records sheet, so editing a price there updates this page.'];
+notes.forEach(function(s,i){ws.mergeCells(next+1+i*2,7,next+2+i*2,12);put(ws,next+1+i*2,7,'•  '+s,{size:10,color:MUTED,wrap:true,h:'left'})});
+ws.pageSetup={orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0};
+var buf=await wb.xlsx.writeBuffer();
+var blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+var dl=document.createElement('a');dl.href=URL.createObjectURL(blob);dl.download='Maintenance_Centre_'+dtp(new Date())+'.xlsx';document.body.appendChild(dl);dl.click();
+setTimeout(function(){URL.revokeObjectURL(dl.href);dl.remove()},1500);
 try{logActivity('Export Maintenance Report',(range.from||'all')+' to '+(range.to||'all'))}catch(e){}
 }catch(e){err(e)}
 }
