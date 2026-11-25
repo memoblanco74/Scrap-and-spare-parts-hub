@@ -10775,7 +10775,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261125191830';
+var APP_VERSION='20261125192656';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
@@ -10944,10 +10944,11 @@ var MET=[
 ];
 function creds(){var u=(typeof users!=='undefined'&&users[currentUser.email])||{};return{username:currentUser.email,password:u.password}}
 function dstr(t){return new Date(t).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric',timeZone:'Africa/Cairo'})}
+function tstr(t){return new Date(t).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',timeZone:'Africa/Cairo'})}
 function pctCls(p){return p>=85?'d':p>=60?'w':''}
 function series(m){
   if(m.k==='db'||m.k==='storage')return D.snapshots.map(function(x){return{t:new Date(x.day+'T00:00:00Z').getTime(),v:+x[m.k]}});
-  var arr=D.readings.filter(function(r){return r.metric===m.k}).map(function(r){return{t:new Date(r.day+'T00:00:00Z').getTime(),v:+r.value,id:r.id}}).sort(function(a,b){return a.t-b.t});
+  var arr=D.readings.filter(function(r){return r.metric===m.k}).map(function(r){return{t:new Date(r.at).getTime(),v:+r.value,id:r.id}}).sort(function(a,b){return a.t-b.t});
   if(m.cum)return arr;
   var st=0;for(var i=1;i<arr.length;i++)if(arr[i].v<arr[i-1].v)st=i;
   return arr.slice(st)
@@ -10958,15 +10959,15 @@ function forecast(m,ser){
   if(m.noFc)return{state:'nofc',last:last};
   var win=ser.filter(function(x){return x.t>=last.t-30*DAY});
   if(win.length<2)return{state:'few',last:last};
-  var f=win[0],days=(last.t-f.t)/DAY;if(days<=0)return{state:'few',last:last};
+  var f=win[0],days=(last.t-f.t)/DAY;if(days<0.25)return{state:'few',last:last};
   var rate=(last.v-f.v)/days;
-  return{state:'ok',last:last,rate:rate,days:days}
+  return{state:'ok',last:last,rate:rate,days:days,rough:days<1}
 }
 function fcHtml(m,fc){
   if(fc.state==='none')return '<span>No data yet'+(m.auto?' - first daily snapshot will appear tomorrow.':'. Enter the value from the Supabase dashboard.')+'</span>';
   if(fc.state==='nofc')return '<span>Last reading '+dstr(fc.last.t)+'</span>';
-  if(fc.state==='few')return '<span>Last reading '+dstr(fc.last.t)+'. '+(m.auto?'Forecast appears after a second daily snapshot.':'Add another reading on a different day to get a forecast.')+'</span>';
-  var r=fc.rate,left=m.lim-fc.last.v,h='<div>Rate: <b>'+m.fmt(Math.max(0,r))+'</b> / day &middot; <b>'+m.fmt(Math.max(0,r*30))+'</b> / month &middot; <b>'+m.fmt(Math.max(0,r*365))+'</b> / year</div>';
+  if(fc.state==='few')return '<span>Last reading '+tstr(fc.last.t)+'. '+(m.auto?'Forecast appears after a second daily snapshot.':'Add another reading at least 6 hours later to get a forecast.')+'</span>';
+  var r=fc.rate,left=m.lim-fc.last.v,h=(fc.rough?'<div style="color:#f59e0b">Rough estimate (based on '+Math.round(fc.days*24)+' hours only)</div>':'')+'<div>Rate: <b>'+m.fmt(Math.max(0,r))+'</b> / day &middot; <b>'+m.fmt(Math.max(0,r*30))+'</b> / month &middot; <b>'+m.fmt(Math.max(0,r*365))+'</b> / year</div>';
   if(r<=0){h+='<div class="ok">No growth detected.</div>';return h}
   var dl=left/r;
   if(m.cum){
@@ -10987,13 +10988,13 @@ function render(){
     return '<div class="dbu-card"><div class="dbu-top"><span class="dbu-name"><i class="fa-solid '+m.ic+'" style="color:var(--primary-accent-color);margin-right:6px"></i>'+m.n+'</span>'+(m.auto?'<span style="font-size:.75em;color:var(--secondary-color)">auto</span>':'<button type="button" class="custom-btn dbu-add" data-m="'+m.k+'" style="margin:0;padding:4px 10px;font-size:.8em"><i class="fa-solid fa-pen"></i> Enter</button>')+'</div>'+
     '<div class="dbu-val">'+(cur==null?'-':m.fmt(cur))+' <small>/ '+m.limt+'</small></div>'+
     '<div class="dbu-bar"><i class="'+pctCls(pc)+'" style="width:'+pc.toFixed(1)+'%"></i></div>'+
-    '<div class="dbu-fc"><b>'+pc.toFixed(1)+'%</b> used'+(ser.length&&!m.auto?' &middot; reading of '+dstr(ser[ser.length-1].t):'')+'</div>'+
+    '<div class="dbu-fc"><b>'+pc.toFixed(1)+'%</b> used'+(ser.length&&!m.auto?' &middot; reading of '+tstr(ser[ser.length-1].t):'')+'</div>'+
     '<div class="dbu-fc">'+fcHtml(m,fc)+'</div></div>'
   }).join('');
   var tb=(D.tables||[]).slice(0,15),mx=tb.length?tb[0].b:1,tot=D.snapshots.length?+D.snapshots[D.snapshots.length-1].db:0;
   tbl.innerHTML=tb.map(function(t){return '<div class="dbu-row"><span class="n">'+escapeHtml(t.t)+'</span><span class="b"><span class="dbu-bar"><i style="width:'+(t.b/mx*100).toFixed(1)+'%"></i></span></span><span class="v">'+(t.b/MB).toFixed(2)+' MB &middot; ~'+Number(t.r).toLocaleString('en-US')+' rows</span></div>'}).join('')||'<div style="color:var(--secondary-color)">No data.</div>';
   var rr=D.readings.slice().reverse().slice(0,40);
-  rdg.innerHTML=rr.length?rr.map(function(r){var m=MET.filter(function(x){return x.k===r.metric})[0];return '<div class="dbu-row"><span class="n">'+escapeHtml(m?m.n:r.metric)+'</span><span class="b">'+(m?m.fmt(+r.value):r.value)+'</span><span class="v">'+dstr(new Date(r.day+'T00:00:00Z').getTime())+' <button type="button" class="dbu-del" data-id="'+r.id+'" title="Delete" style="background:none;border:none;color:var(--danger-color,#dc3545);cursor:pointer"><i class="fa-solid fa-trash"></i></button></span></div>'}).join(''):'<div style="color:var(--secondary-color)">No readings entered yet.</div>'
+  rdg.innerHTML=rr.length?rr.map(function(r){var m=MET.filter(function(x){return x.k===r.metric})[0];return '<div class="dbu-row"><span class="n">'+escapeHtml(m?m.n:r.metric)+'</span><span class="b">'+(m?m.fmt(+r.value):r.value)+'</span><span class="v">'+tstr(new Date(r.at).getTime())+' <button type="button" class="dbu-del" data-id="'+r.id+'" title="Delete" style="background:none;border:none;color:var(--danger-color,#dc3545);cursor:pointer"><i class="fa-solid fa-trash"></i></button></span></div>'}).join(''):'<div style="color:var(--secondary-color)">No readings entered yet.</div>'
 }
 async function load(force){
   if(busy)return;
