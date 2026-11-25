@@ -10954,7 +10954,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261125232704';
+var APP_VERSION='20261125233430';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
@@ -11142,23 +11142,22 @@ function forecast(m,ser){
   var rate=(last.v-f.v)/days;
   return{state:'ok',last:last,rate:rate,days:days,rough:days<1}
 }
+function cycleEnd(){var n=new Date(new Date().toLocaleString('en-US',{timeZone:'Africa/Cairo'}));return new Date(n.getFullYear(),n.getMonth()+1,1).getTime()}
 function fcHtml(m,fc){
   if(fc.state==='none')return '<span>No data yet'+(m.auto?' - first daily snapshot will appear tomorrow.':'. Enter the value from the Supabase dashboard.')+'</span>';
-  if(fc.state==='nofc')return '<span>Last reading '+dstr(fc.last.t)+'</span>';
+  if(fc.state==='nofc')return '<span>Last reading '+tstr(fc.last.t)+'</span>';
   if(fc.state==='few')return '<span>Last reading '+tstr(fc.last.t)+'. '+(m.auto?'Forecast appears after a second daily snapshot.':'Add another reading at least 6 hours later to get a forecast.')+'</span>';
-  var r=fc.rate,left=m.lim-fc.last.v,h=(fc.rough?'<div style="color:#f59e0b">Rough estimate (based on '+Math.round(fc.days*24)+' hours only)</div>':'')+'<div>Rate: <b>'+m.fmt(Math.max(0,r))+'</b> / day &middot; <b>'+m.fmt(Math.max(0,r*30))+'</b> / month &middot; <b>'+m.fmt(Math.max(0,r*365))+'</b> / year</div>';
-  if(r<=0){h+='<div class="ok">No growth detected.</div>';return h}
-  var dl=left/r;
+  var r=fc.rate,left=m.lim-fc.last.v,h=fc.rough?'<div style="color:#f59e0b">Rough estimate (based on '+Math.round(fc.days*24)+' hours only)</div>':'';
+  if(left<=0)return h+'<div class="bad">Limit already reached.</div>';
+  if(r<=0)return h+'<div class="ok">No growth detected, the limit will not be reached at this rate.</div>';
+  var dl=left/r,when=dstr(Date.now()+dl*DAY);
   if(m.cum){
-    if(left<=0)return h+'<div class="bad">Limit already reached.</div>';
-    h+='<div class="'+(dl<365?'bad':'ok')+'">Reaches the limit on <b>'+dstr(Date.now()+dl*DAY)+'</b> (in '+(dl>=730?(dl/365).toFixed(1)+' years':Math.round(dl)+' days')+').</div>';
-    return h
+    var span=dl>=730?(dl/365).toFixed(1)+' years':dl>=60?Math.round(dl/30)+' months':Math.round(dl)+' days';
+    return h+'<div class="'+(dl<365?'bad':'ok')+'">At this average rate you will reach the free limit on <b>'+when+'</b> (in about '+span+').</div>'
   }
-  var mp=r*30;
-  if(left<=0)h+='<div class="bad">Limit reached in this cycle.</div>';
-  else if(mp>m.lim)h+='<div class="bad">At this rate the monthly limit is exceeded on <b>'+dstr(Date.now()+dl*DAY)+'</b> (in '+Math.round(dl)+' days) unless the cycle resets first.</div>';
-  else h+='<div class="ok">At this rate a full month uses about <b>'+Math.round(mp/m.lim*100)+'%</b> of the limit.</div>';
-  return h
+  var ce=cycleEnd(),dc=(ce-Date.now())/DAY,end=fc.last.v+r*dc;
+  if(Date.now()+dl*DAY<ce)return h+'<div class="bad">At this average rate you will exceed the free limit on <b>'+when+'</b> (in about '+Math.round(dl)+' days), before this cycle resets on '+dstr(ce)+'.</div>';
+  return h+'<div class="ok">At this average rate you will <b>not</b> exceed the limit this cycle: expected about <b>'+m.fmt(end)+'</b> ('+Math.round(end/m.lim*100)+'%) by '+dstr(ce)+'. Usage would have to be about <b>'+(m.lim/Math.max(end,1e-9)).toFixed(1)+'x</b> higher to exceed it.</div>'
 }
 function render(){
   if(!D)return;
