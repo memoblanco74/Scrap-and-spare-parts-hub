@@ -5324,6 +5324,7 @@ button.pa-user-chip:hover i{opacity:1;color:#ef4444}
           <div><h2 style="margin:0">Database Usage</h2><p style="margin:4px 0 0;font-size:.9em;color:var(--secondary-color)">Free plan usage and forecast. Database size is measured automatically every day; Egress, Realtime and the rest are entered from the Supabase dashboard.</p></div>
           <div class="lu-actions"><label style="font-size:.85em;display:flex;align-items:center;gap:6px;color:var(--secondary-color)" title="Used until enough monthly history is collected">Assumed growth <input type="number" id="dbuGrowth" min="0" max="200" step="1" style="width:64px;padding:6px 8px"> % / month</label><button type="button" id="dbuRefresh" class="custom-btn" style="margin:0"><i class="fa-solid fa-rotate"></i> Refresh</button></div>
         </div>
+        <div id="dbuStamp" style="font-size:.82em;color:var(--secondary-color);margin:-4px 0 12px"></div>
         <div class="dbu-grid" id="dbuCards"></div>
         <div class="card" style="margin-top:16px"><h3 style="margin-top:0"><i class="fa-solid fa-table" style="color:var(--primary-accent-color)"></i> Biggest tables</h3><div id="dbuTables"></div></div>
         <div class="card" style="margin-top:16px"><h3 style="margin-top:0"><i class="fa-solid fa-clock-rotate-left" style="color:var(--primary-accent-color)"></i> Entered readings</h3><div id="dbuReadings"></div></div>
@@ -10954,7 +10955,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261125233859';
+var APP_VERSION='20261125234259';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
@@ -11112,7 +11113,7 @@ window.setupSiteReserved=function(cid,sid,rid,on){
 var root=document.getElementById('db-usage');if(!root)return;
 var cards=document.getElementById('dbuCards'),tbl=document.getElementById('dbuTables'),rdg=document.getElementById('dbuReadings'),rb=document.getElementById('dbuRefresh');
 var D=null,busy=false,loadedAt=0;
-var MB=1048576,GB=1073741824,DAY=86400000;
+var MB=1000000,GB=1000000000,DAY=86400000;
 var MET=[
 {k:'db',n:'Database size',ic:'fa-database',lim:500*MB,auto:true,fmt:function(v){return (v/MB).toFixed(1)+' MB'},limt:'500 MB',cum:true},
 {k:'storage',n:'File storage',ic:'fa-box-archive',lim:1*GB,auto:true,fmt:function(v){return (v/MB).toFixed(2)+' MB'},limt:'1 GB',cum:true},
@@ -11164,7 +11165,7 @@ function cycleEnd(){var n=new Date(new Date().toLocaleString('en-US',{timeZone:'
 function fcHtml(m,fc){
   if(fc.state==='none')return '<span>No data yet'+(m.auto?' - first daily snapshot will appear tomorrow.':'. Enter the value from the Supabase dashboard.')+'</span>';
   if(fc.state==='nofc')return '<span>Last reading '+tstr(fc.last.t)+'</span>';
-  if(fc.state==='few')return '<span>Last reading '+tstr(fc.last.t)+'. '+(m.auto?'Forecast appears after a second daily snapshot.':'Add another reading at least 6 hours later to get a forecast.')+'</span>';
+  if(fc.state==='few')return '<span>'+(m.auto?'Measured '+dstr(fc.last.t)+'. Forecast appears after the next daily snapshot.':'Last reading '+tstr(fc.last.t)+'. Add another reading at least 6 hours later to get a forecast.')+'</span>';
   var r=fc.rate,left=m.lim-fc.last.v,h=fc.rough?'<div style="color:#f59e0b">Rough estimate (based on '+Math.round(fc.days*24)+' hours only)</div>':'';
   if(left<=0)return h+'<div class="bad">Limit already reached.</div>';
   if(r<=0)return h+'<div class="ok">No growth detected, the limit will not be reached at this rate.</div>';
@@ -11181,7 +11182,7 @@ function render(){
   if(!D)return;
   cards.innerHTML=MET.map(function(m){
     var ser=series(m),fc=forecast(m,ser),cur=ser.length?ser[ser.length-1].v:null,pc=cur==null?0:Math.min(100,cur/m.lim*100);
-    return '<div class="dbu-card"><div class="dbu-top"><span class="dbu-name"><i class="fa-solid '+m.ic+'" style="color:var(--primary-accent-color);margin-right:6px"></i>'+m.n+'</span>'+(m.auto?'<span style="font-size:.75em;color:var(--secondary-color)">auto</span>':'<button type="button" class="custom-btn dbu-add" data-m="'+m.k+'" style="margin:0;padding:4px 10px;font-size:.8em"><i class="fa-solid fa-pen"></i> Enter</button>')+'</div>'+
+    return '<div class="dbu-card"><div class="dbu-top"><span class="dbu-name"><i class="fa-solid '+m.ic+'" style="color:var(--primary-accent-color);margin-right:6px"></i>'+m.n+'</span>'+(m.auto?'<span style="font-size:.75em;color:var(--success-color)"><i class="fa-solid fa-circle" style="font-size:.6em"></i> live</span>':'<button type="button" class="custom-btn dbu-add" data-m="'+m.k+'" style="margin:0;padding:4px 10px;font-size:.8em"><i class="fa-solid fa-pen"></i> Enter</button>')+'</div>'+
     '<div class="dbu-val">'+(cur==null?'-':m.fmt(cur))+' <small>/ '+m.limt+'</small></div>'+
     '<div class="dbu-bar"><i class="'+pctCls(pc)+'" style="width:'+pc.toFixed(1)+'%"></i></div>'+
     '<div class="dbu-fc"><b>'+pc.toFixed(1)+'%</b> used'+(ser.length&&!m.auto?' &middot; reading of '+tstr(ser[ser.length-1].t):'')+'</div>'+
@@ -11200,7 +11201,7 @@ async function load(force){
   try{
     var r=await supabaseClient.rpc('db_usage_get',{payload:creds()});
     if(r.error)throw new Error(r.error.message);
-    D=r.data;loadedAt=Date.now();render()
+    D=r.data;loadedAt=Date.now();render();var st=document.getElementById('dbuStamp');if(st)st.textContent='Database size and file storage are live, read from the database at '+new Date().toLocaleTimeString('en-GB',{timeZone:'Africa/Cairo'})+'. Other metrics show the last reading entered.'
   }catch(e){showNotification(e.message||'Failed to load usage','error')}
   finally{busy=false;rb.disabled=false}
 }
