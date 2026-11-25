@@ -503,6 +503,23 @@
 input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus,input:-webkit-autofill:active,textarea:-webkit-autofill,select:-webkit-autofill{-webkit-box-shadow:0 0 0 1000px var(--input-bg-color) inset!important;box-shadow:0 0 0 1000px var(--input-bg-color) inset!important;-webkit-text-fill-color:var(--text-color)!important;caret-color:var(--text-color);border-color:var(--border-color)!important;transition:background-color 99999s ease-in-out 0s}
 .lu-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:16px}
 .lu-notify{display:inline-flex;align-items:center;gap:8px;font-size:.88em;cursor:pointer}
+.dbu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px}
+.dbu-card{padding:16px 18px;border-radius:16px;border:1px solid var(--border-color);background:var(--tertiary-bg-color);display:flex;flex-direction:column;gap:8px}
+.dbu-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.dbu-name{font-weight:700}
+.dbu-val{font-size:1.5em;font-weight:700;line-height:1.1}
+.dbu-val small{font-size:.55em;font-weight:500;color:var(--secondary-color)}
+.dbu-bar{height:9px;border-radius:99px;background:var(--input-border-color);overflow:hidden}
+.dbu-bar i{display:block;height:100%;border-radius:99px;background:var(--success-color);transition:width .4s}
+.dbu-bar i.w{background:#f59e0b}.dbu-bar i.d{background:var(--danger-color,#dc3545)}
+.dbu-fc{font-size:.85em;color:var(--secondary-color);line-height:1.6}
+.dbu-fc b{color:var(--text-color)}
+.dbu-fc .ok{color:var(--success-color);font-weight:600}.dbu-fc .bad{color:var(--danger-color,#dc3545);font-weight:600}
+.dbu-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--input-border-color);font-size:.9em}
+.dbu-row .n{flex:0 0 190px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dbu-row .b{flex:1;min-width:60px}
+.dbu-row .v{flex:0 0 150px;text-align:right;color:var(--secondary-color)}
+@media(max-width:600px){.dbu-row{flex-wrap:wrap}.dbu-row .n{flex:1 1 100%}.dbu-row .v{flex:1 1 auto;text-align:left}}
 .lu-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
 .lu-stat{padding:16px 18px;border-radius:16px;border:1px solid var(--border-color);background:var(--tertiary-bg-color);display:flex;flex-direction:column;gap:4px}
 .lu-stat b{font-size:2em;line-height:1;color:var(--primary-accent-color)}
@@ -4391,6 +4408,7 @@ button.pa-user-chip:hover i{opacity:1;color:#ef4444}
         <button class="tab-button" data-tab="logs" data-permission="logs_visible" style="display: none;"><i class="fa-solid fa-clock-rotate-left tb-ico"></i><span class="tb-txt">Activity Logs</span></button>
         <button class="tab-button" data-tab="manage-users" data-permission="manageUsers_visible" style="display: none;"><i class="fa-solid fa-users-gear tb-ico"></i><span class="tb-txt">Manage Users</span></button>
         <button class="tab-button" data-tab="live-users" data-permission="liveUsers_visible" style="display: none;"><i class="fa-solid fa-signal tb-ico"></i><span class="tb-txt">Live Users</span></button>
+        <button class="tab-button" data-tab="db-usage" data-permission="manageUsers_visible" style="display: none;"><i class="fa-solid fa-database tb-ico"></i><span class="tb-txt">Database Usage</span></button>
       </div>
       <div id="dashboard" class="tab-content active">
         <div class="dashboard-grid">
@@ -5292,6 +5310,15 @@ button.pa-user-chip:hover i{opacity:1;color:#ef4444}
           <div class="card"><h3 style="margin-top:0"><i class="fa-solid fa-signal" style="color:var(--success-color)"></i> Online now</h3><div id="luList"></div></div>
           <div class="card"><div class="lu-evhead"><h3 style="margin:0"><i class="fa-solid fa-clock-rotate-left" style="color:var(--primary-accent-color)"></i> Activity</h3><div class="lu-seg"><button type="button" class="active" data-m="live">Live</button><button type="button" data-m="hist">History</button></div></div><div class="lu-clearrow" id="luClearRow" style="display:none"><button type="button" id="luClearHist" class="lu-clear"><i class="fa-solid fa-trash"></i> Clear History</button></div><div id="luEvents"></div></div>
         </div>
+      </div>
+      <div id="db-usage" class="tab-content">
+        <div class="lu-head">
+          <div><h2 style="margin:0">Database Usage</h2><p style="margin:4px 0 0;font-size:.9em;color:var(--secondary-color)">Free plan usage and forecast. Database size is measured automatically every day; Egress, Realtime and the rest are entered from the Supabase dashboard.</p></div>
+          <div class="lu-actions"><button type="button" id="dbuRefresh" class="custom-btn" style="margin:0"><i class="fa-solid fa-rotate"></i> Refresh</button></div>
+        </div>
+        <div class="dbu-grid" id="dbuCards"></div>
+        <div class="card" style="margin-top:16px"><h3 style="margin-top:0"><i class="fa-solid fa-table" style="color:var(--primary-accent-color)"></i> Biggest tables</h3><div id="dbuTables"></div></div>
+        <div class="card" style="margin-top:16px"><h3 style="margin-top:0"><i class="fa-solid fa-clock-rotate-left" style="color:var(--primary-accent-color)"></i> Entered readings</h3><div id="dbuReadings"></div></div>
       </div>
       <div id="manage-users" class="tab-content">
         <div class="um-header">
@@ -10748,7 +10775,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261125084527';
+var APP_VERSION='20261125191830';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
@@ -10903,8 +10930,104 @@ window.setupSiteReserved=function(cid,sid,rid,on){
 };
 })();
 (function(){
+var root=document.getElementById('db-usage');if(!root)return;
+var cards=document.getElementById('dbuCards'),tbl=document.getElementById('dbuTables'),rdg=document.getElementById('dbuReadings'),rb=document.getElementById('dbuRefresh');
+var D=null,busy=false,loadedAt=0;
+var MB=1048576,GB=1073741824,DAY=86400000;
+var MET=[
+{k:'db',n:'Database size',ic:'fa-database',lim:500*MB,auto:true,fmt:function(v){return (v/MB).toFixed(1)+' MB'},limt:'500 MB',cum:true},
+{k:'storage',n:'File storage',ic:'fa-box-archive',lim:1*GB,auto:true,fmt:function(v){return (v/MB).toFixed(2)+' MB'},limt:'1 GB',cum:true},
+{k:'egress',n:'Egress',ic:'fa-arrow-up-from-bracket',lim:5,unit:'GB',fmt:function(v){return v.toFixed(2)+' GB'},limt:'5 GB / month'},
+{k:'realtime',n:'Realtime messages',ic:'fa-tower-broadcast',lim:2000000,unit:'messages',fmt:function(v){return Math.round(v).toLocaleString('en-US')},limt:'2,000,000 / month'},
+{k:'edge',n:'Edge Function invocations',ic:'fa-bolt',lim:500000,unit:'calls',fmt:function(v){return Math.round(v).toLocaleString('en-US')},limt:'500,000 / month'},
+{k:'mau',n:'Monthly active users',ic:'fa-users',lim:50000,unit:'users',fmt:function(v){return Math.round(v).toLocaleString('en-US')},limt:'50,000',noFc:true}
+];
+function creds(){var u=(typeof users!=='undefined'&&users[currentUser.email])||{};return{username:currentUser.email,password:u.password}}
+function dstr(t){return new Date(t).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric',timeZone:'Africa/Cairo'})}
+function pctCls(p){return p>=85?'d':p>=60?'w':''}
+function series(m){
+  if(m.k==='db'||m.k==='storage')return D.snapshots.map(function(x){return{t:new Date(x.day+'T00:00:00Z').getTime(),v:+x[m.k]}});
+  var arr=D.readings.filter(function(r){return r.metric===m.k}).map(function(r){return{t:new Date(r.day+'T00:00:00Z').getTime(),v:+r.value,id:r.id}}).sort(function(a,b){return a.t-b.t});
+  if(m.cum)return arr;
+  var st=0;for(var i=1;i<arr.length;i++)if(arr[i].v<arr[i-1].v)st=i;
+  return arr.slice(st)
+}
+function forecast(m,ser){
+  if(!ser.length)return{state:'none'};
+  var last=ser[ser.length-1];
+  if(m.noFc)return{state:'nofc',last:last};
+  var win=ser.filter(function(x){return x.t>=last.t-30*DAY});
+  if(win.length<2)return{state:'few',last:last};
+  var f=win[0],days=(last.t-f.t)/DAY;if(days<=0)return{state:'few',last:last};
+  var rate=(last.v-f.v)/days;
+  return{state:'ok',last:last,rate:rate,days:days}
+}
+function fcHtml(m,fc){
+  if(fc.state==='none')return '<span>No data yet'+(m.auto?' - first daily snapshot will appear tomorrow.':'. Enter the value from the Supabase dashboard.')+'</span>';
+  if(fc.state==='nofc')return '<span>Last reading '+dstr(fc.last.t)+'</span>';
+  if(fc.state==='few')return '<span>Last reading '+dstr(fc.last.t)+'. '+(m.auto?'Forecast appears after a second daily snapshot.':'Add another reading on a different day to get a forecast.')+'</span>';
+  var r=fc.rate,left=m.lim-fc.last.v,h='<div>Rate: <b>'+m.fmt(Math.max(0,r))+'</b> / day &middot; <b>'+m.fmt(Math.max(0,r*30))+'</b> / month &middot; <b>'+m.fmt(Math.max(0,r*365))+'</b> / year</div>';
+  if(r<=0){h+='<div class="ok">No growth detected.</div>';return h}
+  var dl=left/r;
+  if(m.cum){
+    if(left<=0)return h+'<div class="bad">Limit already reached.</div>';
+    h+='<div class="'+(dl<365?'bad':'ok')+'">Reaches the limit on <b>'+dstr(Date.now()+dl*DAY)+'</b> (in '+(dl>=730?(dl/365).toFixed(1)+' years':Math.round(dl)+' days')+').</div>';
+    return h
+  }
+  var mp=r*30;
+  if(left<=0)h+='<div class="bad">Limit reached in this cycle.</div>';
+  else if(mp>m.lim)h+='<div class="bad">At this rate the monthly limit is exceeded on <b>'+dstr(Date.now()+dl*DAY)+'</b> (in '+Math.round(dl)+' days) unless the cycle resets first.</div>';
+  else h+='<div class="ok">At this rate a full month uses about <b>'+Math.round(mp/m.lim*100)+'%</b> of the limit.</div>';
+  return h
+}
+function render(){
+  if(!D)return;
+  cards.innerHTML=MET.map(function(m){
+    var ser=series(m),fc=forecast(m,ser),cur=ser.length?ser[ser.length-1].v:null,pc=cur==null?0:Math.min(100,cur/m.lim*100);
+    return '<div class="dbu-card"><div class="dbu-top"><span class="dbu-name"><i class="fa-solid '+m.ic+'" style="color:var(--primary-accent-color);margin-right:6px"></i>'+m.n+'</span>'+(m.auto?'<span style="font-size:.75em;color:var(--secondary-color)">auto</span>':'<button type="button" class="custom-btn dbu-add" data-m="'+m.k+'" style="margin:0;padding:4px 10px;font-size:.8em"><i class="fa-solid fa-pen"></i> Enter</button>')+'</div>'+
+    '<div class="dbu-val">'+(cur==null?'-':m.fmt(cur))+' <small>/ '+m.limt+'</small></div>'+
+    '<div class="dbu-bar"><i class="'+pctCls(pc)+'" style="width:'+pc.toFixed(1)+'%"></i></div>'+
+    '<div class="dbu-fc"><b>'+pc.toFixed(1)+'%</b> used'+(ser.length&&!m.auto?' &middot; reading of '+dstr(ser[ser.length-1].t):'')+'</div>'+
+    '<div class="dbu-fc">'+fcHtml(m,fc)+'</div></div>'
+  }).join('');
+  var tb=(D.tables||[]).slice(0,15),mx=tb.length?tb[0].b:1,tot=D.snapshots.length?+D.snapshots[D.snapshots.length-1].db:0;
+  tbl.innerHTML=tb.map(function(t){return '<div class="dbu-row"><span class="n">'+escapeHtml(t.t)+'</span><span class="b"><span class="dbu-bar"><i style="width:'+(t.b/mx*100).toFixed(1)+'%"></i></span></span><span class="v">'+(t.b/MB).toFixed(2)+' MB &middot; ~'+Number(t.r).toLocaleString('en-US')+' rows</span></div>'}).join('')||'<div style="color:var(--secondary-color)">No data.</div>';
+  var rr=D.readings.slice().reverse().slice(0,40);
+  rdg.innerHTML=rr.length?rr.map(function(r){var m=MET.filter(function(x){return x.k===r.metric})[0];return '<div class="dbu-row"><span class="n">'+escapeHtml(m?m.n:r.metric)+'</span><span class="b">'+(m?m.fmt(+r.value):r.value)+'</span><span class="v">'+dstr(new Date(r.day+'T00:00:00Z').getTime())+' <button type="button" class="dbu-del" data-id="'+r.id+'" title="Delete" style="background:none;border:none;color:var(--danger-color,#dc3545);cursor:pointer"><i class="fa-solid fa-trash"></i></button></span></div>'}).join(''):'<div style="color:var(--secondary-color)">No readings entered yet.</div>'
+}
+async function load(force){
+  if(busy)return;
+  if(!currentUser||!currentUser.permissions.manageUsers||!currentUser.permissions.manageUsers.visible)return;
+  if(!force&&D&&Date.now()-loadedAt<60000){render();return}
+  busy=true;rb.disabled=true;
+  try{
+    var r=await supabaseClient.rpc('db_usage_get',{payload:creds()});
+    if(r.error)throw new Error(r.error.message);
+    D=r.data;loadedAt=Date.now();render()
+  }catch(e){showNotification(e.message||'Failed to load usage','error')}
+  finally{busy=false;rb.disabled=false}
+}
+async function enter(k){
+  var m=MET.filter(function(x){return x.k===k})[0];if(!m)return;
+  var today=new Date().toISOString().slice(0,10);
+  var res=await Swal.fire({title:m.n,html:'<div style="text-align:left"><label style="font-size:.85em">Value as shown in Supabase ('+(m.unit||'')+')</label><input id="dbuV" type="number" step="any" min="0" class="swal2-input" style="margin:6px 0 12px;width:100%"><label style="font-size:.85em">Date</label><input id="dbuD" type="date" class="swal2-input" style="margin:6px 0;width:100%" value="'+today+'"></div>',showCancelButton:true,confirmButtonText:'Save',preConfirm:function(){var v=document.getElementById('dbuV').value,d=document.getElementById('dbuD').value;if(v===''||isNaN(+v)||+v<0){Swal.showValidationMessage('Enter a valid number');return false}return{v:+v,d:d}}});
+  if(!res.isConfirmed)return;
+  try{
+    var r=await supabaseClient.rpc('usage_reading_save',{payload:Object.assign(creds(),{metric:k,value:res.value.v,day:res.value.d})});
+    if(r.error)throw new Error(r.error.message);
+    showNotification('Reading saved.','success');await load(true)
+  }catch(e){showNotification(e.message||'Failed','error')}
+}
+cards.addEventListener('click',function(e){var b=e.target.closest('.dbu-add');if(b)enter(b.dataset.m)});
+rdg.addEventListener('click',function(e){var b=e.target.closest('.dbu-del');if(!b)return;confirmAction('Delete this reading?',async function(){try{var r=await supabaseClient.rpc('usage_reading_delete',{payload:Object.assign(creds(),{id:b.dataset.id})});if(r.error)throw new Error(r.error.message);await load(true)}catch(x){showNotification(x.message||'Failed','error')}})});
+rb.addEventListener('click',function(){load(true)});
+var tabBtn=document.querySelector('.tab-button[data-tab="db-usage"]');
+if(tabBtn)tabBtn.addEventListener('click',function(){load(false)});
+document.addEventListener('click',function(e){var x=e.target.closest('[data-go="db-usage"]');if(x)load(false)});
+})();
+(function(){
 var G=[{id:'workspace-hub',label:'Workspace',icon:'fa-briefcase',before:'incidents',members:['incidents','it-workspace'],names:{'incidents':['Create Incident','fa-triangle-exclamation'],'it-workspace':['IT Workspace','fa-briefcase']}},
-{id:'admin-hub',label:'Admin',icon:'fa-user-shield',before:null,members:['logs','manage-users','live-users'],names:{'logs':['Activity Logs','fa-clock-rotate-left'],'manage-users':['Manage Users','fa-users-gear'],'live-users':['Live Users','fa-signal']}}];
+{id:'admin-hub',label:'Admin',icon:'fa-user-shield',before:null,members:['logs','manage-users','live-users','db-usage'],names:{'logs':['Activity Logs','fa-clock-rotate-left'],'manage-users':['Manage Users','fa-users-gear'],'live-users':['Live Users','fa-signal'],'db-usage':['Database Usage','fa-database']}}];
 var bar=document.querySelector('.tab-buttons');if(!bar)return;
 function mb(t){return bar.querySelector('.tab-button[data-tab="'+t+'"]')}
 var _ae=mb('add-edit-laptop');if(_ae)_ae.classList.add('tb-member');
