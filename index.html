@@ -3298,7 +3298,8 @@ button.pa-user-chip:hover i{opacity:1;color:#ef4444}
     html,body{max-width:100%}
     html{overflow-x:hidden}
     body{overflow-x:clip}
-    .db-status{position:sticky;top:var(--hdrH,72px);z-index:1001}
+    .db-status.syncing-mode{position:sticky;top:var(--hdrH,72px);z-index:1001;margin:0 -15px !important;padding:0 15px 10px !important;background:var(--bg-color) !important}
+    .db-status.syncing-mode .ds-track{margin-top:0}
     .tab-buttons{top:calc(var(--hdrH,72px) + var(--dsH,0px)) !important}
     .nested-tab-buttons{top:calc(var(--hdrH,72px) + var(--dsH,0px) + var(--tbH,56px)) !important}
     .search-export-section{top:calc(var(--hdrH,72px) + var(--dsH,0px) + var(--tbH,56px) + 46px) !important}
@@ -10953,7 +10954,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261125232338';
+var APP_VERSION='20261125232704';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
@@ -11209,7 +11210,7 @@ var root=document.documentElement;
 function upd(){
     var h=document.querySelector('.header-container'),d=document.getElementById('dbStatus'),t=document.querySelector('.tab-buttons');
     if(h)root.style.setProperty('--hdrH',(Math.ceil(h.getBoundingClientRect().height)-1)+'px');
-    if(d)root.style.setProperty('--dsH',Math.ceil(d.getBoundingClientRect().height)+'px');
+    if(d)root.style.setProperty('--dsH',(getComputedStyle(d).position==='sticky'?Math.ceil(d.getBoundingClientRect().height):0)+'px');
     if(t)root.style.setProperty('--tbH',t.offsetHeight+'px');
 }
 upd();
