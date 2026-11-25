@@ -5322,7 +5322,7 @@ button.pa-user-chip:hover i{opacity:1;color:#ef4444}
       <div id="db-usage" class="tab-content">
         <div class="lu-head">
           <div><h2 style="margin:0">Database Usage</h2><p style="margin:4px 0 0;font-size:.9em;color:var(--secondary-color)">Free plan usage and forecast. Database size is measured automatically every day; Egress, Realtime and the rest are entered from the Supabase dashboard.</p></div>
-          <div class="lu-actions"><button type="button" id="dbuRefresh" class="custom-btn" style="margin:0"><i class="fa-solid fa-rotate"></i> Refresh</button></div>
+          <div class="lu-actions"><label style="font-size:.85em;display:flex;align-items:center;gap:6px;color:var(--secondary-color)" title="Used until enough monthly history is collected">Assumed growth <input type="number" id="dbuGrowth" min="0" max="200" step="1" style="width:64px;padding:6px 8px"> % / month</label><button type="button" id="dbuRefresh" class="custom-btn" style="margin:0"><i class="fa-solid fa-rotate"></i> Refresh</button></div>
         </div>
         <div class="dbu-grid" id="dbuCards"></div>
         <div class="card" style="margin-top:16px"><h3 style="margin-top:0"><i class="fa-solid fa-table" style="color:var(--primary-accent-color)"></i> Biggest tables</h3><div id="dbuTables"></div></div>
@@ -10954,7 +10954,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261125233430';
+var APP_VERSION='20261125233859';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
@@ -11140,7 +11140,25 @@ function forecast(m,ser){
   if(win.length<2)return{state:'few',last:last};
   var f=win[0],days=(last.t-f.t)/DAY;if(days<0.25)return{state:'few',last:last};
   var rate=(last.v-f.v)/days;
-  return{state:'ok',last:last,rate:rate,days:days,rough:days<1}
+  return{state:'ok',last:last,rate:rate,days:days,rough:days<1,ser:ser}
+}
+function monthKey(t){var d=new Date(new Date(t).toLocaleString('en-US',{timeZone:'Africa/Cairo'}));return d.getFullYear()*12+d.getMonth()}
+function monthName(idx){return new Date(Math.floor(idx/12),idx%12,1).toLocaleDateString('en-GB',{month:'long',year:'numeric'})}
+function growthRate(m,fc,end){
+  var by={};D.readings.filter(function(r){return r.metric===m.k}).map(function(r){return{t:new Date(r.at).getTime(),v:+r.value}}).forEach(function(x){var k=monthKey(x.t);if(!by[k]||x.v>by[k])by[k]=x.v});
+  var cur=monthKey(Date.now()),ks=Object.keys(by).map(Number).filter(function(k){return k<cur}).sort(function(a,b){return a-b});
+  var tot=ks.map(function(k){return by[k]});tot.push(end);
+  if(tot.length>=3&&tot[0]>0){var g=Math.pow(tot[tot.length-1]/tot[0],1/(tot.length-1))-1;return{g:Math.max(g,0),src:'measured from '+tot.length+' months'}}
+  var a=parseFloat(localStorage.getItem('dbuGrowth'));if(!(a>=0))a=5;
+  return{g:a/100,src:'assumed',assumed:true}
+}
+function growthHtml(m,fc,end,ce){
+  var o=growthRate(m,fc,end),g=o.g;
+  if(g<=0)return '<div>No growth assumed, so the limit is not reached.</div>';
+  var n=Math.log(m.lim/Math.max(end,1e-9))/Math.log(1+g);
+  if(!isFinite(n)||n>600)return '<div>With '+(g*100).toFixed(1)+'% monthly growth, not within 50 years.</div>';
+  var idx=monthKey(Date.now())+Math.max(1,Math.ceil(n));
+  return '<div class="'+(n<24?'bad':'ok')+'">If monthly usage keeps growing '+(g*100).toFixed(1)+'% per month ('+o.src+'), you will exceed the free limit in <b>'+monthName(idx)+'</b>.</div>'
 }
 function cycleEnd(){var n=new Date(new Date().toLocaleString('en-US',{timeZone:'Africa/Cairo'}));return new Date(n.getFullYear(),n.getMonth()+1,1).getTime()}
 function fcHtml(m,fc){
@@ -11157,7 +11175,7 @@ function fcHtml(m,fc){
   }
   var ce=cycleEnd(),dc=(ce-Date.now())/DAY,end=fc.last.v+r*dc;
   if(Date.now()+dl*DAY<ce)return h+'<div class="bad">At this average rate you will exceed the free limit on <b>'+when+'</b> (in about '+Math.round(dl)+' days), before this cycle resets on '+dstr(ce)+'.</div>';
-  return h+'<div class="ok">At this average rate you will <b>not</b> exceed the limit this cycle: expected about <b>'+m.fmt(end)+'</b> ('+Math.round(end/m.lim*100)+'%) by '+dstr(ce)+'. Usage would have to be about <b>'+(m.lim/Math.max(end,1e-9)).toFixed(1)+'x</b> higher to exceed it.</div>'
+  return h+'<div class="ok">At this average rate you will <b>not</b> exceed the limit this cycle: expected about <b>'+m.fmt(end)+'</b> ('+Math.round(end/m.lim*100)+'%) by '+dstr(ce)+'.</div>'+growthHtml(m,fc,end,ce)
 }
 function render(){
   if(!D)return;
@@ -11200,6 +11218,8 @@ async function enter(k){
 cards.addEventListener('click',function(e){var b=e.target.closest('.dbu-add');if(b)enter(b.dataset.m)});
 rdg.addEventListener('click',function(e){var b=e.target.closest('.dbu-del');if(!b)return;confirmAction('Delete this reading?',async function(){try{var r=await supabaseClient.rpc('usage_reading_delete',{payload:Object.assign(creds(),{id:b.dataset.id})});if(r.error)throw new Error(r.error.message);await load(true)}catch(x){showNotification(x.message||'Failed','error')}})});
 rb.addEventListener('click',function(){load(true)});
+var gi=document.getElementById('dbuGrowth');
+if(gi){try{var gv=localStorage.getItem('dbuGrowth');gi.value=gv!==null&&gv!==''?gv:'5'}catch(e){gi.value='5'}gi.addEventListener('change',function(){var v=parseFloat(gi.value);if(!(v>=0))v=0;gi.value=v;try{localStorage.setItem('dbuGrowth',String(v))}catch(e){}render()})}
 var tabBtn=document.querySelector('.tab-button[data-tab="db-usage"]');
 if(tabBtn)tabBtn.addEventListener('click',function(){load(false)});
 document.addEventListener('click',function(e){var x=e.target.closest('[data-go="db-usage"]');if(x)load(false)});
