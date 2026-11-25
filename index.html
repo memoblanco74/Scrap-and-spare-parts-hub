@@ -7232,6 +7232,23 @@ function openMailtoDraft(to,cc,subject,body){
     const mailto='mailto:'+encodeURI(to||'')+(params.length?('?'+params.join('&')):'');
     window.location.href=mailto;
 }
+function downloadEmlDraft(to,cc,subject,html){
+    try{
+        const enc=v=>/^[\x20-\x7e]*$/.test(v)?v:'=?UTF-8?B?'+btoa(unescape(encodeURIComponent(v)))+'?=';
+        const addr=v=>String(v||'').split(/[;,]/).map(x=>x.trim()).filter(Boolean).join(', ');
+        const body='<html><head><meta charset="utf-8"></head><body>'+html+'</body></html>';
+        const b64=btoa(unescape(encodeURIComponent(body))).replace(/(.{76})/g,'$1\r\n');
+        const lines=['X-Unsent: 1','To: '+addr(to)];
+        if(addr(cc))lines.push('Cc: '+addr(cc));
+        lines.push('Subject: '+enc(String(subject||'')),'MIME-Version: 1.0','Content-Type: text/html; charset=UTF-8','Content-Transfer-Encoding: base64','',b64,'');
+        const blob=new Blob([lines.join('\r\n')],{type:'message/rfc822'});
+        const name=(String(subject||'email').replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'_')||'email')+'_'+new Date().toISOString().slice(0,10)+'.eml';
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();
+        setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);
+        return true;
+    }catch(e){console.error('EML build failed',e);return false}
+}
 async function copyRichTableToClipboard(fullHtml,fullPlain){
     if(!navigator.clipboard||typeof ClipboardItem==='undefined')return false;
     try{
@@ -7268,8 +7285,11 @@ async function handlePrepareUsageEmail(){
         const introPlain='Dear '+recipientName+',\r\n\r\nKindly update the below record on Out of warranty sheet.\r\n\r\n';
         const fullHtml=introHtml+renderReportHtmlTable(header,rows,[...OUT_OF_WARRANTY_COLUMNS,'Total']);
         const fullPlain=introPlain+renderReportPlainTable(header,rows);
-        const copied=await copyRichTableToClipboard(fullHtml,fullPlain);
-        if(copied){
+        const emlOk=downloadEmlDraft(toAddr,ccAddr,subject,fullHtml);
+        const copied=emlOk?false:await copyRichTableToClipboard(fullHtml,fullPlain);
+        if(emlOk){
+            showNotification('Email draft downloaded. Open the file and the email opens in Outlook with the table already inside, no paste needed.','success');
+        }else if(copied){
             openMailtoDraft(toAddr,ccAddr,subject,'');
             showNotification('Outlook opened with an empty body — press Ctrl+V inside the email body to paste the formatted table.','success');
         }else{
@@ -7284,10 +7304,13 @@ async function handlePrepareUsageEmail(){
         const introPlain='Dear '+recipientName+',\r\n\r\nKindly be informed that below devices have been upgraded.\r\n\r\n';
         const fullHtml=introHtml+renderReportHtmlTable(header,rows);
         const fullPlain=introPlain+renderReportPlainTable(header,rows);
-        const copied=await copyRichTableToClipboard(fullHtml,fullPlain);
-        if(copied){
+        const emlOk=downloadEmlDraft(toAddr,ccAddr,subject,fullHtml);
+        const copied=emlOk?false:await copyRichTableToClipboard(fullHtml,fullPlain);
+        if(emlOk){
+            showNotification('Email draft downloaded. Open the file and the email opens in Outlook with the table already inside, no paste needed.','success');
+        }else if(copied){
             openMailtoDraft(toAddr,ccAddr,subject,'');
-            showNotification('Outlook opened with an empty body — press Ctrl+V inside the email body to paste the formatted table. Remember to fill in PC Name.','success');
+            showNotification('Outlook opened with an empty body — press Ctrl+V inside the email body to paste the formatted table.','success');
         }else{
             openMailtoDraft(toAddr,ccAddr,subject,fullPlain);
             showNotification('Your browser does not support copying formatted tables, so a plain-text version was placed in the email body instead.','info');
@@ -10769,7 +10792,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261124202816';
+var APP_VERSION='20261125080034';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
