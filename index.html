@@ -7222,7 +7222,7 @@ function renderReportHtmlTable(header,rows,hlHeaders){
     return html;
 }
 function isMobileDevice(){const u=navigator.userAgent||'';return /Android|iPhone|iPad|iPod|Mobile/i.test(u)||(navigator.maxTouchPoints>1&&/Macintosh/i.test(u))}
-function desktopOnlyEmailNotice(){showNotification('Email drafts can only be generated from a computer. Please open the app on your computer to generate this email.','error')}
+function desktopOnlyEmailNotice(){showNotification('Open the app on a computer to generate emails.','error')}
 function downloadEmlDraft(to,cc,subject,html){
     try{
         const enc=v=>/^[\x20-\x7e]*$/.test(v)?v:'=?UTF-8?B?'+btoa(unescape(encodeURIComponent(v)))+'?=';
@@ -10748,7 +10748,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261125084357';
+var APP_VERSION='20261125084527';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
