@@ -5550,6 +5550,26 @@ button.pa-user-chip:hover i{opacity:1;color:#ef4444}
           <div class="ss-note">Open sessions pick up the new value within a few minutes, or on next login.</div>
         </div>
 
+        <div class="card ss-card" id="syncModeCard">
+          <div class="ss-head">
+            <span class="ss-ico"><i class="fa-solid fa-gauge-high"></i></span>
+            <div>
+              <div class="ss-title">Data loading mode</div>
+              <div class="ss-sub">Normal reloads each table in full. Delta Sync keeps a local copy and downloads only what changed. Verify runs Normal for everyone and checks Delta against it on admin devices.</div>
+            </div>
+          </div>
+          <div class="ss-row">
+            <div class="ss-chips" id="syncChips">
+              <button type="button" class="ss-chip" data-m="normal">Normal</button>
+              <button type="button" class="ss-chip" data-m="verify">Verify</button>
+              <button type="button" class="ss-chip" data-m="delta">Delta Sync</button>
+            </div>
+            <button type="button" class="custom-btn ss-save" id="syncSaveBtn"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+          </div>
+          <div class="ss-note" id="syncNote">Open sessions pick up the new mode within a few minutes, or on next login. Switching back to Normal is always safe.</div>
+          <div class="ss-note" id="syncVerify" style="margin-top:8px"></div>
+        </div>
+
         <div class="pa-report-card">
           <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:15px;">
             <div>
@@ -5909,7 +5929,7 @@ function setupRealtimeSubscriptions() {
 (function setupIdleDisconnect() {
     let IDLE_LIMIT_MS = 15 * 60 * 1000; // 15 دقيقة (قابلة للتعديل من صفحة الادمن)
     window.setIdleMinutes = function(m){ m = parseInt(m); if (m >= 1 && m <= 1440) { IDLE_LIMIT_MS = m * 60 * 1000; window.__idleMinutes = m; } };
-    window.loadIdleSetting = async function(){ try { const r = await supabaseClient.rpc('get_app_settings'); if (!r.error && r.data && r.data.idleMinutes) { window.setIdleMinutes(r.data.idleMinutes); const i = document.getElementById('idleMinutesInput'); if (i && document.activeElement !== i) { i.value = r.data.idleMinutes; i.dispatchEvent(new Event('input')); } } } catch (e) {} };
+    window.loadIdleSetting = async function(){ try { const r = await supabaseClient.rpc('get_app_settings'); if (!r.error && r.data && r.data.syncMode) { window.setSyncMode(r.data.syncMode); } if (!r.error && r.data && r.data.idleMinutes) { window.setIdleMinutes(r.data.idleMinutes); const i = document.getElementById('idleMinutesInput'); if (i && document.activeElement !== i) { i.value = r.data.idleMinutes; i.dispatchEvent(new Event('input')); } } } catch (e) {} };
     setTimeout(window.loadIdleSetting, 2500);
     document.addEventListener('visibilitychange', function(){ if (!document.hidden) window.loadIdleSetting(); });
     const WARNING_BEFORE_MS = 60 * 1000;   // نحذر قبل الخروج بدقيقة
@@ -5997,7 +6017,50 @@ function setupRealtimeSubscriptions() {
 // أضف هذه الدالة في بداية قسم الـ script، بعد تعريف supabaseClient
 async function refreshDashboardLive(){try{const [u,p]=await Promise.all([fetchAllFromSupabase('usagehistory'),fetchAllFromSupabase('spareparts')]);if(u&&u.length)allUsageHistory=u.map(x=>({...x,partId:x.part_id,partSN:x.part_sn,sourceBrand:x.source_brand,sourceModel:x.source_model,sourceSN:x.source_sn,destBrand:x.dest_brand,destModel:x.dest_model,destSN:x.dest_sn,upgradePlan:x.upgrade_plan}));if(p&&p.length){allSpareParts=p.map(x=>({...x,reservedFor:x.reserved_for,purchaseOrder:x.purchase_order}));allSpareParts.sort((a,b)=>new Date(b.date)-new Date(a.date))}}catch(e){console.error(e)}await refreshLaptopsLive()}
 async function refreshLaptopsLive(){try{const rows=await fetchAllFromSupabase('laptops');if(!rows||!rows.length)return;allLaptops=rows.map(l=>({...l,mb:l.m_b,rams:(typeof l.rams_json==='string')?JSON.parse(l.rams_json||"[]"):(l.rams_json||[])}));allLaptops.sort((a,b)=>b.id-a.id)}catch(e){console.error(e)}}
-async function fetchAllFromSupabase(tableName) {
+var SYNC_TABLES={laptops:1,spareparts:1,groups:1,logs:1,usagehistory:1,deducthistory:1,downgrade:1,part_repairs:1,printers:1};
+window.__syncMode=(function(){try{var m=localStorage.getItem('syncMode');return(m==='delta'||m==='verify')?m:'normal'}catch(e){return'normal'}})();
+window.setSyncMode=function(m){if(m!=='delta'&&m!=='verify')m='normal';window.__syncMode=m;try{localStorage.setItem('syncMode',m)}catch(e){}try{if(window.__syncUi)window.__syncUi()}catch(e){}};
+var SYNC={mem:{},q:{},fails:0,off:false,db:null,timers:{}};
+function syncIdb(){
+    if(SYNC.db)return SYNC.db;
+    SYNC.db=new Promise(function(res){
+        try{
+            var rq=indexedDB.open('hubSync',1);
+            rq.onupgradeneeded=function(){rq.result.createObjectStore('tables')};
+            rq.onsuccess=function(){res(rq.result)};
+            rq.onerror=function(){res(null)};
+            rq.onblocked=function(){res(null)};
+        }catch(e){res(null)}
+    });
+    return SYNC.db;
+}
+async function syncLoad(t){
+    if(SYNC.mem[t])return SYNC.mem[t];
+    var db=await syncIdb();
+    if(!db)return null;
+    return new Promise(function(res){
+        try{
+            var rq=db.transaction('tables','readonly').objectStore('tables').get(t);
+            rq.onsuccess=function(){
+                var v=rq.result;
+                if(v&&v.v===1&&Array.isArray(v.rows)&&v.seq!=null){var m=new Map();v.rows.forEach(function(r){m.set(r.id,r)});SYNC.mem[t]={seq:v.seq,fullAt:v.fullAt,rows:m};res(SYNC.mem[t])}
+                else res(null)
+            };
+            rq.onerror=function(){res(null)};
+        }catch(e){res(null)}
+    });
+}
+function syncSave(t){
+    clearTimeout(SYNC.timers[t]);
+    SYNC.timers[t]=setTimeout(async function(){
+        try{
+            var c=SYNC.mem[t],db=await syncIdb();
+            if(!c||!db)return;
+            db.transaction('tables','readwrite').objectStore('tables').put({v:1,seq:c.seq,fullAt:c.fullAt,rows:Array.from(c.rows.values())},t);
+        }catch(e){}
+    },1500);
+}
+async function fetchFullFromSupabase(tableName,strict) {
     let allData = [];
     let from = 0;
     const step = 1000;
@@ -6011,6 +6074,7 @@ async function fetchAllFromSupabase(tableName) {
 
         if (error) {
             console.error(`Error fetching ${tableName}:`, error.message);
+            if(strict)throw new Error(error.message);
             break;
         }
 
@@ -6023,6 +6087,76 @@ async function fetchAllFromSupabase(tableName) {
         }
     }
     return allData;
+}
+async function deltaGet(t){
+    var c=await syncLoad(t);
+    var needFull=!c||(Date.now()-(c.fullAt||0)>86400000);
+    if(!needFull){
+        var r=await supabaseClient.rpc('delta_pull',{p_tbl:t,p_since:c.seq});
+        if(r.error)throw new Error(r.error.message);
+        var d=r.data;
+        if(!d||d.full)needFull=true;
+        else{
+            (d.rows||[]).forEach(function(row){c.rows.set(row.id,row)});
+            (d.deleted||[]).forEach(function(id){c.rows.delete(id)});
+            c.seq=d.head;
+            syncSave(t);
+        }
+    }
+    if(needFull){
+        var h=await supabaseClient.rpc('delta_head');
+        if(h.error)throw new Error(h.error.message);
+        var rows=await fetchFullFromSupabase(t,true);
+        var m=new Map();rows.forEach(function(row){m.set(row.id,row)});
+        c={seq:h.data,fullAt:Date.now(),rows:m};
+        SYNC.mem[t]=c;
+        syncSave(t);
+    }
+    return Array.from(c.rows.values()).sort(function(a,b){return a.id-b.id}).map(function(r){return Object.assign({},r)});
+}
+function deltaLocked(t){
+    var p=(SYNC.q[t]||Promise.resolve()).then(function(){return deltaGet(t)});
+    SYNC.q[t]=p.catch(function(){});
+    return p;
+}
+function canVerify(){return !!(currentUser&&currentUser.permissions&&currentUser.permissions.manageUsers&&currentUser.permissions.manageUsers.visible)}
+function stable(o){if(o===null||typeof o!=='object')return JSON.stringify(o);if(Array.isArray(o))return '['+o.map(stable).join(',')+']';return '{'+Object.keys(o).sort().map(function(k){return JSON.stringify(k)+':'+stable(o[k])}).join(',')+'}'}
+function diffSets(full,delta){
+    var fm=new Map();full.forEach(function(r){fm.set(r.id,r)});
+    var dm=new Map();delta.forEach(function(r){dm.set(r.id,r)});
+    var missing=0,extra=0,differ=0;
+    fm.forEach(function(r,id){var x=dm.get(id);if(!x)missing++;else if(stable(r)!==stable(x))differ++});
+    dm.forEach(function(r,id){if(!fm.has(id))extra++});
+    return{missing:missing,extra:extra,differ:differ};
+}
+async function verifyTable(t,full){
+    try{
+        var delta=await deltaLocked(t),res=diffSets(full,delta);
+        if(res.missing||res.extra||res.differ){
+            await new Promise(function(r){setTimeout(r,4000)});
+            var f2=await fetchFullFromSupabase(t,true);
+            delta=await deltaLocked(t);
+            res=diffSets(f2,delta);full=f2;
+            if((res.missing||res.extra||res.differ)&&SYNC.mem[t])SYNC.mem[t].fullAt=0;
+        }
+        var u=(typeof users!=='undefined'&&users[currentUser.email])||{};
+        await supabaseClient.rpc('delta_verify_report',{payload:{username:currentUser.email,password:u.password,tbl:t,full:full.length,delta:delta.length,missing:res.missing,extra:res.extra,differ:res.differ}});
+    }catch(e){console.warn('verify failed',t,e&&e.message)}
+}
+async function fetchAllFromSupabase(tableName) {
+    var m=window.__syncMode;
+    if(m==='normal'||!SYNC_TABLES[tableName]||SYNC.off)return fetchFullFromSupabase(tableName,false);
+    if(m==='verify'){
+        var full=await fetchFullFromSupabase(tableName,false);
+        if(canVerify()&&!SYNC.off)setTimeout(function(){verifyTable(tableName,full)},50);
+        return full;
+    }
+    try{return await deltaLocked(tableName)}
+    catch(e){
+        SYNC.fails++;console.warn('delta sync failed, using full load',tableName,e&&e.message);
+        if(SYNC.fails>=3){SYNC.off=true;console.warn('delta sync disabled for this session')}
+        return fetchFullFromSupabase(tableName,false);
+    }
 }
 function logActionBadge(action,details){const a=String(action==null?'':action),l=a.toLowerCase();let c='gray';if(/^error/.test(l))c='red';else if(/delete|clear|batch/.test(l))c='red';else if(/rollback/.test(l))c='amber';else if(/login/.test(l))c=String(details||'').toLowerCase()==='failed'?'red':'blue';else if(/logout|activated/.test(l))c='blue';else if(/repair|harvest/.test(l))c='teal';else if(/deduct|downgrade/.test(l))c='orange';else if(/transfer|return to store/.test(l))c='sky';else if(/export|email|download|push/.test(l))c='sky';else if(/\buse\b|usage/.test(l))c='green';else if(/pin|lock/.test(l))c='gray';else if(/user|password|recipient|template/.test(l))c='purple';else if(/add|create|edit|update|save|bulk|printer|vendor/.test(l))c='indigo';return '<span class="log-act log-'+c+'">'+escapeHtml(a)+'</span>'}
 function shortUserName(acc){const a=String(acc==null?'':acc).trim();if(!a)return a;const u=(typeof users!=='undefined')&&users[a];if(!u&&window.queueDisplayName)window.queueDisplayName(a);const c=u&&u.comment?String(u.comment).trim():'';if(!c)return a;const P=['abdel','abdul','abdal','abd','abu','abo','abou','bin','ibn','bint','al','el','ul'];const t=c.split(/\s+/),out=[];let i=0;while(i<t.length&&out.length<2){let n=[t[i]];while(P.indexOf(t[i].toLowerCase().replace(/[^a-z]/g,''))!==-1&&i+1<t.length){i++;n.push(t[i])}out.push(n.join(' '));i++}return out.join(' ')}
@@ -10616,6 +10750,43 @@ showNotification('Idle logout is now '+r.data.idleMinutes+' minutes.','success')
 }catch(e){toggleButtonLoading(b,false);showNotification(e.message||'Failed','error')}})
 })();
 (function(){
+var card=document.getElementById('syncModeCard');if(!card)return;
+var chips=document.getElementById('syncChips'),sb=document.getElementById('syncSaveBtn'),vb=document.getElementById('syncVerify');
+var sel=window.__syncMode||'normal';
+function mark(){Array.prototype.forEach.call(chips.querySelectorAll('.ss-chip'),function(c){c.classList.toggle('active',c.dataset.m===sel)})}
+window.__syncUi=function(){sel=window.__syncMode||'normal';mark()};
+chips.addEventListener('click',function(e){var c=e.target.closest('.ss-chip');if(!c)return;sel=c.dataset.m;mark()});
+mark();
+function creds(){var u=(typeof users!=='undefined'&&users[currentUser.email])||{};return{username:currentUser.email,password:u.password}}
+async function stat(){
+    try{
+        if(!currentUser||!currentUser.permissions.manageUsers||!currentUser.permissions.manageUsers.visible)return;
+        var r=await supabaseClient.rpc('delta_verify_list',{payload:creds()});
+        if(r.error||!r.data)return;
+        var d=r.data;
+        vb.innerHTML='Verify runs: <b>'+d.runs+'</b> &middot; mismatches: <b style="color:'+(d.bad?'var(--danger-color,#dc3545)':'var(--success-color)')+'">'+d.bad+'</b> &middot; change log rows: <b>'+d.log+'</b>'+(d.runs&&!d.bad?' &middot; Delta matches Normal so far':'')
+    }catch(e){}
+}
+window.__syncStat=stat;
+sb.addEventListener('click',async function(){
+    try{
+        if(!currentUser||!currentUser.permissions.manageUsers||!currentUser.permissions.manageUsers.visible)return showNotification('Permission denied.','error');
+        toggleButtonLoading(sb,true);
+        var r=await supabaseClient.rpc('set_app_setting',{payload:Object.assign(creds(),{key:'syncMode',value:sel})});
+        toggleButtonLoading(sb,false);
+        if(r.error)throw new Error(r.error.message);
+        window.setSyncMode(r.data.syncMode);
+        try{logActivity('Change Setting','Data loading mode set to '+r.data.syncMode)}catch(e){}
+        showNotification('Data loading mode is now '+r.data.syncMode+'.','success');
+        stat()
+    }catch(e){toggleButtonLoading(sb,false);showNotification(e.message||'Failed','error')}
+});
+var tb=document.querySelector('.tab-button[data-tab="manage-users"]');
+if(tb)tb.addEventListener('click',stat);
+document.addEventListener('click',function(e){if(e.target.closest('[data-go="manage-users"]'))stat()});
+setInterval(function(){var t=document.getElementById('manage-users');if(t&&t.classList.contains('active'))stat()},60000);
+})();
+(function(){
 if(window.__csInit)return;window.__csInit=1;
 var cur=null;
 function lbl(sel){var o=sel.options[sel.selectedIndex];return o?o.text:''}
@@ -10775,7 +10946,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261125192656';
+var APP_VERSION='20261125230232';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
