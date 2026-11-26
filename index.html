@@ -10955,7 +10955,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261125234259';
+var APP_VERSION='20261126064728';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
@@ -11126,10 +11126,44 @@ function creds(){var u=(typeof users!=='undefined'&&users[currentUser.email])||{
 function dstr(t){return new Date(t).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric',timeZone:'Africa/Cairo'})}
 function tstr(t){return new Date(t).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',timeZone:'Africa/Cairo'})}
 function pctCls(p){return p>=85?'d':p>=60?'w':''}
+var HC={egress:'rest',realtime:'rt',edge:'edge'};
+function cycleStart(){var n=new Date(new Date().toLocaleString('en-US',{timeZone:'Africa/Cairo'}));var d=new Date(n.getFullYear(),n.getMonth(),1);var off=Date.now()-new Date(new Date().toLocaleString('en-US',{timeZone:'Africa/Cairo'})).getTime();return d.getTime()+off}
+function counter(k,from,to){
+  var f=HC[k],tot=0,H=3600000;
+  if(!D||!D.hourly)return 0;
+  D.hourly.forEach(function(h){var a=new Date(h.ts).getTime(),b=a+H,o=Math.min(b,to)-Math.max(a,from);if(o>0)tot+=(+h[f]||0)*(o/H)});
+  return tot
+}
+function hourlyFrom(){return D&&D.hourly&&D.hourly.length?new Date(D.hourly[0].ts).getTime():null}
+function estimate(m){
+  var now=Date.now(),cs=cycleStart(),hf=hourlyFrom();
+  var rd=D.readings.filter(function(r){return r.metric===m.k}).map(function(r){return{t:new Date(r.at).getTime(),v:+r.value}}).sort(function(a,b){return a.t-b.t}).filter(function(x){return x.t>=cs});
+  var factor=m.k==='edge'?1:null,src='';
+  if(m.k!=='edge'){
+    for(var i=rd.length-1;i>0&&factor==null;i--){var a=rd[i-1],b=rd[i],c=counter(m.k,a.t,b.t);if(c>=(m.k==='realtime'?30:300)&&b.v>a.v){factor=(b.v-a.v)/c}}
+  }
+  if(factor==null)return null;
+  var anchor=rd.length?rd[rd.length-1]:null,base,from;
+  if(anchor&&(m.k!=='edge'||(hf!=null&&anchor.t>=hf))){base=anchor.v;from=anchor.t;src='from the reading of '+tstr(anchor.t)}
+  else if(hf!=null&&hf<=cs+3600000){base=0;from=cs;src='since the start of the cycle'}
+  else if(anchor){base=anchor.v;from=anchor.t;src='from the reading of '+tstr(anchor.t)}
+  else return null;
+  var cur=base+factor*counter(m.k,from,now);
+  var dayRates=[],dayMs=DAY,t0=new Date(new Date().toLocaleString('en-US',{timeZone:'Africa/Cairo'}));t0.setHours(0,0,0,0);
+  var off=now-new Date(new Date().toLocaleString('en-US',{timeZone:'Africa/Cairo'})).getTime(),todayStart=t0.getTime()+off;
+  for(var d=1;d<=7;d++){var s0=todayStart-d*dayMs,e0=s0+dayMs;if(hf!=null&&s0>=hf-3600000)dayRates.push(factor*counter(m.k,s0,e0))}
+  var rate,partial=false;
+  if(dayRates.length){rate=dayRates.reduce(function(a,b){return a+b},0)/dayRates.length}
+  else if(hf!=null){var span=(now-hf)/dayMs;if(span>=0.25){rate=factor*counter(m.k,hf,now)/span;partial=true}}
+  return{cur:Math.max(cur,0),factor:factor,src:src,rate:rate,partial:partial,days:dayRates.length}
+}
 function series(m){
   if(m.k==='db'||m.k==='storage')return D.snapshots.map(function(x){return{t:new Date(x.day+'T00:00:00Z').getTime(),v:+x[m.k]}});
   var arr=D.readings.filter(function(r){return r.metric===m.k}).map(function(r){return{t:new Date(r.at).getTime(),v:+r.value,id:r.id}}).sort(function(a,b){return a.t-b.t});
   if(m.cum)return arr;
+  var e=HC[m.k]?estimate(m):null;
+  if(e){m.__est=e;return [{t:Date.now(),v:e.cur}]}
+  m.__est=null;
   var st=0;for(var i=1;i<arr.length;i++)if(arr[i].v<arr[i-1].v)st=i;
   return arr.slice(st)
 }
@@ -11137,6 +11171,7 @@ function forecast(m,ser){
   if(!ser.length)return{state:'none'};
   var last=ser[ser.length-1];
   if(m.noFc)return{state:'nofc',last:last};
+  if(m.__est&&m.__est.rate!=null)return{state:'ok',last:last,rate:m.__est.rate/1,days:Math.max(m.__est.days,1),rough:m.__est.partial||m.__est.days<3,ser:ser,est:m.__est};
   var win=ser.filter(function(x){return x.t>=last.t-30*DAY});
   if(win.length<2)return{state:'few',last:last};
   var f=win[0],days=(last.t-f.t)/DAY;if(days<0.25)return{state:'few',last:last};
@@ -11166,7 +11201,7 @@ function fcHtml(m,fc){
   if(fc.state==='none')return '<span>No data yet'+(m.auto?' - first daily snapshot will appear tomorrow.':'. Enter the value from the Supabase dashboard.')+'</span>';
   if(fc.state==='nofc')return '<span>Last reading '+tstr(fc.last.t)+'</span>';
   if(fc.state==='few')return '<span>'+(m.auto?'Measured '+dstr(fc.last.t)+'. Forecast appears after the next daily snapshot.':'Last reading '+tstr(fc.last.t)+'. Add another reading at least 6 hours later to get a forecast.')+'</span>';
-  var r=fc.rate,left=m.lim-fc.last.v,h=fc.rough?'<div style="color:#f59e0b">Rough estimate (based on '+Math.round(fc.days*24)+' hours only)</div>':'';
+  var r=fc.rate,left=m.lim-fc.last.v,h=fc.rough?'<div style="color:#f59e0b">'+(fc.est?(fc.est.days?'Rough estimate (only '+fc.est.days+' full day'+(fc.est.days===1?'':'s')+' of request data so far)':'Rough estimate (less than a day of request data so far)'):'Rough estimate (based on '+Math.round(fc.days*24)+' hours only)')+'</div>':'';
   if(left<=0)return h+'<div class="bad">Limit already reached.</div>';
   if(r<=0)return h+'<div class="ok">No growth detected, the limit will not be reached at this rate.</div>';
   var dl=left/r,when=dstr(Date.now()+dl*DAY);
@@ -11182,10 +11217,10 @@ function render(){
   if(!D)return;
   cards.innerHTML=MET.map(function(m){
     var ser=series(m),fc=forecast(m,ser),cur=ser.length?ser[ser.length-1].v:null,pc=cur==null?0:Math.min(100,cur/m.lim*100);
-    return '<div class="dbu-card"><div class="dbu-top"><span class="dbu-name"><i class="fa-solid '+m.ic+'" style="color:var(--primary-accent-color);margin-right:6px"></i>'+m.n+'</span>'+(m.auto?'<span style="font-size:.75em;color:var(--success-color)"><i class="fa-solid fa-circle" style="font-size:.6em"></i> live</span>':'<button type="button" class="custom-btn dbu-add" data-m="'+m.k+'" style="margin:0;padding:4px 10px;font-size:.8em"><i class="fa-solid fa-pen"></i> Enter</button>')+'</div>'+
+    return '<div class="dbu-card"><div class="dbu-top"><span class="dbu-name"><i class="fa-solid '+m.ic+'" style="color:var(--primary-accent-color);margin-right:6px"></i>'+m.n+'</span>'+(m.auto?'<span style="font-size:.75em;color:var(--success-color)"><i class="fa-solid fa-circle" style="font-size:.6em"></i> live</span>':(m.__est?'<span style="font-size:.75em;color:var(--success-color)" title="Calculated automatically from request counts"><i class="fa-solid fa-circle" style="font-size:.6em"></i> auto estimate</span>':'')+'<button type="button" class="custom-btn dbu-add" data-m="'+m.k+'" style="margin:0;padding:4px 10px;font-size:.8em"><i class="fa-solid fa-pen"></i> Calibrate</button>')+'</div>'+
     '<div class="dbu-val">'+(cur==null?'-':m.fmt(cur))+' <small>/ '+m.limt+'</small></div>'+
     '<div class="dbu-bar"><i class="'+pctCls(pc)+'" style="width:'+pc.toFixed(1)+'%"></i></div>'+
-    '<div class="dbu-fc"><b>'+pc.toFixed(1)+'%</b> used'+(ser.length&&!m.auto?' &middot; reading of '+tstr(ser[ser.length-1].t):'')+'</div>'+
+    '<div class="dbu-fc"><b>'+pc.toFixed(1)+'%</b> used'+(m.__est?' &middot; '+m.__est.src:(ser.length&&!m.auto?' &middot; reading of '+tstr(ser[ser.length-1].t):''))+'</div>'+
     '<div class="dbu-fc">'+fcHtml(m,fc)+'</div></div>'
   }).join('');
   var tb=(D.tables||[]).slice(0,15),mx=tb.length?tb[0].b:1,tot=D.snapshots.length?+D.snapshots[D.snapshots.length-1].db:0;
@@ -11199,9 +11234,10 @@ async function load(force){
   if(!force&&D&&Date.now()-loadedAt<60000){render();return}
   busy=true;rb.disabled=true;
   try{
+    if(force||!D){try{await supabaseClient.functions.invoke('usage-stats',{body:creds()})}catch(e){}}
     var r=await supabaseClient.rpc('db_usage_get',{payload:creds()});
     if(r.error)throw new Error(r.error.message);
-    D=r.data;loadedAt=Date.now();render();var st=document.getElementById('dbuStamp');if(st)st.textContent='Database size and file storage are live, read from the database at '+new Date().toLocaleTimeString('en-GB',{timeZone:'Africa/Cairo'})+'. Other metrics show the last reading entered.'
+    D=r.data;loadedAt=Date.now();render();var st=document.getElementById('dbuStamp');if(st)st.textContent='Database size and file storage are live, read from the database at '+new Date().toLocaleTimeString('en-GB',{timeZone:'Africa/Cairo'})+'. Egress, Realtime and Edge are estimated automatically from Supabase request counts (collected hourly); a new Calibrate reading from the Supabase dashboard improves accuracy.'
   }catch(e){showNotification(e.message||'Failed to load usage','error')}
   finally{busy=false;rb.disabled=false}
 }
