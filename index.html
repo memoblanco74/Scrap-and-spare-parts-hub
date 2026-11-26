@@ -515,6 +515,14 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .dbu-fc{font-size:.85em;color:var(--secondary-color);line-height:1.6}
 .dbu-fc b{color:var(--text-color)}
 .dbu-fc .ok{color:var(--success-color);font-weight:600}.dbu-fc .bad{color:var(--danger-color,#dc3545);font-weight:600}
+.dbu-ch{display:flex;align-items:flex-end;gap:3px;height:170px;position:relative;padding-top:6px}
+.dbu-ch .col{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative}
+.dbu-ch .bar{width:100%;border-radius:4px 4px 0 0;background:var(--primary-accent-color);min-height:1px}
+.dbu-ch .bar.p{opacity:.55}
+.dbu-ch .none{width:100%;height:3px;border-radius:2px;background:var(--input-border-color)}
+.dbu-ch .ref{position:absolute;left:0;right:0;border-top:1px dashed var(--danger-color,#dc3545);pointer-events:none}
+.dbu-ax{display:flex;gap:3px;margin-top:4px;font-size:.62em;color:var(--secondary-color)}
+.dbu-ax span{flex:1;text-align:center;min-width:0;overflow:hidden}
 .dbu-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--input-border-color);font-size:.9em}
 .dbu-row .n{flex:0 0 190px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dbu-row .b{flex:1;min-width:60px}
@@ -5326,6 +5334,7 @@ button.pa-user-chip:hover i{opacity:1;color:#ef4444}
         </div>
         <div id="dbuStamp" style="font-size:.82em;color:var(--secondary-color);margin:-4px 0 12px"></div>
         <div class="dbu-grid" id="dbuCards"></div>
+        <div class="card" style="margin-top:16px"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><h3 style="margin:0"><i class="fa-solid fa-chart-column" style="color:var(--primary-accent-color)"></i> Daily usage this cycle</h3><div class="ss-chips" id="dbuChartChips"><button type="button" class="ss-chip active" data-k="egress">Egress</button><button type="button" class="ss-chip" data-k="realtime">Realtime</button><button type="button" class="ss-chip" data-k="edge">Edge</button></div></div><div id="dbuChart" style="margin-top:12px"></div></div>
         <div class="card" style="margin-top:16px"><h3 style="margin-top:0"><i class="fa-solid fa-table" style="color:var(--primary-accent-color)"></i> Biggest tables</h3><div id="dbuTables"></div></div>
         <div class="card" style="margin-top:16px"><h3 style="margin-top:0"><i class="fa-solid fa-clock-rotate-left" style="color:var(--primary-accent-color)"></i> Entered readings</h3><div id="dbuReadings"></div></div>
       </div>
@@ -10955,7 +10964,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261126064728';
+var APP_VERSION='20261126065059';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
@@ -11134,6 +11143,14 @@ function counter(k,from,to){
   D.hourly.forEach(function(h){var a=new Date(h.ts).getTime(),b=a+H,o=Math.min(b,to)-Math.max(a,from);if(o>0)tot+=(+h[f]||0)*(o/H)});
   return tot
 }
+function dkey(t){return new Date(t).toLocaleDateString('en-CA',{timeZone:'Africa/Cairo'})}
+function dayMap(k){
+  var f=HC[k],m={};
+  if(!D)return m;
+  (D.hourly||[]).forEach(function(h){var key=dkey(h.ts);m[key]=(m[key]||0)+(+h[f]||0)});
+  if(k==='rest'||k==='egress'||k==='realtime')(D.ext||[]).forEach(function(e){var key=e.day;m[key]=(m[key]||0)+(+(k==='realtime'?e.rt:e.rest)||0)});
+  return m
+}
 function hourlyFrom(){return D&&D.hourly&&D.hourly.length?new Date(D.hourly[0].ts).getTime():null}
 function estimate(m){
   var now=Date.now(),cs=cycleStart(),hf=hourlyFrom();
@@ -11149,12 +11166,12 @@ function estimate(m){
   else if(anchor){base=anchor.v;from=anchor.t;src='from the reading of '+tstr(anchor.t)}
   else return null;
   var cur=base+factor*counter(m.k,from,now);
-  var dayRates=[],dayMs=DAY,t0=new Date(new Date().toLocaleString('en-US',{timeZone:'Africa/Cairo'}));t0.setHours(0,0,0,0);
-  var off=now-new Date(new Date().toLocaleString('en-US',{timeZone:'Africa/Cairo'})).getTime(),todayStart=t0.getTime()+off;
-  for(var d=1;d<=7;d++){var s0=todayStart-d*dayMs,e0=s0+dayMs;if(hf!=null&&s0>=hf-3600000)dayRates.push(factor*counter(m.k,s0,e0))}
+  var dayRates=[],dm=dayMap(m.k),todayKey=dkey(now);
+  Object.keys(dm).sort().forEach(function(key){if(key!==todayKey&&key>=dkey(now-8*DAY))dayRates.push(factor*dm[key])});
+  dayRates=dayRates.slice(-7);
   var rate,partial=false;
   if(dayRates.length){rate=dayRates.reduce(function(a,b){return a+b},0)/dayRates.length}
-  else if(hf!=null){var span=(now-hf)/dayMs;if(span>=0.25){rate=factor*counter(m.k,hf,now)/span;partial=true}}
+  else if(hf!=null){var span=(now-hf)/DAY;if(span>=0.25){rate=factor*counter(m.k,hf,now)/span;partial=true}}
   return{cur:Math.max(cur,0),factor:factor,src:src,rate:rate,partial:partial,days:dayRates.length}
 }
 function series(m){
@@ -11213,6 +11230,23 @@ function fcHtml(m,fc){
   if(Date.now()+dl*DAY<ce)return h+'<div class="bad">At this average rate you will exceed the free limit on <b>'+when+'</b> (in about '+Math.round(dl)+' days), before this cycle resets on '+dstr(ce)+'.</div>';
   return h+'<div class="ok">At this average rate you will <b>not</b> exceed the limit this cycle: expected about <b>'+m.fmt(end)+'</b> ('+Math.round(end/m.lim*100)+'%) by '+dstr(ce)+'.</div>'+growthHtml(m,fc,end,ce)
 }
+var chartK='egress';
+function renderChart(){
+  var el=document.getElementById('dbuChart');if(!el||!D)return;
+  var m=MET.filter(function(x){return x.k===chartK})[0],e=estimate(m),fac=chartK==='edge'?1:(e?e.factor:null);
+  if(fac==null){el.innerHTML='<div style="color:var(--secondary-color);font-size:.9em">Not enough data yet to calibrate this chart.</div>';return}
+  var dm=dayMap(chartK),n=new Date(new Date().toLocaleString('en-US',{timeZone:'Africa/Cairo'})),y=n.getFullYear(),mo=n.getMonth(),dim=new Date(y,mo+1,0).getDate(),today=dkey(Date.now()),vals=[],mx=0;
+  for(var d=1;d<=dim;d++){var key=y+'-'+String(mo+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');var has=dm[key]!=null;var v=has?fac*dm[key]:null;if(v!=null&&v>mx)mx=v;vals.push({d:d,key:key,v:v,today:key===today,future:key>today})}
+  var ref=m.lim/dim;if(ref>mx)mx=Math.max(mx,ref*1.1);if(mx<=0)mx=1;
+  var unit=chartK==='egress'?function(v){return v>=1?v.toFixed(2)+' GB':(v*1000).toFixed(0)+' MB'}:function(v){return Math.round(v).toLocaleString('en-US')};
+  el.innerHTML='<div class="dbu-ch">'+vals.map(function(x){
+    if(x.v==null)return '<div class="col" title="'+x.key+(x.future?'':': no data')+'"><div class="none" style="opacity:'+(x.future?.4:1)+'"></div></div>';
+    return '<div class="col" title="'+x.key+': '+unit(x.v)+(x.today?' (so far)':'')+'"><div class="bar'+(x.today?' p':'')+'" style="height:'+Math.max(1,x.v/mx*100).toFixed(1)+'%"></div></div>'
+  }).join('')+'<div class="ref" style="bottom:calc('+(ref/mx*100).toFixed(1)+'% * 0.96)"></div></div>'+
+  '<div class="dbu-ax">'+vals.map(function(x){return '<span>'+(x.d%5===1||x.d===dim?x.d:'')+'</span>'}).join('')+'</div>'+
+  '<div class="dbu-fc" style="margin-top:8px">Estimated per day from Supabase request counts'+(chartK==='egress'?' (about '+(fac*1e6).toFixed(1)+' KB per request)':'')+'. Dashed line = an even share of the monthly free limit ('+unit(ref)+' per day). Days before data collection started have no bar.</div>'
+}
+render=(function(old){return function(){old();renderChart()}})(render);
 function render(){
   if(!D)return;
   cards.innerHTML=MET.map(function(m){
@@ -11255,6 +11289,8 @@ async function enter(k){
 cards.addEventListener('click',function(e){var b=e.target.closest('.dbu-add');if(b)enter(b.dataset.m)});
 rdg.addEventListener('click',function(e){var b=e.target.closest('.dbu-del');if(!b)return;confirmAction('Delete this reading?',async function(){try{var r=await supabaseClient.rpc('usage_reading_delete',{payload:Object.assign(creds(),{id:b.dataset.id})});if(r.error)throw new Error(r.error.message);await load(true)}catch(x){showNotification(x.message||'Failed','error')}})});
 rb.addEventListener('click',function(){load(true)});
+var cc=document.getElementById('dbuChartChips');
+if(cc)cc.addEventListener('click',function(e){var b=e.target.closest('.ss-chip');if(!b)return;chartK=b.dataset.k;Array.prototype.forEach.call(cc.querySelectorAll('.ss-chip'),function(x){x.classList.toggle('active',x===b)});renderChart()});
 var gi=document.getElementById('dbuGrowth');
 if(gi){try{var gv=localStorage.getItem('dbuGrowth');gi.value=gv!==null&&gv!==''?gv:'5'}catch(e){gi.value='5'}gi.addEventListener('change',function(){var v=parseFloat(gi.value);if(!(v>=0))v=0;gi.value=v;try{localStorage.setItem('dbuGrowth',String(v))}catch(e){}render()})}
 var tabBtn=document.querySelector('.tab-button[data-tab="db-usage"]');
