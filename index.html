@@ -505,7 +505,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .lu-notify{display:inline-flex;align-items:center;gap:8px;font-size:.88em;cursor:pointer}
 .dbu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px}
 .dbu-card{padding:16px 18px;border-radius:16px;border:1px solid var(--border-color);background:var(--tertiary-bg-color);display:flex;flex-direction:column;gap:8px}
-.dbu-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.dbu-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.dbu-top>span:first-child{flex:1;min-width:0;line-height:1.25}.dbu-top>span:last-child{flex:none;white-space:nowrap;padding-top:2px}.dbu-card .dbu-add{margin:6px 0 0!important;padding:8px 14px!important;font-size:.85em!important;align-self:flex-start;width:auto}.dbu-card{min-width:0;overflow:hidden}
 .dbu-name{font-weight:700}
 .dbu-val{font-size:1.5em;font-weight:700;line-height:1.1}
 .dbu-val small{font-size:.55em;font-weight:500;color:var(--secondary-color)}
@@ -5334,12 +5334,12 @@ button.pa-user-chip:hover i{opacity:1;color:#ef4444}
       </div>
       <div id="db-usage" class="tab-content">
         <div class="lu-head">
-          <div><h2 style="margin:0">Database Usage</h2><p style="margin:4px 0 0;font-size:.9em;color:var(--secondary-color)">Free plan usage and forecast. Database size is measured automatically every day; Egress, Realtime and the rest are entered from the Supabase dashboard.</p></div>
+          <div><h2 style="margin:0">Database Usage</h2><p style="margin:4px 0 0;font-size:.9em;color:var(--secondary-color)">Free plan usage and forecast. Database size and file storage are measured automatically; Egress, Realtime and Edge are estimated automatically from request counts and can be calibrated from the Supabase dashboard.</p></div>
           <div class="lu-actions"><label style="font-size:.85em;display:flex;align-items:center;gap:6px;color:var(--secondary-color)" title="Used until enough monthly history is collected">Assumed growth <input type="number" id="dbuGrowth" min="0" max="200" step="1" style="width:64px;padding:6px 8px"> % / month</label><button type="button" id="dbuRefresh" class="custom-btn" style="margin:0"><i class="fa-solid fa-rotate"></i> Refresh</button></div>
         </div>
         <div id="dbuStamp" style="font-size:.82em;color:var(--secondary-color);margin:-4px 0 12px"></div>
         <div class="dbu-grid" id="dbuCards"></div>
-        <div class="card" style="margin-top:16px"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><h3 style="margin:0"><i class="fa-solid fa-chart-column" style="color:var(--primary-accent-color)"></i> Daily usage this cycle</h3><div class="ss-chips" id="dbuChartChips"><button type="button" class="ss-chip active" data-k="egress">Egress</button><button type="button" class="ss-chip" data-k="realtime">Realtime</button><button type="button" class="ss-chip" data-k="edge">Edge</button></div></div><div id="dbuChart" style="margin-top:12px"></div></div>
+        <div class="card" style="margin-top:16px"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><h3 style="margin:0"><i class="fa-solid fa-chart-column" style="color:var(--primary-accent-color)"></i> Egress per day</h3></div><div id="dbuChart" style="margin-top:12px"></div></div>
         <div class="card" style="margin-top:16px"><h3 style="margin-top:0"><i class="fa-solid fa-table" style="color:var(--primary-accent-color)"></i> Biggest tables</h3><div id="dbuTables"></div></div>
         <div class="card" style="margin-top:16px"><h3 style="margin-top:0"><i class="fa-solid fa-clock-rotate-left" style="color:var(--primary-accent-color)"></i> Entered readings</h3><div id="dbuReadings"></div></div>
       </div>
@@ -10977,7 +10977,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261126165459';
+var APP_VERSION='20261126213303';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
@@ -11292,11 +11292,11 @@ function render(){
   if(!D)return;
   cards.innerHTML=MET.map(function(m){
     var ser=series(m),fc=forecast(m,ser),cur=ser.length?ser[ser.length-1].v:null,pc=cur==null?0:Math.min(100,cur/m.lim*100);
-    return '<div class="dbu-card"><div class="dbu-top"><span class="dbu-name"><i class="fa-solid '+m.ic+'" style="color:var(--primary-accent-color);margin-right:6px"></i>'+m.n+'</span>'+(m.auto?'<span style="font-size:.75em;color:var(--success-color)"><i class="fa-solid fa-circle" style="font-size:.6em"></i> live</span>':(m.__est?'<span style="font-size:.75em;color:var(--success-color)" title="Calculated automatically from request counts"><i class="fa-solid fa-circle" style="font-size:.6em"></i> auto estimate</span>':'')+'<button type="button" class="custom-btn dbu-add" data-m="'+m.k+'" style="margin:0;padding:4px 10px;font-size:.8em"><i class="fa-solid fa-pen"></i> Calibrate</button>')+'</div>'+
+    return '<div class="dbu-card"><div class="dbu-top"><span class="dbu-name"><i class="fa-solid '+m.ic+'" style="color:var(--primary-accent-color);margin-right:6px"></i>'+m.n+'</span>'+(m.auto?'<span style="font-size:.75em;color:var(--success-color)"><i class="fa-solid fa-circle" style="font-size:.6em"></i> live</span>':(m.__est?'<span style="font-size:.75em;color:var(--success-color)" title="Calculated automatically from request counts"><i class="fa-solid fa-circle" style="font-size:.6em"></i> auto estimate</span>':'')+'')+'</div>'+
     '<div class="dbu-val">'+(cur==null?'-':m.fmt(cur))+' <small>/ '+m.limt+'</small></div>'+
     '<div class="dbu-bar"><i class="'+pctCls(pc)+'" style="width:'+pc.toFixed(1)+'%"></i></div>'+
     '<div class="dbu-fc"><b>'+pc.toFixed(1)+'%</b> used'+(m.__est?' &middot; '+m.__est.src:(ser.length&&!m.auto?' &middot; reading of '+tstr(ser[ser.length-1].t):''))+'</div>'+
-    '<div class="dbu-fc">'+fcHtml(m,fc)+'</div></div>'
+    '<div class="dbu-fc">'+fcHtml(m,fc)+'</div>'+(m.auto?'':'<button type="button" class="custom-btn dbu-add" data-m="'+m.k+'"><i class="fa-solid fa-pen"></i> Calibrate</button>')+'</div>'
   }).join('');
   var tb=(D.tables||[]).slice(0,15),mx=tb.length?tb[0].b:1,tot=D.snapshots.length?+D.snapshots[D.snapshots.length-1].db:0;
   tbl.innerHTML=tb.map(function(t){return '<div class="dbu-row"><span class="n">'+escapeHtml(t.t)+'</span><span class="b"><span class="dbu-bar"><i style="width:'+(t.b/mx*100).toFixed(1)+'%"></i></span></span><span class="v">'+(t.b/MB).toFixed(2)+' MB &middot; ~'+Number(t.r).toLocaleString('en-US')+' rows</span></div>'}).join('')||'<div style="color:var(--secondary-color)">No data.</div>';
