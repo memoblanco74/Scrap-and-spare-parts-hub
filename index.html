@@ -6041,8 +6041,9 @@ function setupRealtimeSubscriptions() {
 
 ['serialNumber','usePartSN','usePartDestSN','usePartSnInput','deductPartSn'].forEach(id=>{const el=document.getElementById(id);if(el){el.style.textTransform='uppercase';el.addEventListener('input',function(){const s=this.selectionStart,e=this.selectionEnd;this.value=this.value.toUpperCase();this.setSelectionRange(s,e);});}});
 // أضف هذه الدالة في بداية قسم الـ script، بعد تعريف supabaseClient
-async function refreshDashboardLive(){try{const [u,p]=await Promise.all([fetchAllFromSupabase('usagehistory'),fetchAllFromSupabase('spareparts')]);if(u&&u.length)allUsageHistory=u.map(x=>({...x,partId:x.part_id,partSN:x.part_sn,sourceBrand:x.source_brand,sourceModel:x.source_model,sourceSN:x.source_sn,destBrand:x.dest_brand,destModel:x.dest_model,destSN:x.dest_sn,upgradePlan:x.upgrade_plan}));if(p&&p.length){allSpareParts=p.map(x=>({...x,reservedFor:x.reserved_for,purchaseOrder:x.purchase_order}));allSpareParts.sort((a,b)=>new Date(b.date)-new Date(a.date))}}catch(e){console.error(e)}await refreshLaptopsLive()}
-async function refreshLaptopsLive(){try{const rows=await fetchAllFromSupabase('laptops');if(!rows||!rows.length)return;allLaptops=rows.map(l=>({...l,mb:l.m_b,rams:(typeof l.rams_json==='string')?JSON.parse(l.rams_json||"[]"):(l.rams_json||[])}));allLaptops.sort((a,b)=>b.id-a.id)}catch(e){console.error(e)}}
+window.__skipLive=function(){if(window.__syncMode!=='delta'||!window.__rtOk||!window.realtimeChannel||window.__dataFailed||window.__dataStale||!window.__dataLoadedAt)return false;var t=Math.max(window.__dataLoadedAt||0,window.__liveAt||0);if(Date.now()-t<300000)return true;window.__liveAt=Date.now();return false};
+async function refreshDashboardLive(){if(window.__skipLive())return;try{const [u,p]=await Promise.all([fetchAllFromSupabase('usagehistory'),fetchAllFromSupabase('spareparts')]);if(u&&u.length)allUsageHistory=u.map(x=>({...x,partId:x.part_id,partSN:x.part_sn,sourceBrand:x.source_brand,sourceModel:x.source_model,sourceSN:x.source_sn,destBrand:x.dest_brand,destModel:x.dest_model,destSN:x.dest_sn,upgradePlan:x.upgrade_plan}));if(p&&p.length){allSpareParts=p.map(x=>({...x,reservedFor:x.reserved_for,purchaseOrder:x.purchase_order}));allSpareParts.sort((a,b)=>new Date(b.date)-new Date(a.date))}}catch(e){console.error(e)}await refreshLaptopsLive()}
+async function refreshLaptopsLive(){if(window.__skipLive())return;try{const rows=await fetchAllFromSupabase('laptops');if(!rows||!rows.length)return;allLaptops=rows.map(l=>({...l,mb:l.m_b,rams:(typeof l.rams_json==='string')?JSON.parse(l.rams_json||"[]"):(l.rams_json||[])}));allLaptops.sort((a,b)=>b.id-a.id)}catch(e){console.error(e)}}
 var SYNC_TABLES={laptops:1,spareparts:1,groups:1,logs:1,usagehistory:1,deducthistory:1,downgrade:1,part_repairs:1,printers:1};
 window.__syncMode=(function(){try{var m=localStorage.getItem('syncMode');return(m==='delta'||m==='verify')?m:'normal'}catch(e){return'normal'}})();
 window.setSyncMode=function(m){if(m!=='delta'&&m!=='verify')m='normal';window.__syncMode=m;try{localStorage.setItem('syncMode',m)}catch(e){}try{if(window.__syncUi)window.__syncUi()}catch(e){}};
@@ -10251,9 +10252,10 @@ if(JSON.stringify(perms)!==JSON.stringify(currentUser.permissions)){u.permission
 }
 var ch=null;
 window.stopSelfUserChannel=function(){if(tm){clearInterval(tm);tm=null}if(ch){try{supabaseClient.removeChannel(ch)}catch(e){}ch=null}};
-window.startSelfUserChannel=function(){window.stopSelfUserChannel();if(!currentUser)return;tm=setInterval(check,120000);if(!window.__rtOk||!window.realtimeChannel)return;ch=supabaseClient.channel('user-changes').on('broadcast',{event:'changed'},function(m){var pl=m&&m.payload;if(pl&&currentUser&&pl.username===currentUser.email)check(true)}).subscribe()};
+window.startSelfUserChannel=function(){window.stopSelfUserChannel();if(!currentUser)return;tm=setInterval(function(){if(window.__syncMode!=='delta')check()},120000);if(!window.__rtOk||!window.realtimeChannel)return;ch=supabaseClient.channel('user-changes').on('broadcast',{event:'changed'},function(m){var pl=m&&m.payload;if(pl&&currentUser&&pl.username===currentUser.email)check(true)}).subscribe()};
 window.__onMainSubscribed=function(){if(currentUser)window.startSelfUserChannel()};
 document.addEventListener('visibilitychange',function(){if(!document.hidden)check()});
+var lastChk=0;['mousemove','mousedown','keydown','touchstart','wheel'].forEach(function(ev){window.addEventListener(ev,function(){if(window.__syncMode!=='delta'||!currentUser)return;var n=Date.now();if(n-lastChk<120000)return;lastChk=n;check()},{passive:true,capture:true})});
 })();
 (function(){
 var inner=displayUsersInTable,innerRep=renderPermissionsAccessReport,busy=null;
@@ -10972,12 +10974,12 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261126113536';
+var APP_VERSION='20261126115007';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
 function check(){if(pending){show(pending);return}if(busy||document.hidden||!navigator.onLine)return;busy=true;var ac=window.AbortController?new AbortController():null,tm=setTimeout(function(){if(ac)ac.abort();busy=false},8000);fetch('version.json?t='+Date.now(),{cache:'no-store',signal:ac?ac.signal:undefined}).then(function(r){return r.ok?r.json():null}).then(function(j){if(j&&j.v&&/^[0-9]{14}$/.test(j.v)&&j.v!==APP_VERSION)show(j.v)}).catch(function(){}).then(function(){clearTimeout(tm);busy=false})}
-setTimeout(check,4000);setInterval(check,120000);window.addEventListener('pageshow',check);
+setTimeout(check,4000);setInterval(function(){if(window.__syncMode!=='delta')check()},120000);window.addEventListener('pageshow',check);var lastVer=0;['mousemove','mousedown','keydown','touchstart','wheel'].forEach(function(ev){window.addEventListener(ev,function(){if(window.__syncMode!=='delta')return;var n=Date.now();if(n-lastVer<120000)return;lastVer=n;check()},{passive:true,capture:true})});
 document.addEventListener('visibilitychange',function(){if(!document.hidden)check()});window.addEventListener('focus',check);window.addEventListener('online',check);
 window.__appVersion=APP_VERSION;
 })();
