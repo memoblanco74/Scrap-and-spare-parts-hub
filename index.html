@@ -4946,7 +4946,7 @@ button.pa-user-chip:hover i{opacity:1;color:#ef4444}
             <hr class="summary-divider">
             <div class="summary-header">
               <h3><i class="fa-solid fa-boxes-stacked"></i> Current Inventory Summary</h3>
-              <div class="sum-mode-tabs"><button type="button" class="sum-mode-btn active" data-mode="items"><i class="fa-solid fa-box-open"></i> Items</button><button type="button" class="sum-mode-btn" data-mode="site"><i class="fa-solid fa-location-dot"></i> By Site</button></div>
+              <div class="sum-mode-tabs"><button type="button" class="sum-mode-btn active" data-mode="items"><i class="fa-solid fa-box-open"></i> Items</button><button type="button" class="sum-mode-btn" data-mode="site"><i class="fa-solid fa-location-dot"></i> Site</button></div>
             </div>
             <div id="sparePartSummaryContainer" class="summary-grid">
               <div class="prompt-message loading-pulse">Loading summary data...</div>
@@ -10977,7 +10977,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261126164404';
+var APP_VERSION='20261126164538';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
