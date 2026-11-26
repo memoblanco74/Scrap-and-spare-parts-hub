@@ -10977,7 +10977,7 @@ card.addEventListener('change',upd);
 var q=0;new MutationObserver(function(){cancelAnimationFrame(q);q=requestAnimationFrame(upd)}).observe(card,{childList:true,subtree:true});upd();
 })();
 (function(){
-var APP_VERSION='20261126164538';
+var APP_VERSION='20261126165459';
 var ban=null,pending='',busy=false,snoozeUntil=0;
 function build(v){if(ban)return;ban=document.createElement('div');ban.id='updateBanner';ban.setAttribute('role','alert');ban.innerHTML='<div class="ub-ico"><i class="fa-solid fa-sync-alt"></i></div><div class="ub-txt"><b>New update available</b><span>Close the app and open it again to get the latest version.</span></div><button type="button" class="ub-go">Reload</button><button type="button" class="ub-x" aria-label="Dismiss">&#10005;</button>';document.body.appendChild(ban);ban.querySelector('.ub-go').addEventListener('click',function(){var g=ban.querySelector('.ub-go');g.disabled=true;g.textContent='Updating...';var done=function(){try{location.reload()}catch(e){location.href=location.href}};var u=location.pathname+location.search;Promise.all([fetch(u,{cache:'reload'}),fetch('version.json?t='+Date.now(),{cache:'reload'})]).then(done,done)});ban.querySelector('.ub-x').addEventListener('click',function(){ban.classList.remove('show');snoozeUntil=Date.now()+600000})}
 function show(v){pending=v;if(Date.now()<snoozeUntil)return;build(v);if(ban.classList.contains('show'))return;requestAnimationFrame(function(){ban.classList.add('show')})}
@@ -11244,10 +11244,38 @@ function fcHtml(m,fc){
   return h+'<div class="ok">At this average rate you will <b>not</b> exceed the limit this cycle: expected about <b>'+m.fmt(end)+'</b> ('+Math.round(end/m.lim*100)+'%) by '+dstr(ce)+'.</div>'+growthHtml(m,fc,end,ce)
 }
 var chartK='egress';
+var RT_KB=13.5,FN_B=16.8;
+(function(){var st=document.createElement('style');st.textContent='.eg-wrap{display:flex;gap:8px;align-items:stretch;height:230px}.eg-y{width:46px;position:relative;font-size:.72em;color:var(--secondary-color);flex:none}.eg-y span{position:absolute;right:0;transform:translateY(50%)}.eg-plot{flex:1;position:relative;min-width:0}.eg-gl{position:absolute;left:0;right:0;border-top:1px dashed var(--border-color);pointer-events:none}.eg-cols{position:absolute;inset:0;display:flex;align-items:stretch;gap:3px}.eg-col{flex:1;min-width:0;display:flex;align-items:flex-end;justify-content:center;cursor:pointer}.eg-st{width:100%;height:100%;display:flex;flex-direction:column-reverse}.eg-st i{display:block;width:100%}.eg-vl{position:absolute;top:0;bottom:0;width:1px;background:var(--text-color);opacity:.7;pointer-events:none;display:none}.eg-tip{position:absolute;z-index:5;min-width:210px;padding:12px 14px;border-radius:12px;background:var(--secondary-bg-color);border:1px solid var(--border-color);box-shadow:0 10px 30px rgba(0,0,0,.35);font-size:.82em;display:none;pointer-events:none}.eg-tip .r{display:flex;align-items:center;gap:8px;justify-content:space-between;margin-bottom:6px}.eg-tip .r b{font-weight:600;margin-left:auto}.eg-tip .dt{width:11px;height:11px;border-radius:50%;flex:none}.eg-tip .d{margin-top:8px;font-weight:600}.eg-xl{display:flex;gap:3px;margin:6px 0 0 54px;font-size:.7em;color:var(--secondary-color)}.eg-xl span{flex:1;min-width:0;text-align:center;white-space:nowrap;overflow:visible}.eg-lg{display:flex;gap:14px;flex-wrap:wrap;margin:10px 0 0 54px;font-size:.78em;color:var(--secondary-color)}.eg-lg span{display:inline-flex;align-items:center;gap:6px}.eg-lg i{width:10px;height:10px;border-radius:50%;display:inline-block}';document.head.appendChild(st)})();
+function egFmt(mb,z){if(mb>=1000)return (mb/1000).toFixed(z?1:2)+(z?'GB':' GB');if(mb>=1)return z?Math.round(mb)+'MB':mb.toFixed(3)+'MB';return z?Math.round(mb*1000)+'KB':(mb*1000).toFixed(3)+'KB'}
+function niceMax(v){if(v<=0)return 1;var p=Math.pow(10,Math.floor(Math.log10(v))),f=v/p;return (f<=1?1:f<=2?2:f<=3?3:f<=5?5:10)*p}
+function renderEgress(el,fac){
+  var dm=dayMap('egress'),dr=dayMap('realtime'),de=dayMap('edge'),n=new Date(new Date().toLocaleString('en-US',{timeZone:'Africa/Cairo'})),y=n.getFullYear(),mo=n.getMonth(),dim=new Date(y,mo+1,0).getDate(),today=dkey(Date.now()),rows=[],mx=0;
+  var mon=new Date(y,mo,1).toLocaleDateString('en-GB',{month:'short'}),monL=new Date(y,mo,1).toLocaleDateString('en-GB',{month:'short'});
+  for(var d=1;d<=dim;d++){var key=y+'-'+String(mo+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');var has=dm[key]!=null;var pg=has?fac*dm[key]*1000:0,rt=has?(dr[key]||0)*RT_KB/1000:0,fn=has?(de[key]||0)*FN_B/1e6:0,t=pg+rt+fn;if(t>mx)mx=t;rows.push({d:d,key:key,has:has,pg:pg,rt:rt,fn:fn,t:t})}
+  var top=niceMax(mx*1.05),ticks=[top,top*2/3,top/3,0];
+  var html='<div class="eg-wrap"><div class="eg-y">'+ticks.map(function(v){return '<span style="bottom:'+(v/top*100)+'%">'+(v===0?'0':egFmt(v,true))+'</span>'}).join('')+'</div><div class="eg-plot" id="egPlot">'+ticks.slice(0,3).map(function(v){return '<div class="eg-gl" style="bottom:'+(v/top*100)+'%"></div>'}).join('')+'<div class="eg-cols">'+rows.map(function(r,i){
+    var h=function(v){return (v/top*100).toFixed(2)+'%'};
+    return '<div class="eg-col" data-i="'+i+'"><div class="eg-st">'+(r.has?'<i style="height:'+h(r.pg)+';background:#2f7d5b"></i><i style="height:'+h(r.rt)+';background:#b45309"></i><i style="height:'+h(r.fn)+';background:#9a5bd5"></i>':'')+'</div></div>'
+  }).join('')+'</div><div class="eg-vl" id="egVl"></div><div class="eg-tip" id="egTip"></div></div></div>'+
+  '<div class="eg-xl">'+rows.map(function(r){return '<span>'+(r.d%4===0?(String(r.d).padStart(2,'0')+' '+mon):'')+'</span>'}).join('')+'</div>'+
+  '<div class="eg-lg"><span><i style="background:#2f7d5b"></i>PostgREST</span><span><i style="background:#b45309"></i>Realtime</span><span><i style="background:#9a5bd5"></i>Functions</span></div>'+
+  '<div class="dbu-fc" style="margin-top:8px">Estimated per day. PostgREST = request count x '+(fac*1e6).toFixed(1)+' KB per request (from your Calibrate readings); Realtime and Functions use fixed sizes taken from the Supabase dashboard (about '+RT_KB+' KB per Realtime request, '+FN_B+' B per Edge call). Tap or hover a bar for details. Days without collected data have no bar.</div>';
+  el.innerHTML=html;
+  var plot=document.getElementById('egPlot'),tip=document.getElementById('egTip'),vl=document.getElementById('egVl');
+  function show(i){var r=rows[i];if(!r.has){tip.style.display='none';vl.style.display='none';return}var t=r.t||1,pc=function(v){return (v/t*100).toFixed(1)+'%'};
+    tip.innerHTML='<div class="r"><span class="dt" style="background:#2f7d5b"></span><span>PostgREST Egress ('+pc(r.pg)+'):</span><b>'+egFmt(r.pg)+'</b></div><div class="r"><span class="dt" style="background:#b45309"></span><span>Realtime Egress ('+pc(r.rt)+'):</span><b>'+egFmt(r.rt)+'</b></div><div class="r"><span class="dt" style="background:#9a5bd5"></span><span>Functions Egress ('+pc(r.fn)+'):</span><b>'+egFmt(r.fn)+'</b></div><div class="d">'+String(r.d).padStart(2,'0')+' '+mon+' '+y+(r.key===today?' (so far)':'')+'</div>';
+    var col=plot.querySelectorAll('.eg-col')[i],pw=plot.clientWidth,cx=col.offsetLeft+col.offsetWidth/2;
+    vl.style.left=cx+'px';vl.style.display='block';tip.style.display='block';
+    var tw=tip.offsetWidth,l=cx-tw-12;if(l<0)l=cx+12;if(l+tw>pw)l=Math.max(0,pw-tw);tip.style.left=l+'px';tip.style.top='8px'}
+  plot.addEventListener('mouseover',function(e){var c=e.target.closest('.eg-col');if(c)show(+c.dataset.i)});
+  plot.addEventListener('click',function(e){var c=e.target.closest('.eg-col');if(c)show(+c.dataset.i)});
+  plot.addEventListener('mouseleave',function(){tip.style.display='none';vl.style.display='none'})
+}
 function renderChart(){
   var el=document.getElementById('dbuChart');if(!el||!D)return;
   var m=MET.filter(function(x){return x.k===chartK})[0],e=estimate(m),fac=chartK==='edge'?1:(e?e.factor:null);
   if(fac==null){el.innerHTML='<div style="color:var(--secondary-color);font-size:.9em">Not enough data yet to calibrate this chart.</div>';return}
+  if(chartK==='egress'){renderEgress(el,fac);return}
   var dm=dayMap(chartK),n=new Date(new Date().toLocaleString('en-US',{timeZone:'Africa/Cairo'})),y=n.getFullYear(),mo=n.getMonth(),dim=new Date(y,mo+1,0).getDate(),today=dkey(Date.now()),vals=[],mx=0;
   for(var d=1;d<=dim;d++){var key=y+'-'+String(mo+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');var has=dm[key]!=null;var v=has?fac*dm[key]:null;if(v!=null&&v>mx)mx=v;vals.push({d:d,key:key,v:v,today:key===today,future:key>today})}
   var ref=m.lim/dim;if(ref>mx)mx=Math.max(mx,ref*1.1);if(mx<=0)mx=1;
